@@ -1,0 +1,322 @@
+.avatar-selector-panel {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-large);
+    background: var(--color-surface);
+    padding: 22px;
+}
+
+.avatar-selector-panel__header {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+.avatar-selector-panel__header>div:last-child {
+    min-width: 0;
+}
+
+.avatar-selector-panel__header p {
+    color: var(--color-accent);
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+}
+
+.avatar-selector-panel__header h3 {
+    margin-top: 5px;
+    font-family: var(--font-display);
+    font-size: 25px;
+    overflow-wrap: anywhere;
+}
+
+.avatar-selector-panel__header span {
+    display: block;
+    margin-top: 4px;
+    color: var(--color-text-muted);
+    font-size: 10px;
+}
+
+.avatar-type-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5px;
+    margin-top: 23px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-pill);
+    background: var(--color-background);
+    padding: 5px;
+}
+
+.avatar-type-tabs button {
+    display: flex;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    border-radius: var(--radius-pill);
+    background: transparent;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    font-size: 10px;
+    font-weight: 800;
+}
+
+.avatar-type-tabs button.avatar-type-tabs__active {
+    background: var(--color-accent);
+    color: white;
+}
+
+.avatar-emoji-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 19px;
+}
+
+.avatar-emoji-grid__item {
+    display: grid;
+    aspect-ratio: 1;
+    place-items: center;
+    border: 1px solid var(--color-border);
+    border-radius: 14px;
+    background: var(--color-background);
+    cursor: pointer;
+    font-size: 23px;
+    transition:
+        transform var(--transition-fast),
+        border-color var(--transition-fast),
+        background var(--transition-fast);
+}
+
+.avatar-emoji-grid__item:hover {
+    transform: translateY(-2px);
+}
+
+.avatar-emoji-grid__item--active {
+    border-color: var(--color-accent);
+    background: var(--color-accent-soft);
+    box-shadow: 0 0 22px var(--color-accent-soft);
+}
+
+.artist-avatar-search {
+    margin-top: 19px;
+}
+
+.artist-avatar-search>label {
+    display: flex;
+    min-height: 49px;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-pill);
+    background: var(--color-background);
+    padding: 0 15px;
+}
+
+.artist-avatar-search>label:focus-within {
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 4px var(--color-accent-soft);
+}
+
+.artist-avatar-search>label>span {
+    color: var(--color-accent);
+    font-size: 18px;
+}
+
+.artist-avatar-search input {
+    width: 100%;
+    min-width: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--color-text-primary);
+}
+
+.artist-avatar-search__loader {
+    width: 17px;
+    height: 17px;
+    flex-shrink: 0;
+    border: 2px solid var(--color-border);
+    border-top-color: var(--color-accent);
+    border-radius: 50%;
+    animation: avatar-search-spin 700ms linear infinite;
+}
+
+.artist-avatar-results {
+    display: flex;
+    max-height: 330px;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 12px;
+    overflow-y: auto;
+}
+
+.artist-avatar-results>button {
+    display: grid;
+    width: 100%;
+    grid-template-columns: 52px minmax(0, 1fr) 24px;
+    align-items: center;
+    gap: 12px;
+    border: 1px solid transparent;
+    border-radius: 14px;
+    background: var(--color-background);
+    padding: 7px;
+    color: var(--color-text-primary);
+    cursor: pointer;
+    text-align: left;
+}
+
+.artist-avatar-results>button:hover {
+    border-color: var(--color-border-strong);
+    background: var(--color-surface-hover);
+}
+
+.artist-avatar-results button>div {
+    width: 52px;
+    height: 52px;
+}
+
+.artist-avatar-results img,
+.artist-avatar-results button>div>span {
+    width: 100%;
+    height: 100%;
+    border-radius: 13px;
+    object-fit: cover;
+}
+
+.artist-avatar-results button>div>span {
+    display: grid;
+    place-items: center;
+    background: var(--color-surface);
+    font-size: 24px;
+}
+
+.artist-avatar-results p {
+    min-width: 0;
+}
+
+.artist-avatar-results strong,
+.artist-avatar-results small {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.artist-avatar-results strong {
+    font-size: 11px;
+}
+
+.artist-avatar-results small {
+    margin-top: 4px;
+    color: var(--color-text-muted);
+    font-size: 8px;
+    text-transform: capitalize;
+}
+
+.artist-avatar-results button>span {
+    color: var(--color-accent);
+    font-size: 22px;
+}
+
+.artist-avatar-selected {
+    display: grid;
+    grid-template-columns: 58px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    margin-top: 12px;
+    border: 1px solid var(--color-accent);
+    border-radius: 15px;
+    background: var(--color-accent-soft);
+    padding: 9px;
+}
+
+.artist-avatar-selected>div {
+    width: 58px;
+    height: 58px;
+}
+
+.artist-avatar-selected img,
+.artist-avatar-selected>div>span {
+    width: 100%;
+    height: 100%;
+    border-radius: 14px;
+    object-fit: cover;
+}
+
+.artist-avatar-selected>div>span {
+    display: grid;
+    place-items: center;
+    background: var(--color-background);
+    font-size: 25px;
+}
+
+.artist-avatar-selected p {
+    min-width: 0;
+}
+
+.artist-avatar-selected small,
+.artist-avatar-selected strong {
+    display: block;
+}
+
+.artist-avatar-selected small {
+    color: var(--color-accent);
+    font-size: 7px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+}
+
+.artist-avatar-selected strong {
+    margin-top: 3px;
+    overflow: hidden;
+    font-size: 12px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.artist-avatar-selected button {
+    border-radius: var(--radius-pill);
+    background: var(--color-background);
+    padding: 8px 11px;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    font-size: 8px;
+}
+
+.artist-avatar-search__message {
+    margin-top: 12px;
+    color: #ff9999;
+    font-size: 10px;
+}
+
+.artist-avatar-search__attribution {
+    margin-top: 14px;
+    color: var(--color-text-muted);
+    font-size: 8px;
+    line-height: 1.6;
+}
+
+@keyframes avatar-search-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (max-width: 480px) {
+    .avatar-selector-panel {
+        padding: 17px;
+    }
+
+    .avatar-emoji-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .artist-avatar-selected {
+        grid-template-columns: 52px minmax(0, 1fr);
+    }
+
+    .artist-avatar-selected button {
+        grid-column: 1 / -1;
+    }
+}

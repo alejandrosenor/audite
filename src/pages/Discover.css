@@ -1,0 +1,379 @@
+.discover-page {
+    width: min(100%, 1100px);
+    margin: 0 auto;
+}
+
+.discover-page__header {
+    max-width: 760px;
+}
+
+.discover-page__eyebrow,
+.discovered-album__label {
+    color: var(--color-accent);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+}
+
+.discover-page__header h1 {
+    margin-top: 8px;
+    font-family: var(--font-display);
+    font-size: clamp(42px, 7vw, 72px);
+    line-height: 0.98;
+    letter-spacing: -0.05em;
+}
+
+.discover-page__header>p:last-child {
+    margin-top: 17px;
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+}
+
+.discover-empty {
+    display: flex;
+    min-height: 520px;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    margin-top: 34px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-large);
+    background:
+        radial-gradient(circle at center,
+            var(--color-accent-soft),
+            transparent 380px),
+        var(--color-surface);
+    padding: 36px;
+    text-align: center;
+}
+
+.discover-empty__record {
+    display: grid;
+    width: min(65vw, 250px);
+    aspect-ratio: 1;
+    place-items: center;
+    border-radius: 50%;
+    background:
+        repeating-radial-gradient(circle,
+            #181818 0 7px,
+            #090909 8px 13px);
+    box-shadow:
+        0 35px 80px rgba(0, 0, 0, 0.5),
+        0 0 70px var(--color-accent-soft);
+    animation: discover-record-spin 10s linear infinite;
+}
+
+.discover-empty__record span {
+    display: grid;
+    width: 32%;
+    aspect-ratio: 1;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--color-accent);
+    font-family: var(--font-display);
+    font-size: 44px;
+    font-weight: 800;
+}
+
+.discover-empty h2 {
+    max-width: 580px;
+    margin-top: 35px;
+    font-family: var(--font-display);
+    font-size: clamp(28px, 5vw, 44px);
+    line-height: 1.04;
+}
+
+.discover-empty p {
+    max-width: 520px;
+    margin-top: 12px;
+    color: var(--color-text-secondary);
+}
+
+.discover-empty button {
+    display: inline-flex;
+    min-height: 54px;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    margin-top: 28px;
+    border-radius: var(--radius-pill);
+    background: var(--color-accent);
+    box-shadow: var(--shadow-accent);
+    padding: 0 30px;
+    color: white;
+    cursor: pointer;
+    font-weight: 800;
+}
+
+.discover-empty button:disabled,
+.album-action:disabled {
+    cursor: wait;
+    opacity: 0.6;
+}
+
+.discovered-album {
+    display: grid;
+    grid-template-columns: minmax(280px, 430px) minmax(0, 1fr);
+    align-items: center;
+    gap: clamp(30px, 6vw, 80px);
+    margin-top: 34px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-large);
+    background:
+        linear-gradient(125deg, var(--color-accent-soft), transparent 55%),
+        var(--color-surface);
+    padding: clamp(24px, 5vw, 60px);
+}
+
+.discovered-album__cover-wrapper {
+    min-width: 0;
+}
+
+.discovered-album__cover {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 18px;
+    object-fit: cover;
+    box-shadow:
+        0 35px 70px rgba(0, 0, 0, 0.52),
+        0 0 60px var(--color-accent-soft);
+}
+
+.discovered-album__placeholder {
+    display: grid;
+    place-items: center;
+    background: var(--color-background);
+    font-size: 80px;
+}
+
+.discovered-album__information {
+    min-width: 0;
+}
+
+.discovered-album__information h2 {
+    margin-top: 10px;
+    font-family: var(--font-display);
+    font-size: clamp(42px, 7vw, 76px);
+    line-height: 0.95;
+    letter-spacing: -0.055em;
+    overflow-wrap: anywhere;
+}
+
+.discovered-album__information h3 {
+    margin-top: 13px;
+    color: var(--color-text-secondary);
+    font-size: clamp(19px, 3vw, 27px);
+    font-weight: 500;
+}
+
+.discovered-album__metadata {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 22px;
+}
+
+.discovered-album__metadata span {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-pill);
+    background: rgba(255, 255, 255, 0.04);
+    padding: 7px 11px;
+    color: var(--color-text-secondary);
+    font-size: 11px;
+}
+
+.discovered-album__spotify {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    margin-top: 26px;
+    color: var(--color-spotify);
+    font-weight: 800;
+}
+
+.discovered-album__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 11px;
+    margin-top: 28px;
+}
+
+.album-action {
+    min-height: 51px;
+    border-radius: var(--radius-pill);
+    padding: 0 22px;
+    cursor: pointer;
+    font-weight: 800;
+}
+
+.album-action--accept {
+    background: var(--color-accent);
+    box-shadow: var(--shadow-accent);
+    color: white;
+}
+
+.album-action--known {
+    border: 1px solid var(--color-accent);
+    background: var(--color-accent-soft);
+    color: var(--color-text-primary);
+}
+
+.album-action--reject {
+    border: 1px solid var(--color-border-strong);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--color-text-primary);
+}
+
+.discover-page__message {
+    margin-top: 18px;
+    border: 1px solid var(--color-border);
+    border-radius: 14px;
+    background: var(--color-surface);
+    padding: 14px;
+    color: var(--color-text-secondary);
+    font-size: 13px;
+}
+
+@keyframes discover-record-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (max-width: 760px) {
+    .discover-page__header h1 {
+        font-size: clamp(40px, 12vw, 54px);
+    }
+
+    .discover-empty {
+        min-height: 460px;
+        padding: 24px 18px;
+    }
+
+    .discovered-album {
+        grid-template-columns: 1fr;
+        gap: 30px;
+        padding: 20px;
+    }
+
+    .discovered-album__cover-wrapper {
+        width: min(100%, 330px);
+        margin: 0 auto;
+    }
+
+    .discovered-album__information h2 {
+        font-size: clamp(40px, 12vw, 58px);
+    }
+
+    .discovered-album__actions {
+        flex-direction: column;
+    }
+
+    .album-action {
+        width: 100%;
+    }
+}
+
+.album-tracklist {
+    margin-top: 30px;
+    border-top: 1px solid var(--color-border);
+    padding-top: 24px;
+}
+
+.album-tracklist__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.album-tracklist__header h3 {
+    margin: 0;
+    color: var(--color-text-primary);
+    font-family: var(--font-display);
+    font-size: 22px;
+}
+
+.album-tracklist__header span {
+    display: grid;
+    min-width: 28px;
+    height: 28px;
+    place-items: center;
+    border-radius: var(--radius-pill);
+    background: var(--color-accent-soft);
+    color: var(--color-accent);
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.album-tracklist ol {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-top: 15px;
+}
+
+.album-tracklist li {
+    display: grid;
+    min-width: 0;
+    grid-template-columns: 26px minmax(0, 1fr) 30px;
+    align-items: center;
+    gap: 10px;
+    border-radius: 12px;
+    padding: 9px 8px;
+    transition: background var(--transition-fast);
+}
+
+.album-tracklist li:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.album-tracklist__number {
+    color: var(--color-text-muted);
+    font-size: 11px;
+    text-align: center;
+}
+
+.album-tracklist li div {
+    min-width: 0;
+}
+
+.album-tracklist li strong,
+.album-tracklist li small {
+    display: block;
+}
+
+.album-tracklist li strong {
+    overflow: hidden;
+    font-size: 12px;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.album-tracklist li small {
+    margin-top: 3px;
+    color: var(--color-text-muted);
+    font-size: 10px;
+}
+
+.album-tracklist li a {
+    display: grid;
+    width: 30px;
+    height: 30px;
+    place-items: center;
+    border-radius: 50%;
+    color: var(--color-spotify);
+    font-size: 11px;
+}
+
+@media (max-width: 760px) {
+    .album-tracklist {
+        margin-top: 26px;
+    }
+
+    .album-tracklist ol {
+        max-height: 350px;
+        overflow-y: auto;
+        padding-right: 3px;
+    }
+}

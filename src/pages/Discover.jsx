@@ -1,0 +1,356 @@
+import { useEffect, useState } from "react";
+import { useAuth } from "../context/AuthContext";
+import {
+    discoverAlbum,
+    getAlbumTracks,
+    getCurrentGeneratedAlbum,
+    updateUserAlbumStatus,
+} from "../services/albums";
+import "./Discover.css";
+
+function formatDuration(durationMs) {
+    if (!durationMs) {
+        return "—";
+    }
+
+    const totalSeconds = Math.floor(durationMs / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = String(totalSeconds % 60).padStart(2, "0");
+
+    return `${minutes}:${seconds}`;
+}
+
+function Discover() {
+    const { user } = useAuth();
+
+    const [userAlbum, setUserAlbum] = useState(null);
+    const [tracks, setTracks] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [generating, setGenerating] = useState(false);
+    const [updating, setUpdating] = useState(false);
+    const [message, setMessage] = useState("");
+
+    async function loadTracks(albumId) {
+        if (!albumId) {
+            setTracks([]);
+            return;
+        }
+
+        try {
+            const albumTracks = await getAlbumTracks(albumId);
+            setTracks(albumTracks);
+        } catch (error) {
+            console.error("No se pudieron cargar las canciones:", error);
+            setTracks([]);
+        }
+    }
+
+    useEffect(() => {
+        if (!user?.id) {
+            return;
+        }
+
+        let cancelled = false;
+
+        async function loadCurrentAlbum() {
+            try {
+                const currentAlbum = await getCurrentGeneratedAlbum(user.id);
+
+                if (cancelled) {
+                    return;
+                }
+
+                setUserAlbum(currentAlbum);
+
+                if (currentAlbum?.album?.id) {
+                    const albumTracks = await getAlbumTracks(
+                        currentAlbum.album.id,
+                    );
+
+                    if (!cancelled) {
+                        setTracks(albumTracks);
+                    }
+                } else {
+                    setTracks([]);
+                }
+            } catch (error) {
+                console.error(error);
+
+                if (!cancelled) {
+                    setMessage(
+                        "No hemos podido recuperar tu disco actual.",
+                    );
+                }
+            } finally {
+                if (!cancelled) {
+                    setLoading(false);
+                }
+            }
+        }
+
+        loadCurrentAlbum();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [user?.id]);
+
+    async function handleGenerateAlbum() {
+        if (!user?.id || generating) {
+            return;
+        }
+
+        setGenerating(true);
+        setMessage("");
+        setTracks([]);
+
+        try {
+            const generatedAlbum = await discoverAlbum();
+
+            setUserAlbum(generatedAlbum);
+            await loadTracks(generatedAlbum.album.id);
+        } catch (error) {
+            console.error(error);
+            setMessage(
+                error.message || "No hemos podido generar un disco.",
+            );
+        } finally {
+            setGenerating(false);
+        }
+    }
+
+    async function handleDecision(status) {
+        if (!userAlbum || !user?.id || updating) {
+            return;
+        }
+
+        setUpdating(true);
+        setMessage("");
+
+        try {
+            await updateUserAlbumStatus({
+                userAlbumId: userAlbum.id,
+                userId: user.id,
+                status,
+            });
+
+            setUserAlbum(null);
+            setTracks([]);
+
+            if (status === "to_listen") {
+                setMessage(
+                    "Disco añadido a tu lista para escuchar.",
+                );
+            } else if (status === "known") {
+                setMessage(
+                    "Marcado como un disco que ya conocías.",
+                );
+            } else if (status === "rejected") {
+                setMessage("Disco enviado a rechazados.");
+            }
+        } catch (error) {
+            console.error(error);
+            setMessage(
+                "No hemos podido guardar tu decisión.",
+            );
+        } finally {
+            setUpdating(false);
+        }
+    }
+
+    if (loading) {
+        return (
+            <section className="discover-page">
+                <p className="discover-page__eyebrow">
+                    DESCUBRIR
+                </p>
+
+                <h1>Buscando tu disco...</h1>
+            </section>
+        );
+    }
+
+    return (
+        <section className="discover-page">
+            <header className="discover-page__header">
+                <p className="discover-page__eyebrow">
+                    DESCUBRIR
+                </p>
+
+                <h1>Tu próxima escucha empieza aquí.</h1>
+
+                <p>
+                    Déjate sorprender. Puede que estés a un clic
+                    de encontrar uno de tus nuevos discos favoritos.
+                </p>
+            </header>
+
+            {!userAlbum ? (
+                <article className="discover-empty">
+                    <div className="discover-empty__record">
+                        <span>A</span>
+                    </div>
+
+                    <h2>¿Preparado para descubrir algo nuevo?</h2>
+
+                    <p>
+                        Generaremos un álbum que todavía no haya
+                        aparecido en tu historia musical.
+                    </p>
+
+                    <button
+                        type="button"
+                        onClick={handleGenerateAlbum}
+                        disabled={generating}
+                    >
+                        <span>✦</span>
+
+                        {generating
+                            ? "Buscando disco..."
+                            : "Sorpréndeme"}
+                    </button>
+                </article>
+            ) : (
+                <article className="discovered-album fade-up">
+                    <div className="discovered-album__cover-wrapper">
+                        {userAlbum.album.cover_url ? (
+                            <img
+                                className="discovered-album__cover"
+                                src={userAlbum.album.cover_url}
+                                alt={`Portada de ${userAlbum.album.title}`}
+                            />
+                        ) : (
+                            <div className="discovered-album__cover discovered-album__placeholder">
+                                💿
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="discovered-album__information">
+                        <p className="discovered-album__label">
+                            TU DISCO DESCUBIERTO
+                        </p>
+
+                        <h2>{userAlbum.album.title}</h2>
+                        <h3>{userAlbum.album.artist_name}</h3>
+
+                        <div className="discovered-album__metadata">
+                            {userAlbum.album.release_year && (
+                                <span>
+                                    {userAlbum.album.release_year}
+                                </span>
+                            )}
+
+                            {userAlbum.album.track_count && (
+                                <span>
+                                    {userAlbum.album.track_count} canciones
+                                </span>
+                            )}
+
+                            {userAlbum.album.genres
+                                ?.slice(0, 3)
+                                .map((genre) => (
+                                    <span key={genre}>{genre}</span>
+                                ))}
+                        </div>
+
+                        {userAlbum.album.spotify_url && (
+                            <a
+                                className="discovered-album__spotify"
+                                href={userAlbum.album.spotify_url}
+                                target="_blank"
+                                rel="noreferrer"
+                            >
+                                <span>▶</span>
+                                Abrir en Spotify
+                            </a>
+                        )}
+
+                        {tracks.length > 0 && (
+                            <section className="album-tracklist">
+                                <div className="album-tracklist__header">
+                                    <h3>Canciones</h3>
+                                    <span>{tracks.length}</span>
+                                </div>
+
+                                <ol>
+                                    {tracks.map((track) => (
+                                        <li key={track.id}>
+                                            <span className="album-tracklist__number">
+                                                {track.track_number}
+                                            </span>
+
+                                            <div>
+                                                <strong>{track.title}</strong>
+
+                                                <small>
+                                                    {formatDuration(
+                                                        track.duration_ms,
+                                                    )}
+                                                </small>
+                                            </div>
+
+                                            {track.spotify_url && (
+                                                <a
+                                                    href={track.spotify_url}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    aria-label={`Abrir ${track.title} en Spotify`}
+                                                >
+                                                    ▶
+                                                </a>
+                                            )}
+                                        </li>
+                                    ))}
+                                </ol>
+                            </section>
+                        )}
+
+                        <div className="discovered-album__actions">
+                            <button
+                                type="button"
+                                className="album-action album-action--accept"
+                                onClick={() =>
+                                    handleDecision("to_listen")
+                                }
+                                disabled={updating}
+                            >
+                                Quiero escucharlo
+                            </button>
+
+                            <button
+                                type="button"
+                                className="album-action album-action--known"
+                                onClick={() =>
+                                    handleDecision("known")
+                                }
+                                disabled={updating}
+                            >
+                                Ya lo conozco
+                            </button>
+
+                            <button
+                                type="button"
+                                className="album-action album-action--reject"
+                                onClick={() =>
+                                    handleDecision("rejected")
+                                }
+                                disabled={updating}
+                            >
+                                Prefiero otro
+                            </button>
+                        </div>
+                    </div>
+                </article>
+            )}
+
+            {message && (
+                <p className="discover-page__message">
+                    {message}
+                </p>
+            )}
+        </section>
+    );
+}
+
+export default Discover;

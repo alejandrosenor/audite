@@ -1,0 +1,582 @@
+import {
+    useCallback,
+    useEffect,
+    useMemo,
+    useState,
+} from "react";
+import { useNavigate } from "react-router-dom";
+import AvatarSelector from "../components/AvatarSelector";
+import UserAvatar from "../components/UserAvatar";
+import { useAuth } from "../context/AuthContext";
+import { updateProfileAvatar } from "../services/artists";
+import { getProfileStats } from "../services/profile";
+import { supabase } from "../services/supabase";
+import "./Profile.css";
+
+const activityLabels = {
+    generated: "Descubriste",
+    to_listen: "Añadiste a pendientes",
+    listening: "Empezaste a escuchar",
+    completed: "Terminaste",
+    abandoned: "Dejaste sin terminar",
+    rejected: "Rechazaste",
+    known: "Marcaste como conocido"
+};
+
+function formatMinutes(totalMinutes) {
+    if (!totalMinutes) {
+        return "0 h";
+    }
+
+    if (totalMinutes < 60) {
+        return `${totalMinutes} min`;
+    }
+
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+
+    return minutes
+        ? `${hours} h ${minutes} min`
+        : `${hours} h`;
+}
+
+function Profile() {
+    const navigate = useNavigate();
+
+    const {
+        user,
+        profile,
+        signOut,
+        refreshProfile,
+    } = useAuth();
+
+    const [stats, setStats] = useState(null);
+    const [loadingStats, setLoadingStats] =
+        useState(true);
+
+    const [editing, setEditing] = useState(false);
+    const [username, setUsername] = useState(
+        profile?.username ?? "",
+    );
+
+    const [avatarType, setAvatarType] = useState(
+        profile?.avatar_type ?? "emoji",
+    );
+
+    const [selectedEmoji, setSelectedEmoji] =
+        useState(profile?.avatar ?? "🎧");
+
+    const [selectedArtist, setSelectedArtist] =
+        useState(
+            profile?.avatar_type === "spotify_artist"
+                ? {
+                    spotify_id:
+                        profile.avatar_spotify_artist_id,
+                    name: profile.avatar_artist_name,
+                    image_url: profile.avatar_url,
+                    spotify_url:
+                        profile.avatar_spotify_artist_url,
+                }
+                : null,
+        );
+
+    const [saving, setSaving] = useState(false);
+    const [message, setMessage] = useState("");
+    const [messageType, setMessageType] =
+        useState("");
+
+    const loadStats = useCallback(async () => {
+        if (!user?.id) {
+            return;
+        }
+
+        setLoadingStats(true);
+
+        try {
+            const profileStats = await getProfileStats(
+                user.id,
+            );
+
+            setStats(profileStats);
+        } catch (error) {
+            console.error(error);
+            setMessage(
+                "No hemos podido cargar todas tus estadísticas.",
+            );
+            setMessageType("error");
+        } finally {
+            setLoadingStats(false);
+        }
+    }, [user?.id]);
+
+    useEffect(() => {
+        loadStats();
+    }, [loadStats]);
+
+    useEffect(() => {
+        setUsername(profile?.username ?? "");
+        setAvatarType(
+            profile?.avatar_type ?? "emoji",
+        );
+        setSelectedEmoji(profile?.avatar ?? "🎧");
+
+        if (
+            profile?.avatar_type === "spotify_artist"
+        ) {
+            setSelectedArtist({
+                spotify_id:
+                    profile.avatar_spotify_artist_id,
+                name: profile.avatar_artist_name,
+                image_url: profile.avatar_url,
+                spotify_url:
+                    profile.avatar_spotify_artist_url,
+            });
+        }
+    }, [profile]);
+
+    const memberSince = useMemo(() => {
+        if (!profile?.created_at) {
+            return "Fecha desconocida";
+        }
+
+        return new Intl.DateTimeFormat("es-ES", {
+            month: "long",
+            year: "numeric",
+        }).format(new Date(profile.created_at));
+    }, [profile?.created_at]);
+
+    async function handleSaveProfile(event) {
+        event.preventDefault();
+
+        if (!username.trim()) {
+            setMessage("El nombre no puede estar vacío.");
+            setMessageType("error");
+            return;
+        }
+
+        if (
+            avatarType === "spotify_artist" &&
+            !selectedArtist
+        ) {
+            setMessage(
+                "Selecciona un artista antes de guardar.",
+            );
+            setMessageType("error");
+            return;
+        }
+
+        setSaving(true);
+        setMessage("");
+        setMessageType("");
+
+        try {
+            const { error: usernameError } =
+                await supabase
+                    .from("profiles")
+                    .update({
+                        username: username.trim(),
+                        updated_at: new Date().toISOString(),
+                    })
+                    .eq("id", user.id);
+
+            if (usernameError) {
+                throw usernameError;
+            }
+
+            await updateProfileAvatar({
+                userId: user.id,
+                avatarType,
+                emoji: selectedEmoji,
+                artist: selectedArtist,
+            });
+
+            await refreshProfile();
+
+            setEditing(false);
+            setMessage("Perfil actualizado correctamente.");
+            setMessageType("success");
+        } catch (error) {
+            console.error(error);
+
+            setMessage(
+                error.message ||
+                "No hemos podido actualizar tu perfil.",
+            );
+            setMessageType("error");
+        } finally {
+            setSaving(false);
+        }
+    }
+
+    async function handleSignOut() {
+        const { error } = await signOut();
+
+        if (!error) {
+            navigate("/auth", {
+                replace: true,
+            });
+        }
+    }
+
+    const previewProfile = {
+        ...profile,
+        username,
+        avatar_type: avatarType,
+        avatar: selectedEmoji,
+        avatar_url:
+            avatarType === "spotify_artist"
+                ? selectedArtist?.image_url
+                : null,
+        avatar_artist_name:
+            selectedArtist?.name ?? null,
+        avatar_spotify_artist_url:
+            selectedArtist?.spotify_url ?? null,
+    };
+
+    return (
+        <section className="profile-page">
+            <header className="profile-page__title">
+                <p>TU ESPACIO MUSICAL</p>
+                <h1>Perfil</h1>
+            </header>
+
+            <article className="profile-identity">
+                <div className="profile-identity__glow" />
+
+                <UserAvatar
+                    profile={profile}
+                    size="large"
+                    showSpotifyLink
+                />
+
+                <div className="profile-identity__content">
+                    <p>NIVEL {stats?.level ?? 1}</p>
+
+                    <h2>
+                        {profile?.username ?? "Usuario"}
+                    </h2>
+
+                    <span>{user?.email}</span>
+
+                    <small>
+                        Miembro desde {memberSince}
+                    </small>
+                </div>
+
+                <button
+                    type="button"
+                    onClick={() => setEditing((value) => !value)}
+                >
+                    {editing ? "Cerrar edición" : "Editar perfil"}
+                </button>
+            </article>
+
+            <section className="profile-level-card">
+                <div className="profile-level-card__header">
+                    <div>
+                        <span>Nivel musical</span>
+                        <strong>
+                            {stats?.level ?? 1}
+                        </strong>
+                    </div>
+
+                    <p>
+                        {stats?.totalCompleted ?? 0} de{" "}
+                        {stats?.nextLevelTarget ?? 5} discos
+                    </p>
+                </div>
+
+                <div className="profile-level-card__track">
+                    <div
+                        style={{
+                            width: `${stats?.levelProgress ?? 0
+                                }%`,
+                        }}
+                    />
+                </div>
+
+                <small>
+                    Escucha más discos para alcanzar el
+                    siguiente nivel.
+                </small>
+            </section>
+
+            {message && (
+                <p
+                    className={`profile-page__message profile-page__message--${messageType}`}
+                >
+                    {message}
+                </p>
+            )}
+
+            {editing && (
+                <form
+                    className="profile-editor"
+                    onSubmit={handleSaveProfile}
+                >
+                    <header>
+                        <p>PERSONALIZACIÓN</p>
+                        <h2>Edita tu identidad musical</h2>
+                    </header>
+
+                    <label className="profile-editor__name">
+                        <span>Nombre</span>
+
+                        <input
+                            value={username}
+                            onChange={(event) =>
+                                setUsername(event.target.value)
+                            }
+                            maxLength={40}
+                            placeholder="Tu nombre"
+                        />
+                    </label>
+
+                    <AvatarSelector
+                        profile={previewProfile}
+                        selectedType={avatarType}
+                        selectedEmoji={selectedEmoji}
+                        selectedArtist={selectedArtist}
+                        onTypeChange={setAvatarType}
+                        onEmojiChange={setSelectedEmoji}
+                        onArtistChange={setSelectedArtist}
+                    />
+
+                    <button
+                        type="submit"
+                        className="profile-editor__submit"
+                        disabled={saving}
+                    >
+                        {saving
+                            ? "Guardando..."
+                            : "Guardar cambios"}
+                    </button>
+                </form>
+            )}
+
+            <section className="profile-section">
+                <header className="profile-section__header">
+                    <div>
+                        <p>TUS NÚMEROS</p>
+                        <h2>Estadísticas</h2>
+                    </div>
+
+                    {loadingStats && <span>Actualizando...</span>}
+                </header>
+
+                <div className="profile-stats-grid">
+                    <article>
+                        <span>🔥</span>
+                        <strong>
+                            {profile?.current_streak ?? 0}
+                        </strong>
+                        <p>Racha actual</p>
+                    </article>
+
+                    <article>
+                        <span>♛</span>
+                        <strong>
+                            {profile?.best_streak ?? 0}
+                        </strong>
+                        <p>Mejor racha</p>
+                    </article>
+
+                    <article>
+                        <span>💿</span>
+                        <strong>
+                            {stats?.totalCompleted ?? 0}
+                        </strong>
+                        <p>Discos escuchados</p>
+                    </article>
+
+                    <article>
+                        <span>★</span>
+                        <strong>
+                            {stats?.averageRating === null ||
+                                stats?.averageRating === undefined
+                                ? "—"
+                                : stats.averageRating
+                                    .toFixed(1)
+                                    .replace(".", ",")}
+                        </strong>
+                        <p>Nota media</p>
+                    </article>
+
+                    <article>
+                        <span>♪</span>
+                        <strong>
+                            {stats?.favoriteTracks ?? 0}
+                        </strong>
+                        <p>Canciones top</p>
+                    </article>
+
+                    <article>
+                        <span>◷</span>
+                        <strong>
+                            {formatMinutes(
+                                stats?.totalMinutes ?? 0,
+                            )}
+                        </strong>
+                        <p>Tiempo escuchado</p>
+                    </article>
+                </div>
+            </section>
+
+            <section className="profile-section">
+                <header className="profile-section__header">
+                    <div>
+                        <p>TU ADN MUSICAL</p>
+                        <h2>Lo que define tus escuchas</h2>
+                    </div>
+                </header>
+
+                <div className="musical-dna-grid">
+                    <article>
+                        <span>Género favorito</span>
+                        <strong>
+                            {stats?.favoriteGenre ??
+                                "Aún por descubrir"}
+                        </strong>
+                    </article>
+
+                    <article>
+                        <span>Década favorita</span>
+                        <strong>
+                            {stats?.favoriteDecade ??
+                                "Aún por descubrir"}
+                        </strong>
+                    </article>
+
+                    <article>
+                        <span>Artista más repetido</span>
+                        <strong>
+                            {stats?.topArtist ??
+                                "Aún por descubrir"}
+                        </strong>
+                    </article>
+
+                    <article>
+                        <span>Discos pendientes</span>
+                        <strong>
+                            {stats?.pendingAlbums ?? 0}
+                        </strong>
+                    </article>
+                </div>
+
+                {stats?.bestReview && (
+                    <article className="profile-best-album">
+                        <div className="profile-best-album__cover">
+                            {stats.bestReview.album?.cover_url ? (
+                                <img
+                                    src={
+                                        stats.bestReview.album.cover_url
+                                    }
+                                    alt={`Portada de ${stats.bestReview.album.title}`}
+                                />
+                            ) : (
+                                <span>💿</span>
+                            )}
+                        </div>
+
+                        <div>
+                            <p>TU DISCO MEJOR VALORADO</p>
+
+                            <h3>
+                                {stats.bestReview.album?.title}
+                            </h3>
+
+                            <span>
+                                {
+                                    stats.bestReview.album
+                                        ?.artist_name
+                                }
+                            </span>
+                        </div>
+
+                        <strong>
+                            {stats.bestReview.rating}
+                        </strong>
+                    </article>
+                )}
+            </section>
+
+            <section className="profile-section">
+                <header className="profile-section__header">
+                    <div>
+                        <p>ÚLTIMOS MOVIMIENTOS</p>
+                        <h2>Actividad reciente</h2>
+                    </div>
+                </header>
+
+                {stats?.recentActivity?.length ? (
+                    <div className="profile-activity-list">
+                        {stats.recentActivity
+                            .slice(0, 7)
+                            .map((activity) => (
+                                <article key={activity.id}>
+                                    <div>
+                                        {activity.album?.cover_url ? (
+                                            <img
+                                                src={
+                                                    activity.album.cover_url
+                                                }
+                                                alt=""
+                                            />
+                                        ) : (
+                                            <span>💿</span>
+                                        )}
+                                    </div>
+
+                                    <p>
+                                        <strong>
+                                            {activityLabels[
+                                                activity.status
+                                            ] ?? "Actualizaste"}
+                                        </strong>
+
+                                        <span>
+                                            {activity.album?.title}
+                                        </span>
+                                    </p>
+
+                                    <small>
+                                        {new Intl.DateTimeFormat(
+                                            "es-ES",
+                                            {
+                                                day: "numeric",
+                                                month: "short",
+                                            },
+                                        ).format(
+                                            new Date(
+                                                activity.completed_at ??
+                                                activity.abandoned_at ??
+                                                activity.started_at ??
+                                                activity.accepted_at ??
+                                                activity.generated_at ??
+                                                activity.created_at,
+                                            ),
+                                        )}
+                                    </small>
+                                </article>
+                            ))}
+                    </div>
+                ) : (
+                    <p className="profile-section__empty">
+                        Tu actividad aparecerá aquí conforme uses
+                        Audite.
+                    </p>
+                )}
+            </section>
+
+            <button
+                type="button"
+                className="profile-page__logout"
+                onClick={handleSignOut}
+            >
+                Cerrar sesión
+            </button>
+        </section>
+    );
+}
+
+export default Profile;

@@ -1,0 +1,223 @@
+.listening-page {
+    width: min(100%, 1050px);
+    margin: 0 auto;
+}
+
+.listening-page__eyebrow,
+.listening-album__content>p {
+    color: var(--color-accent);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+}
+
+.listening-page header h1 {
+    max-width: 760px;
+    margin-top: 8px;
+    font-family: var(--font-display);
+    font-size: clamp(43px, 8vw, 74px);
+    line-height: 0.96;
+    letter-spacing: -0.055em;
+}
+
+.listening-empty {
+    display: flex;
+    min-height: 440px;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    margin-top: 34px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-large);
+    background: var(--color-surface);
+    padding: 30px;
+    text-align: center;
+}
+
+.listening-empty>span {
+    font-size: 70px;
+}
+
+.listening-empty p {
+    max-width: 460px;
+    margin-top: 20px;
+    color: var(--color-text-secondary);
+}
+
+.listening-empty a {
+    margin-top: 22px;
+    border-radius: var(--radius-pill);
+    background: var(--color-accent);
+    padding: 14px 22px;
+    color: white;
+    font-weight: 800;
+}
+
+.listening-album {
+    display: grid;
+    grid-template-columns: minmax(280px, 430px) minmax(0, 1fr);
+    align-items: center;
+    gap: clamp(32px, 7vw, 85px);
+    margin-top: 34px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-large);
+    background:
+        linear-gradient(125deg,
+            var(--color-accent-soft),
+            transparent 55%),
+        var(--color-surface);
+    padding: clamp(24px, 5vw, 58px);
+}
+
+.listening-album__cover {
+    position: relative;
+}
+
+.listening-album__cover img,
+.listening-album__cover>div {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 20px;
+    object-fit: cover;
+    box-shadow:
+        0 36px 80px rgba(0, 0, 0, 0.55),
+        0 0 70px var(--color-accent-soft);
+}
+
+.listening-album__cover>div {
+    display: grid;
+    place-items: center;
+    background: var(--color-background);
+    font-size: 76px;
+}
+
+.listening-album__pulse {
+    position: absolute;
+    right: 15px;
+    bottom: 15px;
+    display: grid;
+    width: 48px;
+    height: 48px;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--color-accent);
+    box-shadow: var(--shadow-accent);
+}
+
+.listening-album__pulse i {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: white;
+    animation: listening-pulse 1.5s ease infinite;
+}
+
+.listening-album__content {
+    min-width: 0;
+}
+
+.listening-album__content h2 {
+    margin-top: 10px;
+    font-family: var(--font-display);
+    font-size: clamp(43px, 7vw, 72px);
+    line-height: 0.94;
+    letter-spacing: -0.055em;
+    overflow-wrap: anywhere;
+}
+
+.listening-album__content h3 {
+    margin-top: 14px;
+    color: var(--color-text-secondary);
+    font-size: 22px;
+    font-weight: 500;
+}
+
+.listening-album__metadata {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-top: 22px;
+}
+
+.listening-album__metadata span {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-pill);
+    padding: 6px 10px;
+    color: var(--color-text-muted);
+    font-size: 10px;
+}
+
+.listening-album__content>a,
+.listening-album__content>button {
+    display: flex;
+    width: 100%;
+    min-height: 51px;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-radius: var(--radius-pill);
+    font-weight: 800;
+}
+
+.listening-album__content>a {
+    margin-top: 27px;
+    border: 1px solid rgba(30, 215, 96, 0.28);
+    background: rgba(30, 215, 96, 0.08);
+    color: var(--color-spotify);
+}
+
+.listening-album__content>button {
+    flex-direction: column;
+    gap: 0;
+    margin-top: 10px;
+    background: var(--color-accent);
+    color: white;
+    cursor: pointer;
+    opacity: 1;
+}
+
+.listening-album__content>button small {
+    font-size: 8px;
+    font-weight: 500;
+    opacity: 0.72;
+}
+
+.listening-page__message {
+    margin-top: 18px;
+    color: var(--color-text-secondary);
+}
+
+@keyframes listening-pulse {
+
+    0%,
+    100% {
+        transform: scale(0.8);
+        opacity: 0.7;
+    }
+
+    50% {
+        transform: scale(1.2);
+        opacity: 1;
+    }
+}
+
+@media (max-width: 760px) {
+    .listening-page header h1 {
+        font-size: clamp(42px, 13vw, 58px);
+    }
+
+    .listening-album {
+        grid-template-columns: 1fr;
+        gap: 30px;
+        padding: 20px;
+    }
+
+    .listening-album__cover {
+        width: min(100%, 330px);
+        margin: 0 auto;
+    }
+
+    .listening-album__content h2 {
+        font-size: clamp(42px, 13vw, 58px);
+    }
+}
