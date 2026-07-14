@@ -5,6 +5,8 @@ import {
 } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { getHomeData } from "../services/home";
+import DailyTrackCard from "../components/DailyTrackCard";
+import { getDailyTrack } from "../services/dailyTrack";
 import "./Home.css";
 
 function Home() {
@@ -19,9 +21,14 @@ function Home() {
         averageRating: null,
         favoriteTracks: 0,
     });
-
     const [loading, setLoading] = useState(true);
     const [message, setMessage] = useState("");
+    const [dailyTrack, setDailyTrack] =
+        useState(null);
+    const [dailyTrackLoading, setDailyTrackLoading] =
+        useState(true);
+    const [dailyTrackMessage, setDailyTrackMessage] =
+        useState("");
 
     const username =
         profile?.username ?? "Usuario";
@@ -90,6 +97,47 @@ function Home() {
             );
         };
     }, [loadHome]);
+
+    useEffect(() => {
+        if (!user?.id) {
+            return;
+        }
+
+        let cancelled = false;
+
+        async function loadDailyTrack() {
+            setDailyTrackLoading(true);
+            setDailyTrackMessage("");
+
+            try {
+                const track =
+                    await getDailyTrack();
+
+                if (!cancelled) {
+                    setDailyTrack(track);
+                }
+            } catch (error) {
+                console.error(error);
+
+                if (!cancelled) {
+                    setDailyTrackMessage(
+                        error.message ||
+                        "No hemos podido preparar la canción del día.",
+                    );
+                }
+            } finally {
+                if (!cancelled) {
+                    setDailyTrackLoading(false);
+                }
+            }
+        }
+
+        loadDailyTrack();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [user?.id]);
 
     function handlePrimaryAction() {
         const { featuredType, featuredUserAlbum } =
@@ -322,6 +370,23 @@ function Home() {
                     </div>
                 </div>
             </article>
+
+            <section className="home-section">
+                <header className="home-section__header">
+                    <div>
+                        <p>UNA PARADA RÁPIDA</p>
+                        <h2>La canción del día</h2>
+                    </div>
+
+                    <span>Una nueva cada 24 horas</span>
+                </header>
+
+                <DailyTrackCard
+                    track={dailyTrack}
+                    loading={dailyTrackLoading}
+                    message={dailyTrackMessage}
+                />
+            </section>
 
             <div className="home__stats fade-up">
                 <article className="stat-card">

@@ -466,3 +466,41 @@
     cursor: wait;
     opacity: 0.6;
 }
+
+.home-section {
+    margin-top: 34px;
+}
+
+.home-section__header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.home-section__header p {
+    color: var(--color-accent);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+}
+
+.home-section__header h2 {
+    margin-top: 5px;
+    font-family: var(--font-display);
+    font-size: clamp(31px, 6vw, 45px);
+    line-height: 1;
+}
+
+.home-section__header>span {
+    color: var(--color-text-muted);
+    font-size: 13px;
+}
+
+@media (max-width: 700px) {
+    .home-section__header {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 7px;
+    }
+}
