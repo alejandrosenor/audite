@@ -76,6 +76,35 @@ function AppLayout() {
 
     return (
         <div className="app-layout">
+            <header className="mobile-header">
+                <NavLink
+                    to="/"
+                    className="mobile-header__brand"
+                    aria-label="Ir al inicio"
+                >
+                    <span className="mobile-header__logo">A</span>
+
+                    <span>
+                        <strong>Audite</strong>
+                        <small>Un disco al día</small>
+                    </span>
+                </NavLink>
+
+                <NavLink
+                    to="/profile"
+                    className={({ isActive }) =>
+                        isActive
+                            ? "mobile-header__profile mobile-header__profile--active"
+                            : "mobile-header__profile"
+                    }
+                    aria-label="Abrir perfil"
+                >
+                    <UserAvatar
+                        profile={profile}
+                        size="small"
+                    />
+                </NavLink>
+            </header>
             <aside className="sidebar">
                 <div className="sidebar__brand">
                     <div className="sidebar__logo">A</div>
@@ -113,27 +142,6 @@ function AppLayout() {
                             <span>{item.label}</span>
                         </NavLink>
                     ))}
-
-                    <NavLink
-                        to="/profile"
-                        className={({ isActive }) =>
-                            [
-                                "sidebar__link",
-                                "sidebar__profile-mobile",
-                                isActive
-                                    ? "sidebar__link--active"
-                                    : "",
-                            ]
-                                .filter(Boolean)
-                                .join(" ")
-                        }
-                    >
-                        <span className="sidebar__link-icon">
-                            🎧
-                        </span>
-
-                        <span>Perfil</span>
-                    </NavLink>
                 </nav>
 
                 <div className="sidebar__footer">
