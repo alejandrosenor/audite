@@ -504,3 +504,7 @@
         gap: 7px;
     }
 }
+
+.home-section__header span {
+    margin-bottom: 20px;
+}

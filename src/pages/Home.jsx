@@ -7,6 +7,8 @@ import { useAuth } from "../context/AuthContext";
 import { getHomeData } from "../services/home";
 import DailyTrackCard from "../components/DailyTrackCard";
 import { getDailyTrack } from "../services/dailyTrack";
+import MusicEphemerisCard from "../components/MusicEphemerisCard";
+import { getDailyMusicEphemeris } from "../services/musicEphemeris";
 import "./Home.css";
 
 function Home() {
@@ -29,6 +31,18 @@ function Home() {
         useState(true);
     const [dailyTrackMessage, setDailyTrackMessage] =
         useState("");
+    const [
+        musicEphemeris,
+        setMusicEphemeris,
+    ] = useState(null);
+    const [
+        musicEphemerisLoading,
+        setMusicEphemerisLoading,
+    ] = useState(true);
+    const [
+        musicEphemerisMessage,
+        setMusicEphemerisMessage,
+    ] = useState("");
 
     const username =
         profile?.username ?? "Usuario";
@@ -133,6 +147,47 @@ function Home() {
         }
 
         loadDailyTrack();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [user?.id]);
+
+    useEffect(() => {
+        if (!user?.id) {
+            return;
+        }
+
+        let cancelled = false;
+
+        async function loadMusicEphemeris() {
+            setMusicEphemerisLoading(true);
+            setMusicEphemerisMessage("");
+
+            try {
+                const ephemeris =
+                    await getDailyMusicEphemeris();
+
+                if (!cancelled) {
+                    setMusicEphemeris(ephemeris);
+                }
+            } catch (error) {
+                console.error(error);
+
+                if (!cancelled) {
+                    setMusicEphemerisMessage(
+                        error.message ||
+                        "No hemos podido cargar la efeméride musical.",
+                    );
+                }
+            } finally {
+                if (!cancelled) {
+                    setMusicEphemerisLoading(false);
+                }
+            }
+        }
+
+        loadMusicEphemeris();
 
         return () => {
             cancelled = true;
@@ -388,57 +443,22 @@ function Home() {
                 />
             </section>
 
-            <div className="home__stats fade-up">
-                <article className="stat-card">
-                    <span className="stat-card__icon">
-                        📀
-                    </span>
+            <section className="home-section">
+                <header className="home-section__header">
+                    <div>
+                        <p>LA HISTORIA TAMBIÉN SUENA</p>
+                        <h2>Efeméride musical</h2>
+                    </div>
 
-                    <strong>
-                        {homeData.completedAlbums}
-                    </strong>
+                    <span>Un recuerdo distinto cada día</span>
+                </header>
 
-                    <p>Discos escuchados</p>
-                </article>
-
-                <article className="stat-card">
-                    <span className="stat-card__icon">
-                        ⭐
-                    </span>
-
-                    <strong>
-                        {homeData.averageRating === null
-                            ? "—"
-                            : homeData.averageRating
-                                .toFixed(1)
-                                .replace(".", ",")}
-                    </strong>
-
-                    <p>Nota media</p>
-                </article>
-
-                <article className="stat-card">
-                    <span className="stat-card__icon">
-                        🎶
-                    </span>
-
-                    <strong>
-                        {homeData.favoriteTracks}
-                    </strong>
-
-                    <p>Canciones top</p>
-                </article>
-
-                <article className="stat-card">
-                    <span className="stat-card__icon">
-                        👑
-                    </span>
-
-                    <strong>{bestStreak}</strong>
-
-                    <p>Mejor racha</p>
-                </article>
-            </div>
+                <MusicEphemerisCard
+                    ephemeris={musicEphemeris}
+                    loading={musicEphemerisLoading}
+                    message={musicEphemerisMessage}
+                />
+            </section>
         </section>
     );
 }
