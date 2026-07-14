@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { NavLink } from "react-router-dom";
+import LibraryTabs from "../components/LibraryTabs";
 import { useAuth } from "../context/AuthContext";
 import { getFavoriteTracks } from "../services/reviews";
 import "./Songs.css";
@@ -171,32 +171,7 @@ function Songs() {
                 </div>
             </header>
 
-            <nav className="library-tabs" aria-label="Secciones de la biblioteca">
-                <NavLink
-                    to="/library"
-                    end
-                    className={({ isActive }) =>
-                        isActive
-                            ? "library-tabs__item library-tabs__item--active"
-                            : "library-tabs__item"
-                    }
-                >
-                    <span>💿</span>
-                    Discos
-                </NavLink>
-
-                <NavLink
-                    to="/songs"
-                    className={({ isActive }) =>
-                        isActive
-                            ? "library-tabs__item library-tabs__item--active"
-                            : "library-tabs__item"
-                    }
-                >
-                    <span>♪</span>
-                    Canciones top
-                </NavLink>
-            </nav>
+            <LibraryTabs />
 
             {message && (
                 <p className="songs-page__message">

@@ -26,11 +26,11 @@ function App() {
           <Route path="/to-listen" element={<ToListen />} />
           <Route path="/listening" element={<Listening />} />
           <Route path="/library" element={<Library />} />
-          <Route path="/ranking" element={<Ranking />} />
           <Route path="/songs" element={<Songs />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/review/:userAlbumId" element={<Review />} />
+          <Route path="/ranking" element={<Ranking />} />
         </Route>
       </Route>
 

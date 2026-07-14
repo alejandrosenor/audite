@@ -6,6 +6,7 @@ import {
     deleteAbandonedReviews,
     getCompletedAlbums,
 } from "../services/reviews";
+import LibraryTabs from "../components/LibraryTabs";
 import "./Library.css";
 
 const reactionLabels = {
@@ -188,32 +189,7 @@ function Library() {
                 </p>
             </header>
 
-            <nav className="library-tabs" aria-label="Secciones de la biblioteca">
-                <NavLink
-                    to="/library"
-                    end
-                    className={({ isActive }) =>
-                        isActive
-                            ? "library-tabs__item library-tabs__item--active"
-                            : "library-tabs__item"
-                    }
-                >
-                    <span>💿</span>
-                    Discos
-                </NavLink>
-
-                <NavLink
-                    to="/songs"
-                    className={({ isActive }) =>
-                        isActive
-                            ? "library-tabs__item library-tabs__item--active"
-                            : "library-tabs__item"
-                    }
-                >
-                    <span>♪</span>
-                    Canciones top
-                </NavLink>
-            </nav>
+            <LibraryTabs />
 
             {message && (
                 <p className="library-page__message">

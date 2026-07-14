@@ -123,10 +123,11 @@ textarea {
 
 .library-tabs {
     display: grid;
-    width: min(100%, 420px);
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 5px;
-    margin-top: 27px;
+    width: min(100%, 610px);
+    grid-template-columns: repeat(3,
+            minmax(0, 1fr));
+    gap: 6px;
+    margin-top: 28px;
     border: 1px solid var(--color-border);
     border-radius: var(--radius-pill);
     background: var(--color-surface);
@@ -136,18 +137,19 @@ textarea {
 .library-tabs__item {
     display: flex;
     min-width: 0;
-    min-height: 43px;
+    min-height: 48px;
     align-items: center;
     justify-content: center;
     gap: 8px;
     border-radius: var(--radius-pill);
+    padding: 0 12px;
     color: var(--color-text-muted);
-    font-size: 11px;
+    font-size: 14px;
     font-weight: 800;
+    text-align: center;
     transition:
         background var(--transition-fast),
-        color var(--transition-fast),
-        transform var(--transition-fast);
+        color var(--transition-fast);
 }
 
 .library-tabs__item:hover {
@@ -157,20 +159,30 @@ textarea {
 .library-tabs__item--active {
     background: var(--color-accent);
     box-shadow: var(--shadow-accent);
-    color: var(--color-accent-contrast);
+    color: white;
 }
 
 .library-tabs__item span {
-    font-size: 14px;
+    font-size: 17px;
 }
 
 @media (max-width: 600px) {
     .library-tabs {
         width: 100%;
+        border-radius: 20px;
     }
 
     .library-tabs__item {
-        min-height: 46px;
-        font-size: 10px;
+        min-height: 54px;
+        flex-direction: column;
+        gap: 3px;
+        border-radius: 16px;
+        padding: 6px 3px;
+        font-size: 12px;
+        line-height: 1.1;
+    }
+
+    .library-tabs__item span {
+        font-size: 18px;
     }
 }

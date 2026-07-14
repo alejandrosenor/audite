@@ -278,3 +278,72 @@ export async function deleteAbandonedReviews({
         throw userAlbumsError;
     }
 }
+
+export async function getRankedAlbums(userId) {
+    if (!userId) {
+        return [];
+    }
+
+    const { data, error } = await supabase
+        .from("album_reviews")
+        .select(`
+            id,
+            rating,
+            reaction,
+            review_text,
+            would_listen_again,
+            created_at,
+            album:albums (
+                id,
+                title,
+                artist_name,
+                release_year,
+                cover_url,
+                spotify_url,
+                genres,
+                track_count,
+                duration_ms
+            ),
+            user_album:user_albums (
+                id,
+                completed_at
+            )
+        `)
+        .eq("user_id", userId)
+        .neq("reaction", "abandoned")
+        .not("rating", "is", null)
+        .order("rating", {
+            ascending: false,
+        })
+        .order("created_at", {
+            ascending: true,
+        });
+
+    if (error) {
+        throw error;
+    }
+
+    const reviews = data ?? [];
+
+    let previousRating = null;
+    let previousPosition = 0;
+
+    return reviews.map((review, index) => {
+        const numericRating = Number(review.rating);
+
+        const position =
+            previousRating !== null &&
+                numericRating === previousRating
+                ? previousPosition
+                : index + 1;
+
+        previousRating = numericRating;
+        previousPosition = position;
+
+        return {
+            ...review,
+            rating: numericRating,
+            position,
+        };
+    });
+}
