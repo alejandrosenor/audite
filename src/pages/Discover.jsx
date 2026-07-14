@@ -120,6 +120,32 @@ function Discover() {
         navigate,
     ]);
 
+    useEffect(() => {
+        if (
+            location.state?.selectedGenre ||
+            !location.state?.autoGenerate ||
+            loading ||
+            generating ||
+            userAlbum
+        ) {
+            return;
+        }
+
+        navigate("/discover", {
+            replace: true,
+            state: {},
+        });
+
+        handleGenerateAlbum("");
+    }, [
+        location.state?.autoGenerate,
+        location.state?.selectedGenre,
+        loading,
+        generating,
+        userAlbum,
+        navigate,
+    ]);
+
     async function handleGenerateAlbum(
         genre = selectedGenre,
     ) {

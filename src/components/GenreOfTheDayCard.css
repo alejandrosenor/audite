@@ -1,0 +1,552 @@
+.genre-day-card {
+    --genre-day-accent: var(--color-accent);
+
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-large);
+    background:
+        radial-gradient(circle at 10% 0,
+            color-mix(in srgb,
+                var(--genre-day-accent) 24%,
+                transparent),
+            transparent 420px),
+        var(--color-surface);
+    padding: 25px;
+}
+
+.genre-day-card__background {
+    position: absolute;
+    top: -80px;
+    right: -40px;
+    display: grid;
+    width: 310px;
+    height: 310px;
+    place-items: center;
+    border: 1px solid rgba(255, 255, 255, 0.035);
+    border-radius: 50%;
+    opacity: 0.08;
+    pointer-events: none;
+}
+
+.genre-day-card__background span {
+    font-size: 160px;
+    filter: blur(2px);
+    transform: rotate(12deg);
+}
+
+.genre-day-card__header {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.genre-day-card__header p,
+.genre-day-traits header p,
+.genre-day-information section>p,
+.genre-day-artists header p,
+.genre-day-album p,
+.genre-day-response header p {
+    color: var(--genre-day-accent);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+}
+
+.genre-day-card__header>div:first-child>span {
+    display: block;
+    margin-top: 6px;
+    color: var(--color-text-secondary);
+    font-size: 14px;
+}
+
+.genre-day-card__difficulty {
+    display: flex;
+    min-height: 42px;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-pill);
+    background: rgba(255, 255, 255, 0.045);
+    padding: 0 14px;
+}
+
+.genre-day-card__difficulty strong {
+    font-size: 13px;
+}
+
+.genre-day-card__hero {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 130px minmax(0, 1fr);
+    align-items: center;
+    gap: 24px;
+    margin-top: 24px;
+}
+
+.genre-day-card__icon {
+    display: grid;
+    width: 130px;
+    height: 130px;
+    place-items: center;
+    border: 1px solid color-mix(in srgb,
+            var(--genre-day-accent) 45%,
+            transparent);
+    border-radius: 34px;
+    background:
+        linear-gradient(140deg,
+            color-mix(in srgb,
+                var(--genre-day-accent) 20%,
+                transparent),
+            rgba(255, 255, 255, 0.025)),
+        var(--color-background);
+    box-shadow:
+        0 25px 60px rgba(0, 0, 0, 0.4),
+        0 0 45px color-mix(in srgb,
+            var(--genre-day-accent) 18%,
+            transparent);
+    font-size: 57px;
+}
+
+.genre-day-card__hero h2 {
+    font-family: var(--font-display);
+    font-size: clamp(47px, 8vw, 76px);
+    line-height: 0.9;
+    letter-spacing: -0.055em;
+}
+
+.genre-day-card__hero p {
+    max-width: 720px;
+    margin-top: 15px;
+    color: var(--color-text-secondary);
+    font-size: 16px;
+    line-height: 1.7;
+}
+
+.genre-day-card>blockquote {
+    position: relative;
+    z-index: 1;
+    margin-top: 23px;
+    border-left: 4px solid var(--genre-day-accent);
+    border-radius: 0 16px 16px 0;
+    background: var(--color-background);
+    padding: 17px 20px;
+    color: var(--color-text-primary);
+    font-family: var(--font-display);
+    font-size: 20px;
+    line-height: 1.4;
+}
+
+.genre-day-traits,
+.genre-day-artists,
+.genre-day-response {
+    position: relative;
+    z-index: 1;
+    margin-top: 23px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-medium);
+    background: rgba(8, 9, 12, 0.6);
+    padding: 19px;
+}
+
+.genre-day-traits header h3,
+.genre-day-artists header h3,
+.genre-day-response header h3 {
+    margin-top: 5px;
+    font-family: var(--font-display);
+    font-size: 27px;
+}
+
+.genre-day-traits__grid {
+    display: grid;
+    grid-template-columns: repeat(2,
+            minmax(0, 1fr));
+    gap: 14px;
+    margin-top: 18px;
+}
+
+.genre-day-traits__grid article>div:first-child {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.genre-day-traits__grid span,
+.genre-day-traits__grid strong {
+    font-size: 13px;
+}
+
+.genre-day-trait-bar {
+    height: 8px;
+    margin-top: 8px;
+    overflow: hidden;
+    border-radius: var(--radius-pill);
+    background: rgba(255, 255, 255, 0.07);
+}
+
+.genre-day-trait-bar span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--genre-day-accent);
+    box-shadow:
+        0 0 16px color-mix(in srgb,
+            var(--genre-day-accent) 50%,
+            transparent);
+}
+
+.genre-day-information {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.genre-day-information section {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-medium);
+    background: rgba(8, 9, 12, 0.6);
+    padding: 18px;
+}
+
+.genre-day-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-top: 15px;
+}
+
+.genre-day-tags span {
+    border: 1px solid color-mix(in srgb,
+            var(--genre-day-accent) 35%,
+            var(--color-border));
+    border-radius: var(--radius-pill);
+    background:
+        color-mix(in srgb,
+            var(--genre-day-accent) 10%,
+            transparent);
+    padding: 8px 11px;
+    font-size: 13px;
+}
+
+.genre-day-information ul {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 9px;
+    margin-top: 15px;
+}
+
+.genre-day-information li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--color-text-secondary);
+    font-size: 13px;
+}
+
+.genre-day-information li span {
+    color: var(--genre-day-accent);
+}
+
+.genre-day-artists>div {
+    display: grid;
+    grid-template-columns: repeat(4,
+            minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 17px;
+}
+
+.genre-day-artists article {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid var(--color-border);
+    border-radius: 14px;
+    background: var(--color-background);
+    padding: 10px;
+}
+
+.genre-day-artists article strong {
+    display: grid;
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    place-items: center;
+    border-radius: 10px;
+    background:
+        color-mix(in srgb,
+            var(--genre-day-accent) 17%,
+            transparent);
+    color: var(--genre-day-accent);
+    font-family: var(--font-display);
+}
+
+.genre-day-artists article span {
+    min-width: 0;
+    overflow: hidden;
+    font-size: 13px;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.genre-day-album {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 74px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 15px;
+    margin-top: 12px;
+    border: 1px solid color-mix(in srgb,
+            var(--genre-day-accent) 38%,
+            var(--color-border));
+    border-radius: var(--radius-medium);
+    background:
+        linear-gradient(115deg,
+            color-mix(in srgb,
+                var(--genre-day-accent) 13%,
+                transparent),
+            transparent 75%),
+        var(--color-background);
+    padding: 13px;
+}
+
+.genre-day-album__disc {
+    display: grid;
+    width: 74px;
+    height: 74px;
+    place-items: center;
+    align-content: center;
+    border-radius: 50%;
+    background:
+        radial-gradient(circle,
+            var(--genre-day-accent) 0 8%,
+            #15161c 9% 22%,
+            #08090b 23%);
+    box-shadow: 0 14px 35px rgba(0, 0, 0, 0.4);
+}
+
+.genre-day-album__disc span,
+.genre-day-album__disc small {
+    display: block;
+    line-height: 1;
+}
+
+.genre-day-album__disc span {
+    font-family: var(--font-display);
+    font-size: 15px;
+}
+
+.genre-day-album__disc small {
+    margin-top: 2px;
+    font-size: 6px;
+}
+
+.genre-day-album h3 {
+    margin-top: 5px;
+    font-family: var(--font-display);
+    font-size: 23px;
+}
+
+.genre-day-album div:nth-child(2)>span {
+    display: block;
+    margin-top: 5px;
+    color: var(--color-text-secondary);
+    font-size: 13px;
+}
+
+.genre-day-album>a {
+    display: inline-flex;
+    min-height: 45px;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-pill);
+    background: #1ed760;
+    padding: 0 16px;
+    color: #07110a;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.genre-day-fact {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-top: 12px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-medium);
+    background: rgba(255, 255, 255, 0.035);
+    padding: 16px;
+}
+
+.genre-day-fact>span {
+    font-size: 24px;
+}
+
+.genre-day-fact strong {
+    font-size: 14px;
+}
+
+.genre-day-fact p {
+    margin-top: 5px;
+    color: var(--color-text-secondary);
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.genre-day-response>div {
+    display: grid;
+    grid-template-columns: repeat(3,
+            minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.genre-day-response button {
+    display: flex;
+    min-height: 48px;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-pill);
+    background: var(--color-background);
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.genre-day-response button span {
+    color: var(--genre-day-accent);
+}
+
+.genre-day-response button.genre-day-response__selected {
+    border-color: var(--genre-day-accent);
+    background:
+        color-mix(in srgb,
+            var(--genre-day-accent) 15%,
+            transparent);
+    color: var(--color-text-primary);
+}
+
+.genre-day-response>small {
+    display: block;
+    margin-top: 10px;
+    color: #ff9999;
+    font-size: 12px;
+}
+
+.genre-day-card__actions {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 9px;
+    margin-top: 15px;
+}
+
+.genre-day-card__actions button {
+    min-height: 52px;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.genre-day-card__actions button:first-child {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: 0;
+    background: var(--genre-day-accent);
+    box-shadow:
+        0 0 28px color-mix(in srgb,
+            var(--genre-day-accent) 35%,
+            transparent);
+    padding: 0 20px;
+    color: white;
+}
+
+.genre-day-card__actions button:last-child {
+    border: 1px solid var(--color-border-strong);
+    background: rgba(255, 255, 255, 0.04);
+    padding: 0 18px;
+    color: var(--color-text-primary);
+}
+
+@media (max-width: 760px) {
+    .genre-day-card {
+        padding: 19px;
+    }
+
+    .genre-day-card__header {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .genre-day-card__difficulty {
+        width: fit-content;
+    }
+
+    .genre-day-card__hero {
+        grid-template-columns: 1fr;
+    }
+
+    .genre-day-card__icon {
+        width: 100%;
+        height: 170px;
+    }
+
+    .genre-day-card__hero h2 {
+        font-size: clamp(52px, 16vw, 73px);
+    }
+
+    .genre-day-traits__grid,
+    .genre-day-information {
+        grid-template-columns: 1fr;
+    }
+
+    .genre-day-artists>div {
+        grid-template-columns: repeat(2,
+                minmax(0, 1fr));
+    }
+
+    .genre-day-album {
+        grid-template-columns:
+            70px minmax(0, 1fr);
+    }
+
+    .genre-day-album>a {
+        grid-column: 1 / -1;
+    }
+
+    .genre-day-response>div,
+    .genre-day-card__actions {
+        grid-template-columns: 1fr;
+    }
+
+    .genre-day-card__actions button {
+        width: 100%;
+    }
+}
+
+@media (max-width: 420px) {
+
+    .genre-day-information ul,
+    .genre-day-artists>div {
+        grid-template-columns: 1fr;
+    }
+}

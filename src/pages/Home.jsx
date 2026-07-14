@@ -9,6 +9,8 @@ import DailyTrackCard from "../components/DailyTrackCard";
 import { getDailyTrack } from "../services/dailyTrack";
 import MusicEphemerisCard from "../components/MusicEphemerisCard";
 import { getDailyMusicEphemeris } from "../services/musicEphemeris";
+import GenreOfTheDayCard from "../components/GenreOfTheDayCard";
+import { getGenreOfTheDay } from "../data/genreOfTheDay";
 import "./Home.css";
 
 function Home() {
@@ -79,6 +81,8 @@ function Home() {
             setLoading(false);
         }
     }, [user?.id]);
+
+    const genreOfTheDay = getGenreOfTheDay();
 
     useEffect(() => {
         loadHome();
@@ -440,6 +444,24 @@ function Home() {
                     track={dailyTrack}
                     loading={dailyTrackLoading}
                     message={dailyTrackMessage}
+                />
+            </section>
+
+            <section className="home-section">
+                <header className="home-section__header">
+                    <div>
+                        <p>AMPLÍA TU MAPA MUSICAL</p>
+                        <h2>Género del día</h2>
+                    </div>
+
+                    <span>
+                        Un estilo distinto cada 24 horas
+                    </span>
+                </header>
+
+                <GenreOfTheDayCard
+                    genre={genreOfTheDay}
+                    userId={user?.id}
                 />
             </section>
 
