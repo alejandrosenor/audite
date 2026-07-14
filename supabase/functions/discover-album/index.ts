@@ -358,8 +358,13 @@ Deno.serve(async (request) => {
       "-secondarytype:Remix",
     ];
 
-    if (genre) {
-      queryParts.push(`tag:"${genre.replaceAll('"', "")}"`);
+    const cleanGenre = genre
+      .replaceAll('"', "")
+      .replaceAll("\\", "")
+      .trim();
+
+    if (cleanGenre) {
+      queryParts.push(`tag:"${cleanGenre}"`);
     }
 
     const limit = 25;
@@ -546,6 +551,18 @@ Deno.serve(async (request) => {
         {
           error:
             "Los resultados encontrados no tenían una portada válida o ya los conocías. Prueba otra vez.",
+        },
+        404,
+        corsHeaders,
+      );
+    }
+
+    if (!candidates.length) {
+      return jsonResponse(
+        {
+          error: cleanGenre
+            ? `No hemos encontrado discos de ${cleanGenre}. Prueba de nuevo o elige un género más amplio.`
+            : "No hemos encontrado ningún disco. Prueba otra vez.",
         },
         404,
         corsHeaders,

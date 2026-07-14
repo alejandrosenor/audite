@@ -1,11 +1,16 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import {
+    useLocation,
+    useNavigate,
+} from "react-router-dom";
+import {
     discoverAlbum,
     getAlbumTracks,
     getCurrentGeneratedAlbum,
     updateUserAlbumStatus,
 } from "../services/albums";
+import GenreSelectorModal from "../components/GenreSelectorModal";
 import "./Discover.css";
 
 function formatDuration(durationMs) {
@@ -21,6 +26,8 @@ function formatDuration(durationMs) {
 }
 
 function Discover() {
+    const location = useLocation();
+    const navigate = useNavigate();
     const { user } = useAuth();
 
     const [userAlbum, setUserAlbum] = useState(null);
@@ -29,6 +36,8 @@ function Discover() {
     const [generating, setGenerating] = useState(false);
     const [updating, setUpdating] = useState(false);
     const [message, setMessage] = useState("");
+    const [genreModalOpen, setGenreModalOpen] = useState(false);
+    const [selectedGenre, setSelectedGenre] = useState("");
 
     async function loadTracks(albumId) {
         if (!albumId) {
@@ -95,7 +104,25 @@ function Discover() {
         };
     }, [user?.id]);
 
-    async function handleGenerateAlbum() {
+    useEffect(() => {
+        if (!location.state?.openGenreSelector) {
+            return;
+        }
+
+        setGenreModalOpen(true);
+
+        navigate("/discover", {
+            replace: true,
+            state: {},
+        });
+    }, [
+        location.state?.openGenreSelector,
+        navigate,
+    ]);
+
+    async function handleGenerateAlbum(
+        genre = selectedGenre,
+    ) {
         if (!user?.id || generating) {
             return;
         }
@@ -105,14 +132,24 @@ function Discover() {
         setTracks([]);
 
         try {
-            const generatedAlbum = await discoverAlbum();
+            const generatedAlbum =
+                await discoverAlbum({
+                    genre,
+                });
 
             setUserAlbum(generatedAlbum);
-            await loadTracks(generatedAlbum.album.id);
+
+            await loadTracks(
+                generatedAlbum.album.id,
+            );
+
+            setGenreModalOpen(false);
         } catch (error) {
             console.error(error);
+
             setMessage(
-                error.message || "No hemos podido generar un disco.",
+                error.message ||
+                "No hemos podido generar un disco.",
             );
         } finally {
             setGenerating(false);
@@ -200,7 +237,8 @@ function Discover() {
 
                     <button
                         type="button"
-                        onClick={handleGenerateAlbum}
+                        className="discover-empty__album-button"
+                        onClick={() => handleGenerateAlbum("")}
                         disabled={generating}
                     >
                         <span>✦</span>
@@ -208,6 +246,15 @@ function Discover() {
                         {generating
                             ? "Buscando disco..."
                             : "Sorpréndeme"}
+                    </button>
+                    <button
+                        type="button"
+                        className="discover-empty__genre-button"
+                        onClick={() => setGenreModalOpen(true)}
+                        disabled={generating}
+                    >
+                        <span>⌘</span>
+                        Elegir género
                     </button>
                 </article>
             ) : (
@@ -349,6 +396,16 @@ function Discover() {
                     {message}
                 </p>
             )}
+
+            <GenreSelectorModal
+                isOpen={genreModalOpen}
+                selectedGenre={selectedGenre}
+                onClose={() => setGenreModalOpen(false)}
+                onSelect={(genre) => {
+                    setSelectedGenre(genre);
+                    handleGenerateAlbum(genre);
+                }}
+            />
         </section>
     );
 }
