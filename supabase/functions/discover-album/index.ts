@@ -6,19 +6,21 @@ const COVER_ART_BASE_URL = "https://coverartarchive.org";
 
 const allowedOrigins = [
   "http://localhost:5173",
+  "https://audite.vercel.app",
 ];
 
 function getCorsHeaders(origin: string | null) {
   const allowedOrigin =
     origin && allowedOrigins.includes(origin)
       ? origin
-      : allowedOrigins[0];
+      : allowedOrigins[1];
 
   return {
     "Access-Control-Allow-Origin": allowedOrigin,
     "Access-Control-Allow-Headers":
-      "authorization, x-client-info, apikey, content-type",
+    "authorization, x-client-info, apikey, content-type",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Vary": "Origin",
   };
 }
 

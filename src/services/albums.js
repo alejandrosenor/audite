@@ -1,6 +1,8 @@
 import { supabase } from "./supabase";
 import {
+    FunctionsFetchError,
     FunctionsHttpError,
+    FunctionsRelayError,
 } from "@supabase/supabase-js";
 
 export async function getRandomAlbum(userId) {
@@ -135,30 +137,54 @@ export async function getCurrentGeneratedAlbum(userId) {
 }
 
 export async function discoverAlbum({ genre = "" } = {}) {
-    const { data, error } = await supabase.functions.invoke(
-        "discover-album",
-        {
-            body: {
-                genre,
+    const { data, error } =
+        await supabase.functions.invoke(
+            "discover-album",
+            {
+                body: {
+                    genre,
+                },
             },
-        },
-    );
+        );
 
     if (error) {
-        let message = "No hemos podido generar un disco.";
-
-        try {
-            const errorBody = await error.context?.json();
-            message = errorBody?.error ?? message;
-        } catch {
-            message = error.message ?? message;
+        if (error instanceof FunctionsFetchError) {
+            throw new Error(
+                "No hemos podido conectar con el generador. Revisa la conexión o la configuración de la función.",
+            );
         }
 
-        throw new Error(message);
+        if (error instanceof FunctionsHttpError) {
+            try {
+                const body = await error.context.json();
+
+                throw new Error(
+                    body?.error ??
+                    "El generador ha devuelto un error.",
+                );
+            } catch {
+                throw new Error(
+                    "El generador ha devuelto un error.",
+                );
+            }
+        }
+
+        if (error instanceof FunctionsRelayError) {
+            throw new Error(
+                "Supabase no ha podido ejecutar el generador.",
+            );
+        }
+
+        throw new Error(
+            error.message ??
+            "No hemos podido generar un disco.",
+        );
     }
 
     if (!data?.userAlbum) {
-        throw new Error("La función no ha devuelto ningún disco.");
+        throw new Error(
+            "El generador no ha devuelto ningún disco.",
+        );
     }
 
     return data.userAlbum;
