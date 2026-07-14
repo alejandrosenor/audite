@@ -76,8 +76,82 @@ async function getSpotifyToken() {
 
   const data = JSON.parse(responseText);
 
+  if (!data.access_token) {
+    throw new Error(
+      "Spotify no ha devuelto un access token.",
+    );
+  }
+
   return data.access_token;
 }
+
+async function fetchSpotifyWithRetry(
+      url: string,
+      token: string,
+      maxAttempts = 3,
+    ) {
+      let lastStatus = 500;
+      let lastResponseText = "";
+
+      for (
+        let attempt = 1;
+        attempt <= maxAttempts;
+        attempt += 1
+      ) {
+        const response = await fetch(url, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const responseText =
+          await response.text();
+
+        if (response.ok) {
+          return JSON.parse(responseText);
+        }
+
+        lastStatus = response.status;
+        lastResponseText = responseText;
+
+        console.error(
+          `Spotify artist search attempt ${attempt}:`,
+          response.status,
+          responseText,
+        );
+
+        const isTemporaryError = [
+          502,
+          503,
+          504,
+        ].includes(response.status);
+
+        if (
+          !isTemporaryError ||
+          attempt === maxAttempts
+        ) {
+          break;
+        }
+
+        /*
+        * Esperamos algo más en cada reintento:
+        * 500 ms, 1000 ms y 1500 ms.
+        */
+        await new Promise((resolve) =>
+          setTimeout(resolve, attempt * 500),
+        );
+      }
+
+      console.error(
+        "Spotify artist search final error:",
+        lastStatus,
+        lastResponseText,
+      );
+
+      throw new Error(
+        `Spotify no ha podido buscar artistas (${lastStatus}).`,
+      );
+    }
 
 Deno.serve(async (request) => {
   if (request.method === "OPTIONS") {
@@ -123,30 +197,11 @@ Deno.serve(async (request) => {
       "10",
     );
 
-    const response = await fetch(
-      searchUrl.toString(),
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      },
-    );
-
-    const responseText = await response.text();
-
-    if (!response.ok) {
-      console.error(
-        "Spotify artist search error:",
-        response.status,
-        responseText,
+    const data =
+      await fetchSpotifyWithRetry(
+        searchUrl.toString(),
+        token,
       );
-
-      throw new Error(
-        `Spotify no ha podido buscar artistas (${response.status}).`,
-      );
-    }
-
-    const data = JSON.parse(responseText);
 
     const artists = (
       data.artists?.items ?? []
@@ -166,19 +221,29 @@ Deno.serve(async (request) => {
       artists,
     });
   } catch (error) {
-    console.error(
-      "search-artists error:",
-      error,
-    );
+      console.error(
+        "search-artists error:",
+        error,
+      );
 
-    return jsonResponse(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : "Error inesperado.",
-      },
-      500,
-    );
-  }
+      const rawMessage =
+        error instanceof Error
+          ? error.message
+          : "";
+
+      const isTemporarySpotifyError =
+        rawMessage.includes("(502)") ||
+        rawMessage.includes("(503)") ||
+        rawMessage.includes("(504)");
+
+      return jsonResponse(
+        {
+          error: isTemporarySpotifyError
+            ? "Spotify está teniendo un problema temporal. Espera unos segundos y vuelve a intentarlo."
+            : rawMessage ||
+              "No hemos podido buscar artistas.",
+        },
+        isTemporarySpotifyError ? 503 : 500,
+      );
+    }
 });
