@@ -16,9 +16,9 @@ export async function getHomeData(userId) {
         supabase
             .from("user_albums")
             .select(`
-        *,
-        album:albums (*)
-      `)
+                *,
+                album:albums (*)
+            `)
             .eq("user_id", userId)
             .eq("status", "generated")
             .order("generated_at", { ascending: false })
@@ -28,9 +28,9 @@ export async function getHomeData(userId) {
         supabase
             .from("user_albums")
             .select(`
-        *,
-        album:albums (*)
-      `)
+                *,
+                album:albums (*)
+            `)
             .eq("user_id", userId)
             .eq("status", "listening")
             .order("started_at", { ascending: false })
@@ -40,11 +40,11 @@ export async function getHomeData(userId) {
         supabase
             .from("user_albums")
             .select(`
-        *,
-        album:albums (*)
-      `)
+                *,
+                album:albums (*)
+            `)
             .eq("user_id", userId)
-            .eq("status", "to_listen")
+            .in("status", ["to_listen", "paused"])
             .order("accepted_at", { ascending: false })
             .limit(1)
             .maybeSingle(),

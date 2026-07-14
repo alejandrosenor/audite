@@ -1,16 +1,21 @@
 import { useCallback, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { getUserAlbumsByStatus } from "../services/albums";
-import { useNavigate } from "react-router-dom";
+import {
+    getUserAlbumsByStatus,
+    updateUserAlbumStatus,
+} from "../services/albums";
+import { abandonAlbumWithoutReview } from "../services/reviews";
 import "./Listening.css";
 
 function Listening() {
-    const { user } = useAuth();
+    const { user, refreshProfile } = useAuth();
 
     const [userAlbum, setUserAlbum] = useState(null);
     const [loading, setLoading] = useState(true);
     const [message, setMessage] = useState("");
+    const [actionLoading, setActionLoading] = useState("");
+    const [showAbandonDialog, setShowAbandonDialog] = useState(false);
 
     const navigate = useNavigate();
 
@@ -82,6 +87,88 @@ function Listening() {
     }
 
     const album = userAlbum.album;
+
+    async function handlePauseListening() {
+        if (!userAlbum || actionLoading) {
+            return;
+        }
+
+        setActionLoading("pause");
+        setMessage("");
+
+        try {
+            await updateUserAlbumStatus({
+                userAlbumId: userAlbum.id,
+                userId: user.id,
+                status: "paused",
+            });
+
+            window.dispatchEvent(
+                new CustomEvent("audite:listening-changed"),
+            );
+
+            window.dispatchEvent(
+                new CustomEvent("audite:music-changed"),
+            );
+
+            navigate("/to-listen", {
+                replace: true,
+                state: {
+                    message:
+                        "Escucha pausada. Podrás continuarla cuando quieras.",
+                },
+            });
+        } catch (error) {
+            console.error(error);
+            setMessage(
+                "No hemos podido pausar la escucha.",
+            );
+        } finally {
+            setActionLoading("");
+        }
+    }
+
+    async function handleAbandonListening() {
+        if (!userAlbum || actionLoading) {
+            return;
+        }
+
+        setActionLoading("abandon");
+        setMessage("");
+
+        try {
+            await abandonAlbumWithoutReview({
+                userId: user.id,
+                userAlbum,
+            });
+
+            await refreshProfile();
+
+            window.dispatchEvent(
+                new CustomEvent("audite:listening-changed"),
+            );
+
+            window.dispatchEvent(
+                new CustomEvent("audite:music-changed"),
+            );
+
+            navigate("/library", {
+                replace: true,
+                state: {
+                    message:
+                        "El disco se ha guardado en No terminados.",
+                },
+            });
+        } catch (error) {
+            console.error(error);
+            setMessage(
+                "No hemos podido dejar esta escucha.",
+            );
+        } finally {
+            setActionLoading("");
+            setShowAbandonDialog(false);
+        }
+    }
 
     return (
         <section className="listening-page">
@@ -159,8 +246,78 @@ function Listening() {
                         Terminar y valorar
                         <small>Guardar en tu Biblioteca</small>
                     </button>
+
+                    <div className="listening-album__secondary-actions">
+                        <button
+                            type="button"
+                            onClick={handlePauseListening}
+                            disabled={Boolean(actionLoading)}
+                        >
+                            {actionLoading === "pause"
+                                ? "Pausando..."
+                                : "Pausar escucha"}
+                        </button>
+
+                        <button
+                            type="button"
+                            className="listening-album__abandon"
+                            onClick={() => setShowAbandonDialog(true)}
+                            disabled={Boolean(actionLoading)}
+                        >
+                            Dejar este disco
+                        </button>
+                    </div>
                 </div>
             </article>
+
+            {showAbandonDialog && (
+                <div
+                    className="listening-dialog-backdrop"
+                    onClick={() => setShowAbandonDialog(false)}
+                >
+                    <article
+                        className="listening-dialog"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="abandon-title"
+                        onClick={(event) => event.stopPropagation()}
+                    >
+                        <span>⏹️</span>
+
+                        <h2 id="abandon-title">
+                            ¿Dejar este disco?
+                        </h2>
+
+                        <p>
+                            <strong>{userAlbum.album.title}</strong> se
+                            guardará en “No terminados”, pero no tendrás
+                            que valorarlo y no contará para tu racha.
+                        </p>
+
+                        <div>
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    setShowAbandonDialog(false)
+                                }
+                            >
+                                Seguir escuchando
+                            </button>
+
+                            <button
+                                type="button"
+                                className="listening-dialog__confirm"
+                                onClick={handleAbandonListening}
+                                disabled={actionLoading === "abandon"}
+                            >
+                                {actionLoading === "abandon"
+                                    ? "Guardando..."
+                                    : "Sí, dejarlo"}
+                            </button>
+                        </div>
+                    </article>
+                </div>
+            )}
         </section>
     );
 }

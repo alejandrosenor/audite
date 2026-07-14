@@ -326,7 +326,7 @@ function Home() {
             <div className="home__stats fade-up">
                 <article className="stat-card">
                     <span className="stat-card__icon">
-                        💿
+                        📀
                     </span>
 
                     <strong>
@@ -338,7 +338,7 @@ function Home() {
 
                 <article className="stat-card">
                     <span className="stat-card__icon">
-                        ★
+                        ⭐
                     </span>
 
                     <strong>
@@ -354,7 +354,7 @@ function Home() {
 
                 <article className="stat-card">
                     <span className="stat-card__icon">
-                        ♪
+                        🎶
                     </span>
 
                     <strong>
@@ -366,7 +366,7 @@ function Home() {
 
                 <article className="stat-card">
                     <span className="stat-card__icon">
-                        ♛
+                        👑
                     </span>
 
                     <strong>{bestStreak}</strong>

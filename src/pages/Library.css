@@ -203,3 +203,183 @@
         font-size: 14px;
     }
 }
+
+.library-delete-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    margin-top: 16px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-medium);
+    background: var(--color-surface);
+    padding: 14px;
+}
+
+.library-delete-toolbar>div:first-child strong,
+.library-delete-toolbar>div:first-child span {
+    display: block;
+}
+
+.library-delete-toolbar>div:first-child strong {
+    font-family: var(--font-display);
+    font-size: 24px;
+}
+
+.library-delete-toolbar>div:first-child span {
+    margin-top: 3px;
+    color: var(--color-text-muted);
+    font-size: 13px;
+}
+
+.library-delete-toolbar__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.library-delete-toolbar__actions button {
+    min-height: 44px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-pill);
+    background: var(--color-background);
+    padding: 0 15px;
+    color: var(--color-text-primary);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.library-delete-toolbar__actions .library-delete-toolbar__danger {
+    border-color: rgba(255, 98, 98, 0.28);
+    background: rgba(255, 98, 98, 0.09);
+    color: #ff9999;
+}
+
+.library-delete-toolbar__actions button:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+}
+
+.library-album--selected {
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px var(--color-accent-soft);
+}
+
+.library-album__selector {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    z-index: 2;
+    display: grid;
+    width: 36px;
+    height: 36px;
+    place-items: center;
+    border: 2px solid white;
+    border-radius: 50%;
+    background: rgba(7, 8, 10, 0.82);
+    color: white;
+    cursor: pointer;
+    font-size: 17px;
+    font-weight: 800;
+    backdrop-filter: blur(10px);
+}
+
+.library-album--selected .library-album__selector {
+    border-color: var(--color-accent);
+    background: var(--color-accent);
+}
+
+.library-album__delete {
+    width: 100%;
+    min-height: 42px;
+    margin-top: 14px;
+    border: 1px solid rgba(255, 98, 98, 0.24);
+    border-radius: var(--radius-pill);
+    background: rgba(255, 98, 98, 0.07);
+    color: #ff9999;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.library-delete-dialog-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 160;
+    display: grid;
+    place-items: center;
+    background: rgba(0, 0, 0, 0.76);
+    padding: 20px;
+    backdrop-filter: blur(12px);
+}
+
+.library-delete-dialog {
+    width: min(100%, 430px);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-large);
+    background: var(--color-surface);
+    padding: 26px;
+    box-shadow: var(--shadow-card);
+    text-align: center;
+}
+
+.library-delete-dialog>span {
+    font-size: 42px;
+}
+
+.library-delete-dialog h2 {
+    margin-top: 15px;
+    font-family: var(--font-display);
+    font-size: 29px;
+}
+
+.library-delete-dialog p {
+    margin-top: 12px;
+    color: var(--color-text-secondary);
+    font-size: 14px;
+    line-height: 1.65;
+}
+
+.library-delete-dialog>div {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 9px;
+    margin-top: 24px;
+}
+
+.library-delete-dialog button {
+    min-height: 48px;
+    border-radius: var(--radius-pill);
+    background: var(--color-background);
+    color: var(--color-text-primary);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.library-delete-dialog .library-delete-dialog__confirm {
+    background: rgba(255, 98, 98, 0.13);
+    color: #ff9999;
+}
+
+@media (max-width: 650px) {
+    .library-delete-toolbar {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .library-delete-toolbar__actions {
+        display: grid;
+        grid-template-columns: 1fr;
+    }
+
+    .library-delete-toolbar__actions button {
+        width: 100%;
+    }
+
+    .library-delete-dialog>div {
+        grid-template-columns: 1fr;
+    }
+}

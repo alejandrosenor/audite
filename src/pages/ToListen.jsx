@@ -33,7 +33,7 @@ function ToListen() {
         try {
             const pendingAlbums = await getUserAlbumsByStatus({
                 userId: user.id,
-                statuses: ["to_listen"],
+                statuses: ["to_listen", "paused"],
             });
 
             setAlbums(pendingAlbums);
@@ -246,7 +246,9 @@ function ToListen() {
                                     )}
 
                                     <span className="pending-album-card__status">
-                                        Pendiente
+                                        {userAlbum.status === "paused"
+                                            ? "Escucha pausada"
+                                            : "Pendiente"}
                                     </span>
 
                                     <button
@@ -309,7 +311,9 @@ function ToListen() {
                                         >
                                             {startingId === userAlbum.id
                                                 ? "Empezando..."
-                                                : "Lo estoy escuchando"}
+                                                : userAlbum.status === "paused"
+                                                    ? "Continuar escuchando"
+                                                    : "Lo estoy escuchando"}
                                         </button>
                                     </div>
                                 </div>

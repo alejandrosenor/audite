@@ -374,7 +374,7 @@ function Profile() {
                     </article>
 
                     <article>
-                        <span>♛</span>
+                        <span>👑</span>
                         <strong>
                             {profile?.best_streak ?? 0}
                         </strong>
@@ -382,7 +382,7 @@ function Profile() {
                     </article>
 
                     <article>
-                        <span>💿</span>
+                        <span>📀</span>
                         <strong>
                             {stats?.totalCompleted ?? 0}
                         </strong>
@@ -390,7 +390,7 @@ function Profile() {
                     </article>
 
                     <article>
-                        <span>★</span>
+                        <span>⭐</span>
                         <strong>
                             {stats?.averageRating === null ||
                                 stats?.averageRating === undefined
@@ -403,7 +403,7 @@ function Profile() {
                     </article>
 
                     <article>
-                        <span>♪</span>
+                        <span>🎶</span>
                         <strong>
                             {stats?.favoriteTracks ?? 0}
                         </strong>
@@ -411,7 +411,7 @@ function Profile() {
                     </article>
 
                     <article>
-                        <span>◷</span>
+                        <span>⏱️</span>
                         <strong>
                             {formatMinutes(
                                 stats?.totalMinutes ?? 0,

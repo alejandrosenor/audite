@@ -80,8 +80,12 @@ export async function updateUserAlbumStatus({
         to_listen: {
             accepted_at: now,
         },
+        paused: {
+            paused_at: now,
+        },
         listening: {
             started_at: now,
+            paused_at: null,
         },
         completed: {
             completed_at: now,

@@ -221,3 +221,102 @@
         font-size: clamp(42px, 13vw, 58px);
     }
 }
+
+.listening-album__secondary-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 11px;
+}
+
+.listening-album__secondary-actions button {
+    min-height: 49px;
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-pill);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--color-text-primary);
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.listening-album__secondary-actions .listening-album__abandon {
+    border-color: rgba(255, 98, 98, 0.25);
+    background: rgba(255, 98, 98, 0.08);
+    color: #ff9999;
+}
+
+.listening-album__secondary-actions button:disabled {
+    cursor: wait;
+    opacity: 0.6;
+}
+
+.listening-dialog-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 150;
+    display: grid;
+    place-items: center;
+    background: rgba(0, 0, 0, 0.75);
+    padding: 20px;
+    backdrop-filter: blur(12px);
+}
+
+.listening-dialog {
+    width: min(100%, 430px);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-large);
+    background: var(--color-surface);
+    padding: 26px;
+    box-shadow: var(--shadow-card);
+    text-align: center;
+}
+
+.listening-dialog>span {
+    font-size: 42px;
+}
+
+.listening-dialog h2 {
+    margin-top: 15px;
+    font-family: var(--font-display);
+    font-size: 30px;
+}
+
+.listening-dialog p {
+    margin-top: 12px;
+    color: var(--color-text-secondary);
+    font-size: 14px;
+    line-height: 1.65;
+}
+
+.listening-dialog>div {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 9px;
+    margin-top: 24px;
+}
+
+.listening-dialog button {
+    min-height: 48px;
+    border-radius: var(--radius-pill);
+    background: var(--color-background);
+    color: var(--color-text-primary);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.listening-dialog .listening-dialog__confirm {
+    background: rgba(255, 98, 98, 0.13);
+    color: #ff9999;
+}
+
+@media (max-width: 520px) {
+    .listening-album__secondary-actions {
+        grid-template-columns: 1fr;
+    }
+
+    .listening-dialog>div {
+        grid-template-columns: 1fr;
+    }
+}
