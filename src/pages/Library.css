@@ -383,3 +383,20 @@
         grid-template-columns: 1fr;
     }
 }
+
+.library-album {
+    cursor: pointer;
+    transition:
+        transform var(--transition-fast),
+        border-color var(--transition-fast);
+}
+
+.library-album:hover {
+    transform: translateY(-3px);
+    border-color: var(--color-border-strong);
+}
+
+.library-album:focus-visible {
+    outline: 3px solid var(--color-accent-soft);
+    border-color: var(--color-accent);
+}

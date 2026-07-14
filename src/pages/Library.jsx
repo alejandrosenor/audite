@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import AlbumDetailModal from "../components/AlbumDetailModal";
 import {
     deleteAbandonedReview,
     deleteAbandonedReviews,
     getCompletedAlbums,
+    getLibraryAlbumDetail,
 } from "../services/reviews";
 import LibraryTabs from "../components/LibraryTabs";
 import "./Library.css";
@@ -33,6 +35,8 @@ function Library() {
     const [reviewToDelete, setReviewToDelete] = useState(null);
     const [deleteMode, setDeleteMode] = useState(null);
     const [deleting, setDeleting] = useState(false);
+    const [selectedAlbumDetail, setSelectedAlbumDetail] = useState(null);
+    const [detailLoading, setDetailLoading] = useState(false);
 
     useEffect(() => {
         if (!user?.id) {
@@ -160,6 +164,33 @@ function Library() {
             setDeleting(false);
             setDeleteMode(null);
             setReviewToDelete(null);
+        }
+    }
+
+    async function handleOpenAlbum(review) {
+        if (!user?.id || detailLoading) {
+            return;
+        }
+
+        setDetailLoading(true);
+        setMessage("");
+
+        try {
+            const detail =
+                await getLibraryAlbumDetail({
+                    userId: user.id,
+                    reviewId: review.id,
+                });
+
+            setSelectedAlbumDetail(detail);
+        } catch (error) {
+            console.error(error);
+
+            setMessage(
+                "No hemos podido abrir la ficha del disco.",
+            );
+        } finally {
+            setDetailLoading(false);
         }
     }
 
@@ -322,6 +353,23 @@ function Library() {
                                 .filter(Boolean)
                                 .join(" ")}
                             key={review.id}
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => {
+                                if (!selectionMode) {
+                                    handleOpenAlbum(review);
+                                }
+                            }}
+                            onKeyDown={(event) => {
+                                if (
+                                    !selectionMode &&
+                                    (event.key === "Enter" ||
+                                        event.key === " ")
+                                ) {
+                                    event.preventDefault();
+                                    handleOpenAlbum(review);
+                                }
+                            }}
                         >
                             <div className="library-album__cover">
                                 {review.album.cover_url ? (
@@ -341,15 +389,17 @@ function Library() {
                                     <button
                                         type="button"
                                         className="library-album__selector"
-                                        onClick={() =>
+                                        onClick={(event) => {
+                                            event.stopPropagation();
+
                                             setSelectedReviewIds((currentIds) =>
                                                 currentIds.includes(review.id)
                                                     ? currentIds.filter(
                                                         (id) => id !== review.id,
                                                     )
                                                     : [...currentIds, review.id],
-                                            )
-                                        }
+                                            );
+                                        }}
                                         aria-label={`Seleccionar ${review.album.title}`}
                                     >
                                         {selectedReviewIds.includes(review.id)
@@ -380,7 +430,9 @@ function Library() {
                                     <button
                                         type="button"
                                         className="library-album__delete"
-                                        onClick={() => {
+                                        onClick={(event) => {
+                                            event.stopPropagation();
+
                                             setReviewToDelete(review);
                                             setDeleteMode("single");
                                         }}
@@ -458,6 +510,24 @@ function Library() {
                     </article>
                 </div>
             )}
+
+            <AlbumDetailModal
+                detail={selectedAlbumDetail}
+                loading={detailLoading}
+                onClose={() => {
+                    setSelectedAlbumDetail(null);
+                }}
+                onDelete={(detail) => {
+                    setSelectedAlbumDetail(null);
+
+                    setReviewToDelete({
+                        ...detail,
+                        user_album: detail.user_album,
+                    });
+
+                    setDeleteMode("single");
+                }}
+            />
         </section>
     );
 }

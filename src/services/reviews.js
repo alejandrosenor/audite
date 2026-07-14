@@ -347,3 +347,270 @@ export async function getRankedAlbums(userId) {
         };
     });
 }
+
+export async function getLibraryAlbumDetail({
+    userId,
+    reviewId,
+}) {
+    if (!userId || !reviewId) {
+        throw new Error(
+            "Faltan datos para abrir el disco.",
+        );
+    }
+
+    const { data, error } = await supabase
+        .from("album_reviews")
+        .select(`
+            id,
+            user_id,
+            user_album_id,
+            album_id,
+            reaction,
+            rating,
+            review_text,
+            would_listen_again,
+            created_at,
+            updated_at,
+
+            album:albums (
+                id,
+                spotify_id,
+                title,
+                artist_name,
+                release_year,
+                cover_url,
+                spotify_url,
+                genres,
+                track_count,
+                total_tracks,
+                duration_ms,
+                album_type,
+                spotify_release_date
+            ),
+
+            user_album:user_albums (
+                id,
+                status,
+                source,
+                recommended_by,
+                personal_note,
+                generated_at,
+                accepted_at,
+                started_at,
+                completed_at,
+                abandoned_at,
+                created_at
+            ),
+
+            favorite_tracks (
+                id,
+                position,
+                track:album_tracks (
+                    id,
+                    spotify_id,
+                    title,
+                    track_number,
+                    disc_number,
+                    duration_ms,
+                    spotify_url
+                )
+            )
+        `)
+        .eq("id", reviewId)
+        .eq("user_id", userId)
+        .single();
+
+    if (error) {
+        throw error;
+    }
+
+    const { data: tracks, error: tracksError } =
+        await supabase
+            .from("album_tracks")
+            .select(`
+        id,
+        spotify_id,
+        title,
+        track_number,
+        disc_number,
+        duration_ms,
+        spotify_url
+      `)
+            .eq("album_id", data.album_id)
+            .order("disc_number", {
+                ascending: true,
+            })
+            .order("track_number", {
+                ascending: true,
+            });
+
+    if (tracksError) {
+        throw tracksError;
+    }
+
+    return {
+        ...data,
+        favorite_tracks: [
+            ...(data.favorite_tracks ?? []),
+        ].sort(
+            (first, second) =>
+                Number(first.position ?? 999) -
+                Number(second.position ?? 999),
+        ),
+        tracks: tracks ?? [],
+    };
+}
+
+export async function getExistingAlbumReview({
+    userId,
+    userAlbumId,
+}) {
+    if (!userId || !userAlbumId) {
+        throw new Error(
+            "Faltan datos para cargar la valoración.",
+        );
+    }
+
+    const { data, error } = await supabase
+        .from("album_reviews")
+        .select(`
+            id,
+            user_id,
+            user_album_id,
+            album_id,
+            reaction,
+            rating,
+            review_text,
+            would_listen_again,
+            created_at,
+            updated_at,
+
+            favorite_tracks (
+                id,
+                position,
+                track_id,
+                track:album_tracks (
+                    id,
+                    title,
+                    track_number,
+                    disc_number,
+                    duration_ms,
+                    spotify_url
+                )
+            )
+        `)
+        .eq("user_id", userId)
+        .eq("user_album_id", userAlbumId)
+        .maybeSingle();
+
+    if (error) {
+        throw error;
+    }
+
+    if (!data) {
+        return null;
+    }
+
+    return {
+        ...data,
+        favorite_tracks: [
+            ...(data.favorite_tracks ?? []),
+        ].sort(
+            (first, second) =>
+                Number(first.position ?? 999) -
+                Number(second.position ?? 999),
+        ),
+    };
+}
+
+export async function updateAlbumReview({
+    userId,
+    reviewId,
+    reaction,
+    rating,
+    reviewText,
+    wouldListenAgain,
+    favoriteTrackIds,
+}) {
+    if (!userId || !reviewId) {
+        throw new Error(
+            "Faltan datos para actualizar la valoración.",
+        );
+    }
+
+    if (reaction === "abandoned") {
+        throw new Error(
+            "Los discos no terminados no se editan desde esta valoración.",
+        );
+    }
+
+    const normalizedRating =
+        rating === "" ||
+            rating === null ||
+            rating === undefined
+            ? null
+            : Number(rating);
+
+    const { data: updatedReview, error: reviewError } =
+        await supabase
+            .from("album_reviews")
+            .update({
+                reaction,
+                rating: normalizedRating,
+                review_text:
+                    reviewText?.trim() || null,
+                would_listen_again:
+                    wouldListenAgain,
+                updated_at: new Date().toISOString(),
+            })
+            .eq("id", reviewId)
+            .eq("user_id", userId)
+            .select()
+            .single();
+
+    if (reviewError) {
+        throw reviewError;
+    }
+
+    /*
+     * Sustituimos las canciones top anteriores.
+     * Es más seguro y sencillo que intentar calcular
+     * altas, bajas y cambios de posición.
+     */
+    const { error: deleteFavoritesError } =
+        await supabase
+            .from("favorite_tracks")
+            .delete()
+            .eq("review_id", reviewId)
+            .eq("user_id", userId);
+
+    if (deleteFavoritesError) {
+        throw deleteFavoritesError;
+    }
+
+    const uniqueTrackIds = Array.from(
+        new Set(favoriteTrackIds ?? []),
+    );
+
+    if (uniqueTrackIds.length > 0) {
+        const favoriteRows = uniqueTrackIds.map(
+            (trackId, index) => ({
+                user_id: userId,
+                review_id: reviewId,
+                track_id: trackId,
+                position: index + 1,
+            }),
+        );
+
+        const { error: favoritesError } =
+            await supabase
+                .from("favorite_tracks")
+                .insert(favoriteRows);
+
+        if (favoritesError) {
+            throw favoritesError;
+        }
+    }
+
+    return updatedReview;
+}
