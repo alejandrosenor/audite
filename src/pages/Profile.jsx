@@ -4,13 +4,22 @@ import {
     useMemo,
     useState,
 } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import AvatarSelector from "../components/AvatarSelector";
 import UserAvatar from "../components/UserAvatar";
 import { useAuth } from "../context/AuthContext";
 import { updateProfileAvatar } from "../services/artists";
 import { getProfileStats } from "../services/profile";
 import { supabase } from "../services/supabase";
+import {
+    achievements,
+    achievementRarities,
+    getAchievementById,
+} from "../data/achievements";
+import {
+    evaluateAchievements,
+    getAchievementsState,
+} from "../services/achievements";
 import "./Profile.css";
 
 const activityLabels = {
@@ -84,6 +93,60 @@ function Profile() {
     const [message, setMessage] = useState("");
     const [messageType, setMessageType] =
         useState("");
+    const [
+        achievementState,
+        setAchievementState,
+    ] = useState({
+        unlocked: [],
+        progress: [],
+        rewards: {
+            streak_shields: 0,
+            triple_choice_tokens: 0,
+            legendary_frames: [],
+            auto_use_streak_shield: true,
+        },
+        showcase: [],
+    });
+
+    const loadAchievementState =
+        useCallback(async () => {
+            if (!user?.id) {
+                return;
+            }
+
+            try {
+                await evaluateAchievements();
+
+                const nextAchievementState =
+                    await getAchievementsState(
+                        user.id,
+                    );
+
+                setAchievementState({
+                    unlocked:
+                        nextAchievementState.unlocked ?? [],
+
+                    progress:
+                        nextAchievementState.progress ?? [],
+
+                    rewards:
+                        nextAchievementState.rewards ?? {
+                            streak_shields: 0,
+                            triple_choice_tokens: 0,
+                            legendary_frames: [],
+                            auto_use_streak_shield: true,
+                        },
+
+                    showcase:
+                        nextAchievementState.showcase ?? [],
+                });
+            } catch (error) {
+                console.error(
+                    "No se pudieron cargar los logros del perfil:",
+                    error,
+                );
+            }
+        }, [user?.id]);
 
     const loadStats = useCallback(async () => {
         if (!user?.id) {
@@ -133,6 +196,22 @@ function Profile() {
             });
         }
     }, [profile]);
+
+    useEffect(() => {
+        loadAchievementState();
+
+        window.addEventListener(
+            "audite:achievements-changed",
+            loadAchievementState,
+        );
+
+        return () => {
+            window.removeEventListener(
+                "audite:achievements-changed",
+                loadAchievementState,
+            );
+        };
+    }, [loadAchievementState]);
 
     const memberSince = useMemo(() => {
         if (!profile?.created_at) {
@@ -498,6 +577,88 @@ function Profile() {
                         </strong>
                     </article>
                 )}
+            </section>
+
+            <section className="profile-achievements">
+                <header>
+                    <div>
+                        <p>TU HISTORIA MUSICAL</p>
+                        <h2>Logros</h2>
+                    </div>
+
+                    <span>
+                        {achievementState.unlocked.length}
+                        /{achievements.length}
+                    </span>
+                </header>
+
+                <div className="profile-achievements__showcase">
+                    {achievementState.showcase.length ? (
+                        achievementState.showcase.map(
+                            (showcaseItem) => {
+                                const achievement =
+                                    getAchievementById(
+                                        showcaseItem.achievement_id,
+                                    );
+
+                                if (!achievement) {
+                                    return null;
+                                }
+
+                                const rarity =
+                                    achievementRarities[
+                                    achievement.rarity
+                                    ];
+
+                                return (
+                                    <article
+                                        key={achievement.id}
+                                        style={{
+                                            "--achievement-color":
+                                                rarity.color,
+                                        }}
+                                    >
+                                        <span>
+                                            {achievement.icon}
+                                        </span>
+
+                                        <strong>
+                                            {achievement.title}
+                                        </strong>
+
+                                        <small>
+                                            {rarity.label}
+                                        </small>
+                                    </article>
+                                );
+                            },
+                        )
+                    ) : (
+                        <p>
+                            Todavía no has elegido logros para
+                            tu vitrina.
+                        </p>
+                    )}
+                </div>
+
+                <div className="profile-achievements__footer">
+                    <div>
+                        <span>🛡️</span>
+
+                        <strong>
+                            {achievementState.rewards
+                                ?.streak_shields ?? 0}
+                        </strong>
+
+                        <small>
+                            Comodines de racha
+                        </small>
+                    </div>
+
+                    <Link to="/achievements">
+                        Ver todos los logros →
+                    </Link>
+                </div>
             </section>
 
             <section className="profile-section">

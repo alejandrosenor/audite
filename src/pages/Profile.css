@@ -556,3 +556,149 @@
         font-size: 14px;
     }
 }
+
+.profile-achievements {
+    margin-top: 24px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-large);
+    background: var(--color-surface);
+    padding: 19px;
+}
+
+.profile-achievements>header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.profile-achievements header p {
+    color: var(--color-accent);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.11em;
+}
+
+.profile-achievements header h2 {
+    margin-top: 5px;
+    font-family: var(--font-display);
+    font-size: 31px;
+}
+
+.profile-achievements>header>span {
+    display: grid;
+    min-width: 55px;
+    height: 38px;
+    place-items: center;
+    border-radius: var(--radius-pill);
+    background: var(--color-accent-soft);
+    color: var(--color-accent);
+    font-weight: 800;
+}
+
+.profile-achievements__showcase {
+    display: grid;
+    grid-template-columns: repeat(3,
+            minmax(0, 1fr));
+    gap: 9px;
+    margin-top: 16px;
+}
+
+.profile-achievements__showcase article {
+    min-width: 0;
+    border: 1px solid color-mix(in srgb,
+            var(--achievement-color) 32%,
+            var(--color-border));
+    border-radius: 16px;
+    background:
+        color-mix(in srgb,
+            var(--achievement-color) 7%,
+            var(--color-background));
+    padding: 13px;
+}
+
+.profile-achievements__showcase article>span {
+    font-size: 27px;
+}
+
+.profile-achievements__showcase strong,
+.profile-achievements__showcase small {
+    display: block;
+}
+
+.profile-achievements__showcase strong {
+    margin-top: 16px;
+    font-size: 13px;
+}
+
+.profile-achievements__showcase small {
+    margin-top: 5px;
+    color: var(--achievement-color);
+    font-size: 10px;
+    text-transform: uppercase;
+}
+
+.profile-achievements__showcase>p {
+    grid-column: 1 / -1;
+    color: var(--color-text-muted);
+    font-size: 14px;
+}
+
+.profile-achievements__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    margin-top: 15px;
+    border-top: 1px solid var(--color-border);
+    padding-top: 15px;
+}
+
+.profile-achievements__footer>div {
+    display: grid;
+    grid-template-columns:
+        auto auto;
+    align-items: center;
+    column-gap: 8px;
+}
+
+.profile-achievements__footer>div>span {
+    grid-row: 1 / 3;
+    font-size: 25px;
+}
+
+.profile-achievements__footer strong {
+    font-size: 18px;
+}
+
+.profile-achievements__footer small {
+    color: var(--color-text-muted);
+    font-size: 11px;
+}
+
+.profile-achievements__footer a {
+    min-height: 43px;
+    display: inline-flex;
+    align-items: center;
+    border-radius: var(--radius-pill);
+    background: var(--color-accent);
+    padding: 0 15px;
+    color: white;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+@media (max-width: 520px) {
+    .profile-achievements__showcase {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-achievements__footer {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .profile-achievements__footer a {
+        justify-content: center;
+    }
+}

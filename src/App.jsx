@@ -13,6 +13,7 @@ import Settings from "./pages/Settings";
 import Songs from "./pages/Songs";
 import ToListen from "./pages/ToListen";
 import Review from "./pages/Review";
+import Achievements from "./pages/Achievements";
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
           <Route path="/settings" element={<Settings />} />
           <Route path="/review/:userAlbumId" element={<Review />} />
           <Route path="/ranking" element={<Ranking />} />
+          <Route path="/achievements" element={<Achievements />} />
         </Route>
       </Route>
 
