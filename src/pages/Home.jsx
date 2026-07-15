@@ -11,6 +11,7 @@ import MusicEphemerisCard from "../components/MusicEphemerisCard";
 import { getDailyMusicEphemeris } from "../services/musicEphemeris";
 import GenreOfTheDayCard from "../components/GenreOfTheDayCard";
 import { getGenreOfTheDay } from "../data/genreOfTheDay";
+import AlbumRecommendations from "../components/AlbumRecommendations";
 import "./Home.css";
 
 function Home() {
@@ -429,6 +430,23 @@ function Home() {
                     </div>
                 </div>
             </article>
+
+            <section className="home-section">
+                <header className="home-section__header">
+                    <div>
+                        <p>AUDITE EMPIEZA A CONOCERTE</p>
+                        <h2>Recomendado para ti</h2>
+                    </div>
+
+                    <span>
+                        Basado en tus mejores valoraciones
+                    </span>
+                </header>
+
+                <AlbumRecommendations
+                    userId={user?.id}
+                />
+            </section>
 
             <section className="home-section">
                 <header className="home-section__header">
