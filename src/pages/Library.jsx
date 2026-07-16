@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import AlbumDetailModal from "../components/AlbumDetailModal";
@@ -37,6 +37,7 @@ function Library() {
     const [deleting, setDeleting] = useState(false);
     const [selectedAlbumDetail, setSelectedAlbumDetail] = useState(null);
     const [detailLoading, setDetailLoading] = useState(false);
+    const [sortBy, setSortBy] = useState("recent");
 
     useEffect(() => {
         if (!user?.id) {
@@ -80,6 +81,167 @@ function Library() {
     const selectedReviews = abandonedReviews.filter(
         (review) => selectedReviewIds.includes(review.id),
     );
+
+    const sortedReviews = useMemo(() => {
+        const reviewsToSort = [
+            ...filteredReviews,
+        ];
+
+        function getRating(review) {
+            const value = Number(review.rating);
+
+            return Number.isFinite(value)
+                ? value
+                : -1;
+        }
+
+        function getReviewDate(review) {
+            const dateValue =
+                review.reviewed_at ??
+                review.completed_at ??
+                review.updated_at ??
+                review.created_at;
+
+            const timestamp = dateValue
+                ? new Date(dateValue).getTime()
+                : 0;
+
+            return Number.isFinite(timestamp)
+                ? timestamp
+                : 0;
+        }
+
+        function getTitle(review) {
+            return (
+                review.album?.title ??
+                review.title ??
+                ""
+            ).trim();
+        }
+
+        function getArtist(review) {
+            return (
+                review.album?.artist_name ??
+                review.artist_name ??
+                ""
+            ).trim();
+        }
+
+        function getReleaseYear(review) {
+            const year = Number(
+                review.album?.release_year ??
+                review.release_year,
+            );
+
+            return Number.isFinite(year)
+                ? year
+                : 0;
+        }
+
+        function getFavoriteCount(review) {
+            if (
+                Array.isArray(
+                    review.favorite_tracks,
+                )
+            ) {
+                return review.favorite_tracks.length;
+            }
+
+            return Number(
+                review.favorite_tracks_count ??
+                review.favorite_count ??
+                0,
+            );
+        }
+
+        switch (sortBy) {
+            case "oldest":
+                return reviewsToSort.sort(
+                    (first, second) =>
+                        getReviewDate(first) -
+                        getReviewDate(second),
+                );
+
+            case "rating-desc":
+                return reviewsToSort.sort(
+                    (first, second) =>
+                        getRating(second) -
+                        getRating(first),
+                );
+
+            case "rating-asc":
+                return reviewsToSort.sort(
+                    (first, second) =>
+                        getRating(first) -
+                        getRating(second),
+                );
+
+            case "title-asc":
+                return reviewsToSort.sort(
+                    (first, second) =>
+                        getTitle(first).localeCompare(
+                            getTitle(second),
+                            "es",
+                            {
+                                sensitivity: "base",
+                            },
+                        ),
+                );
+
+            case "title-desc":
+                return reviewsToSort.sort(
+                    (first, second) =>
+                        getTitle(second).localeCompare(
+                            getTitle(first),
+                            "es",
+                            {
+                                sensitivity: "base",
+                            },
+                        ),
+                );
+
+            case "artist-asc":
+                return reviewsToSort.sort(
+                    (first, second) =>
+                        getArtist(first).localeCompare(
+                            getArtist(second),
+                            "es",
+                            {
+                                sensitivity: "base",
+                            },
+                        ),
+                );
+
+            case "year-desc":
+                return reviewsToSort.sort(
+                    (first, second) =>
+                        getReleaseYear(second) -
+                        getReleaseYear(first),
+                );
+
+            case "year-asc":
+                return reviewsToSort.sort(
+                    (first, second) =>
+                        getReleaseYear(first) -
+                        getReleaseYear(second),
+                );
+
+            case "favorites-desc":
+                return reviewsToSort.sort(
+                    (first, second) =>
+                        getFavoriteCount(second) -
+                        getFavoriteCount(first),
+                );
+
+            case "recent":
+            default:
+                return reviewsToSort.sort(
+                    (first, second) =>
+                        getReviewDate(second) -
+                        getReviewDate(first),
+                );
+        }
+    }, [filteredReviews, sortBy]);
 
     function handleFilterChange(nextFilter) {
         setFilter(nextFilter);
@@ -324,6 +486,90 @@ function Library() {
                 </div>
             )}
 
+            <div className="library-sort">
+                <div>
+                    <span>↕</span>
+
+                    <div>
+                        <small>ORDENAR POR</small>
+                        <strong>
+                            {
+                                {
+                                    recent:
+                                        "Más recientes",
+                                    oldest:
+                                        "Más antiguos",
+                                    "rating-desc":
+                                        "Mejor nota",
+                                    "rating-asc":
+                                        "Peor nota",
+                                    "title-asc":
+                                        "Título A–Z",
+                                    "title-desc":
+                                        "Título Z–A",
+                                    "artist-asc":
+                                        "Artista A–Z",
+                                    "year-desc":
+                                        "Lanzamientos recientes",
+                                    "year-asc":
+                                        "Lanzamientos antiguos",
+                                    "favorites-desc":
+                                        "Más canciones top",
+                                }[sortBy]
+                            }
+                        </strong>
+                    </div>
+                </div>
+
+                <select
+                    value={sortBy}
+                    onChange={(event) =>
+                        setSortBy(event.target.value)
+                    }
+                    aria-label="Ordenar discos"
+                >
+                    <option value="recent">
+                        Más recientes
+                    </option>
+
+                    <option value="oldest">
+                        Más antiguos
+                    </option>
+
+                    <option value="rating-desc">
+                        Mejor nota
+                    </option>
+
+                    <option value="rating-asc">
+                        Peor nota
+                    </option>
+
+                    <option value="title-asc">
+                        Título A–Z
+                    </option>
+
+                    <option value="title-desc">
+                        Título Z–A
+                    </option>
+
+                    <option value="artist-asc">
+                        Artista A–Z
+                    </option>
+
+                    <option value="year-desc">
+                        Año: más nuevo primero
+                    </option>
+
+                    <option value="year-asc">
+                        Año: más antiguo primero
+                    </option>
+
+                    <option value="favorites-desc">
+                        Más canciones top
+                    </option>
+                </select>
+            </div>
+
             {filteredReviews.length === 0 ? (
                 <article className="library-empty">
                     <span>📚</span>
@@ -341,7 +587,7 @@ function Library() {
                 </article>
             ) : (
                 <div className="library-grid">
-                    {filteredReviews.map((review) => (
+                    {sortedReviews.map((review) => (
                         <article
                             className={[
                                 "library-album",
