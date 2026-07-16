@@ -15,6 +15,9 @@ import SpanishDiscoveryModal from "../components/SpanishDiscoveryModal";
 import {
     discoverSpanishAlbum,
 } from "../services/spanishDiscovery";
+import {
+    updateDailyChallenges,
+} from "../services/dailyChallenges";
 import "./Discover.css";
 
 function formatDuration(durationMs) {
@@ -95,6 +98,41 @@ function Discover() {
             setUserAlbum(
                 generatedUserAlbum,
             );
+
+            try {
+                await updateDailyChallenges({
+                    eventType:
+                        "discovery_generated",
+
+                    eventId:
+                        `spanish-generated:${generatedUserAlbum.id}`,
+
+                    metadata: {
+                        language: "es",
+
+                        country:
+                            generatedUserAlbum
+                                .album
+                                ?.country ??
+                            result.context
+                                ?.country ??
+                            null,
+
+                        genres:
+                            generatedUserAlbum
+                                .album
+                                ?.genres ??
+                            [],
+
+                        source: "spanish",
+                    },
+                });
+            } catch (challengeError) {
+                console.error(
+                    "No se pudo actualizar el reto de música en español:",
+                    challengeError,
+                );
+            }
 
             if (
                 generatedUserAlbum?.album?.id
@@ -233,6 +271,47 @@ function Discover() {
 
             setUserAlbum(generatedAlbum);
 
+            try {
+                await updateDailyChallenges({
+                    eventType:
+                        genre
+                            ? "genre_discovery_generated"
+                            : "discovery_generated",
+
+                    eventId:
+                        genre
+                            ? `genre-generated:${generatedAlbum.id}`
+                            : `discovery-generated:${generatedAlbum.id}`,
+
+                    metadata: {
+                        selectedGenre:
+                            genre || null,
+
+                        spotifyId:
+                            generatedAlbum
+                                .album
+                                ?.spotify_id ??
+                            null,
+
+                        genres:
+                            generatedAlbum
+                                .album
+                                ?.genres ??
+                            [],
+
+                        source:
+                            genre
+                                ? "genre_discovery"
+                                : "discovery",
+                    },
+                });
+            } catch (challengeError) {
+                console.error(
+                    "No se pudo actualizar el reto de descubrimiento:",
+                    challengeError,
+                );
+            }
+
             await loadTracks(
                 generatedAlbum.album.id,
             );
@@ -264,6 +343,67 @@ function Discover() {
                 userId: user.id,
                 status,
             });
+
+            try {
+                if (status === "to_listen") {
+                    await updateDailyChallenges({
+                        eventType:
+                            "recommendation_accepted",
+
+                        eventId:
+                            `discover-accepted:${userAlbum.id}`,
+
+                        metadata: {
+                            spotifyId:
+                                userAlbum.album
+                                    ?.spotify_id ??
+                                null,
+
+                            artistName:
+                                userAlbum.album
+                                    ?.artist_name ??
+                                null,
+
+                            genres:
+                                userAlbum.album
+                                    ?.genres ??
+                                [],
+
+                            source:
+                                userAlbum.album
+                                    ?.discovery_source ??
+                                "discovery",
+                        },
+                    });
+                }
+
+                if (status === "known") {
+                    await updateDailyChallenges({
+                        eventType:
+                            "recommendation_known",
+
+                        eventId:
+                            `discover-known:${userAlbum.id}`,
+
+                        metadata: {
+                            spotifyId:
+                                userAlbum.album
+                                    ?.spotify_id ??
+                                null,
+
+                            artistName:
+                                userAlbum.album
+                                    ?.artist_name ??
+                                null,
+                        },
+                    });
+                }
+            } catch (challengeError) {
+                console.error(
+                    "No se pudo actualizar el reto de decisión:",
+                    challengeError,
+                );
+            }
 
             setUserAlbum(null);
             setTracks([]);
@@ -352,7 +492,6 @@ function Discover() {
                     </button>
 
                     <button
-                        disabled
                         type="button"
                         className="discover-spanish-button"
                         onClick={() =>

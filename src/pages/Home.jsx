@@ -12,6 +12,7 @@ import { getDailyMusicEphemeris } from "../services/musicEphemeris";
 import GenreOfTheDayCard from "../components/GenreOfTheDayCard";
 import { getGenreOfTheDay } from "../data/genreOfTheDay";
 import AlbumRecommendations from "../components/AlbumRecommendations";
+import DailyChallengesCard from "../components/DailyChallengesCard";
 import "./Home.css";
 
 function Home() {
@@ -430,6 +431,8 @@ function Home() {
                     </div>
                 </div>
             </article>
+
+            <DailyChallengesCard />
 
             <section className="home-section">
                 <header className="home-section__header">

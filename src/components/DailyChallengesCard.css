@@ -1,0 +1,214 @@
+.daily-challenges-card {
+    margin-top: 22px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-large);
+    background:
+        radial-gradient(circle at 100% 0,
+            var(--color-accent-soft),
+            transparent 320px),
+        var(--color-surface);
+    padding: 20px;
+}
+
+.daily-challenges-card > header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+}
+
+.daily-challenges-card > header p,
+.daily-challenges-card > p,
+.daily-challenge-bonus small {
+    color: var(--color-accent);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: .11em;
+}
+
+.daily-challenges-card h2 {
+    margin-top: 5px;
+    font-family: var(--font-display);
+    font-size: 32px;
+}
+
+.daily-challenges-card > header div > span,
+.daily-challenges-card > span {
+    display: block;
+    margin-top: 7px;
+    color: var(--color-text-secondary);
+    font-size: 14px;
+}
+
+.daily-challenges-card > header > strong {
+    display: grid;
+    min-width: 58px;
+    height: 43px;
+    place-items: center;
+    border-radius: var(--radius-pill);
+    background: var(--color-accent-soft);
+    color: var(--color-accent);
+    font-family: var(--font-display);
+    font-size: 18px;
+}
+
+.daily-challenges-list {
+    display: grid;
+    gap: 9px;
+    margin-top: 18px;
+}
+
+.daily-challenge {
+    display: grid;
+    grid-template-columns: 52px minmax(0,1fr);
+    gap: 12px;
+    border: 1px solid var(--color-border);
+    border-radius: 17px;
+    background: var(--color-background);
+    padding: 13px;
+}
+
+.daily-challenge__icon {
+    display: grid;
+    width: 52px;
+    height: 52px;
+    place-items: center;
+    border-radius: 16px;
+    background: var(--color-accent-soft);
+    color: var(--color-accent);
+    font-family: var(--font-display);
+    font-size: 21px;
+}
+
+.daily-challenge__content > header {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.daily-challenge small {
+    color: var(--color-text-muted);
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.daily-challenge h3 {
+    margin-top: 3px;
+    font-family: var(--font-display);
+    font-size: 20px;
+}
+
+.daily-challenge__content > header > strong {
+    flex-shrink: 0;
+    color: var(--color-accent);
+    font-size: 13px;
+}
+
+.daily-challenge p {
+    margin-top: 7px;
+    color: var(--color-text-secondary);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.daily-challenge__progress-info {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+    color: var(--color-text-muted);
+    font-size: 10px;
+}
+
+.daily-challenge__track {
+    height: 8px;
+    margin-top: 6px;
+    overflow: hidden;
+    border-radius: var(--radius-pill);
+    background: rgba(255,255,255,.07);
+}
+
+.daily-challenge__track span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--color-accent);
+    transition: width 450ms ease;
+}
+
+.daily-challenge--completed {
+    border-color: rgba(93,214,133,.35);
+}
+
+.daily-challenge--completed .daily-challenge__icon,
+.daily-challenge--completed .daily-challenge__track span {
+    background: #5dd685;
+    color: #07110a;
+}
+
+.daily-challenge-bonus {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    margin-top: 12px;
+    border: 1px solid rgba(244,201,93,.22);
+    border-radius: 17px;
+    background: rgba(244,201,93,.06);
+    padding: 14px;
+}
+
+.daily-challenge-bonus > span {
+    font-size: 31px;
+}
+
+.daily-challenge-bonus strong,
+.daily-challenge-bonus p {
+    display: block;
+}
+
+.daily-challenge-bonus strong {
+    margin-top: 3px;
+    font-size: 14px;
+}
+
+.daily-challenge-bonus p {
+    margin-top: 3px;
+    color: #f4c95d;
+    font-size: 12px;
+}
+
+.daily-challenge-bonus--completed {
+    border-color: rgba(93,214,133,.35);
+    background: rgba(93,214,133,.07);
+}
+
+.daily-challenges-card > button {
+    min-height: 43px;
+    margin-top: 14px;
+    border: 0;
+    border-radius: var(--radius-pill);
+    background: var(--color-accent);
+    padding: 0 16px;
+    color: white;
+    font-weight: 800;
+}
+
+@media (max-width: 560px) {
+    .daily-challenges-card > header {
+        flex-direction: column;
+    }
+
+    .daily-challenge {
+        grid-template-columns: 44px minmax(0,1fr);
+        padding: 11px;
+    }
+
+    .daily-challenge__icon {
+        width: 44px;
+        height: 44px;
+    }
+
+    .daily-challenge__content > header {
+        flex-direction: column;
+    }
+}

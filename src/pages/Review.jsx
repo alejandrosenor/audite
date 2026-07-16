@@ -17,6 +17,9 @@ import { awardXP } from "../services/xp";
 import {
     evaluateGenreAffinity,
 } from "../services/genreAffinity";
+import {
+    updateDailyChallenges,
+} from "../services/dailyChallenges";
 import "./Review.css";
 
 const reactions = [
@@ -338,6 +341,101 @@ function Review() {
                         affinityError,
                     );
                 }
+            }
+
+            try {
+                const album = userAlbum.album;
+
+                if (reaction !== "abandoned") {
+                    await updateDailyChallenges({
+                        eventType: "album_completed",
+
+                        eventId:
+                            `album-completed:${userAlbum.id}`,
+
+                        metadata: {
+                            rating: Number(rating),
+                            reaction,
+                            reviewText,
+                            wouldListenAgain,
+
+                            favoriteCount:
+                                favoriteTrackIds.length,
+
+                            genres:
+                                album?.genres ?? [],
+
+                            releaseYear:
+                                album?.release_year ??
+                                null,
+
+                            trackCount:
+                                album?.track_count ??
+                                album?.total_tracks ??
+                                null,
+
+                            language:
+                                album?.language ?? null,
+
+                            country:
+                                album?.country ?? null,
+
+                            artistName:
+                                album?.artist_name ??
+                                null,
+
+                            source:
+                                album?.discovery_source ??
+                                userAlbum?.source ??
+                                null,
+
+                            resumed:
+                                Boolean(
+                                    userAlbum?.resumed_at,
+                                ),
+                        },
+                    });
+                }
+
+                await updateDailyChallenges({
+                    eventType: "review_saved",
+
+                    eventId:
+                        `review-saved:${userAlbum.id}`,
+
+                    metadata: {
+                        rating:
+                            reaction === "abandoned"
+                                ? null
+                                : Number(rating),
+
+                        reaction,
+                        reviewText,
+                    },
+                });
+
+                if (
+                    reaction !== "abandoned" &&
+                    favoriteTrackIds.length > 0
+                ) {
+                    await updateDailyChallenges({
+                        eventType:
+                            "favorites_saved",
+
+                        eventId:
+                            `favorites-saved:${userAlbum.id}`,
+
+                        metadata: {
+                            favoriteCount:
+                                favoriteTrackIds.length,
+                        },
+                    });
+                }
+            } catch (challengeError) {
+                console.error(
+                    "No se pudieron actualizar los retos:",
+                    challengeError,
+                );
             }
 
             await refreshProfile();
