@@ -20,6 +20,11 @@ import {
     evaluateAchievements,
     getAchievementsState,
 } from "../services/achievements";
+import {
+    getLevelProgress,
+    getMusicalTitle,
+} from "../utils/xp";
+import { getXPHistory } from "../services/xp";
 import "./Profile.css";
 
 const activityLabels = {
@@ -107,6 +112,24 @@ function Profile() {
         },
         showcase: [],
     });
+    const [xpHistory, setXPHistory] =
+        useState([]);
+
+    const xpProgress = useMemo(
+        () =>
+            getLevelProgress(
+                profile?.total_xp ?? 0,
+            ),
+        [profile?.total_xp],
+    );
+
+    const musicalTitle = useMemo(
+        () =>
+            getMusicalTitle(
+                xpProgress.level,
+            ),
+        [xpProgress.level],
+    );
 
     const loadAchievementState =
         useCallback(async () => {
@@ -175,6 +198,49 @@ function Profile() {
     useEffect(() => {
         loadStats();
     }, [loadStats]);
+
+    useEffect(() => {
+        if (!user?.id) {
+            return;
+        }
+
+        let cancelled = false;
+
+        async function loadXPHistory() {
+            try {
+                const history =
+                    await getXPHistory(
+                        user.id,
+                        8,
+                    );
+
+                if (!cancelled) {
+                    setXPHistory(history);
+                }
+            } catch (error) {
+                console.error(
+                    "No se pudo cargar el historial de XP:",
+                    error,
+                );
+            }
+        }
+
+        loadXPHistory();
+
+        window.addEventListener(
+            "audite:xp-earned",
+            loadXPHistory,
+        );
+
+        return () => {
+            cancelled = true;
+
+            window.removeEventListener(
+                "audite:xp-earned",
+                loadXPHistory,
+            );
+        };
+    }, [user?.id]);
 
     useEffect(() => {
         setUsername(profile?.username ?? "");
@@ -329,7 +395,10 @@ function Profile() {
                 />
 
                 <div className="profile-identity__content">
-                    <p>NIVEL {stats?.level ?? 1}</p>
+                    <p>
+                        NIVEL {xpProgress.level} ·{" "}
+                        {musicalTitle.toUpperCase()}
+                    </p>
 
                     <h2>
                         {profile?.username ?? "Usuario"}
@@ -350,34 +419,65 @@ function Profile() {
                 </button>
             </article>
 
-            <section className="profile-level-card">
-                <div className="profile-level-card__header">
+            <section className="profile-xp-card">
+                <header className="profile-xp-card__header">
                     <div>
-                        <span>Nivel musical</span>
-                        <strong>
-                            {stats?.level ?? 1}
-                        </strong>
+                        <p>NIVEL MUSICAL</p>
+
+                        <h2>
+                            Nivel {xpProgress.level}
+                        </h2>
+
+                        <span>{musicalTitle}</span>
                     </div>
 
-                    <p>
-                        {stats?.totalCompleted ?? 0} de{" "}
-                        {stats?.nextLevelTarget ?? 5} discos
-                    </p>
+                    <strong>
+                        {xpProgress.totalXP.toLocaleString(
+                            "es-ES",
+                        )}
+                        <small> XP</small>
+                    </strong>
+                </header>
+
+                <div className="profile-xp-card__progress-information">
+                    <span>
+                        {xpProgress.xpInsideLevel.toLocaleString(
+                            "es-ES",
+                        )}
+                        {" / "}
+                        {xpProgress.xpNeededForLevel.toLocaleString(
+                            "es-ES",
+                        )}
+                        {" XP"}
+                    </span>
+
+                    <span>
+                        {Math.round(
+                            xpProgress.percentage,
+                        )}
+                        %
+                    </span>
                 </div>
 
-                <div className="profile-level-card__track">
+                <div className="profile-xp-card__track">
                     <div
                         style={{
-                            width: `${stats?.levelProgress ?? 0
-                                }%`,
+                            width: `${xpProgress.percentage}%`,
                         }}
                     />
                 </div>
 
-                <small>
-                    Escucha más discos para alcanzar el
-                    siguiente nivel.
-                </small>
+                <p>
+                    Te faltan{" "}
+                    <strong>
+                        {xpProgress.xpRemaining.toLocaleString(
+                            "es-ES",
+                        )}{" "}
+                        XP
+                    </strong>{" "}
+                    para alcanzar el nivel{" "}
+                    {xpProgress.level + 1}.
+                </p>
             </section>
 
             {message && (
@@ -659,6 +759,76 @@ function Profile() {
                         Ver todos los logros →
                     </Link>
                 </div>
+            </section>
+
+            <section className="profile-section">
+                <header className="profile-section__header">
+                    <div>
+                        <p>TU PROGRESO</p>
+                        <h2>Última experiencia</h2>
+                    </div>
+
+                    <span>
+                        {profile?.total_xp ?? 0} XP totales
+                    </span>
+                </header>
+
+                {xpHistory.length > 0 ? (
+                    <div className="profile-xp-history">
+                        {xpHistory.map((entry) => (
+                            <article key={entry.id}>
+                                <div>
+                                    <span>
+                                        {entry.source_type ===
+                                            "album_completed"
+                                            ? "💿"
+                                            : entry.source_type ===
+                                                "album_reviewed"
+                                                ? "⭐"
+                                                : entry.source_type ===
+                                                    "favorite_tracks"
+                                                    ? "🎵"
+                                                    : entry.source_type ===
+                                                        "achievement"
+                                                        ? "🏆"
+                                                        : entry.source_type ===
+                                                            "daily_challenge"
+                                                            ? "🎯"
+                                                            : "✦"}
+                                    </span>
+                                </div>
+
+                                <p>
+                                    <strong>{entry.reason}</strong>
+
+                                    <span>
+                                        {new Intl.DateTimeFormat(
+                                            "es-ES",
+                                            {
+                                                day: "numeric",
+                                                month: "short",
+                                                hour: "2-digit",
+                                                minute: "2-digit",
+                                            },
+                                        ).format(
+                                            new Date(
+                                                entry.created_at,
+                                            ),
+                                        )}
+                                    </span>
+                                </p>
+
+                                <strong>
+                                    +{entry.amount} XP
+                                </strong>
+                            </article>
+                        ))}
+                    </div>
+                ) : (
+                    <p className="profile-section__empty">
+                        Tus recompensas de experiencia aparecerán aquí.
+                    </p>
+                )}
             </section>
 
             <section className="profile-section">

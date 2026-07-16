@@ -99,6 +99,24 @@ export function AuthProvider({ children }) {
         };
     }, []);
 
+    useEffect(() => {
+        async function handleProfileChanged() {
+            await refreshProfile();
+        }
+
+        window.addEventListener(
+            "audite:profile-changed",
+            handleProfileChanged,
+        );
+
+        return () => {
+            window.removeEventListener(
+                "audite:profile-changed",
+                handleProfileChanged,
+            );
+        };
+    }, [refreshProfile]);
+
     async function signUp({ email, password, username, avatar }) {
         const { data, error } = await supabase.auth.signUp({
             email,

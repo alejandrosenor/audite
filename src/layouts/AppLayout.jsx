@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { getCurrentListeningAlbum } from "../services/albums";
 import UserAvatar from "../components/UserAvatar";
+import XPToast from "../components/XPToast";
 
 function AppLayout() {
     const { profile, user } = useAuth();
@@ -177,6 +178,8 @@ function AppLayout() {
             <main className="app-content">
                 <Outlet />
             </main>
+
+            <XPToast />
         </div>
     );
 }

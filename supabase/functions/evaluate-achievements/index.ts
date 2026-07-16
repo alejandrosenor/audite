@@ -12,6 +12,13 @@ type AchievementDefinition = {
   id: string;
   metric: string;
   target: number;
+
+  rarity:
+    | "common"
+    | "rare"
+    | "epic"
+    | "legendary";
+
   reward?: {
     streakShields?: number;
     tripleChoiceTokens?: number;
@@ -24,91 +31,109 @@ const achievementDefinitions: AchievementDefinition[] = [
     id: "first-album",
     metric: "completedAlbums",
     target: 1,
+    rarity: "common",
   },
   {
     id: "first-review",
     metric: "ratedAlbums",
     target: 1,
+    rarity: "common",
   },
   {
     id: "first-favorites",
     metric: "favoriteTracks",
     target: 1,
+    rarity: "common",
   },
   {
     id: "first-abandoned",
     metric: "abandonedAlbums",
     target: 1,
+    rarity: "common",
   },
   {
     id: "three-day-streak",
     metric: "bestStreak",
     target: 3,
+    rarity: "common",
   },
   {
     id: "three-genres",
     metric: "uniqueGenres",
     target: 3,
+    rarity: "common",
   },
   {
     id: "seven-day-streak",
     metric: "bestStreak",
     target: 7,
+    rarity: "rare",
   },
   {
     id: "twenty-five-albums",
     metric: "completedAlbums",
     target: 25,
+    rarity: "rare",
   },
   {
     id: "five-decades",
     metric: "uniqueDecades",
     target: 5,
+    rarity: "rare",
   },
   {
     id: "ten-genres",
     metric: "uniqueGenres",
     target: 10,
+    rarity: "rare",
   },
   {
     id: "ten-reviews",
     metric: "writtenReviews",
     target: 10,
+    rarity: "rare",
   },
   {
     id: "fifty-favorites",
     metric: "favoriteTracks",
     target: 50,
+    rarity: "rare",
   },
   {
     id: "thirty-day-streak",
     metric: "bestStreak",
     target: 30,
+    rarity: "epic",
   },
   {
     id: "hundred-albums",
     metric: "completedAlbums",
     target: 100,
+    rarity: "epic",
   },
   {
     id: "thirty-genres",
     metric: "uniqueGenres",
     target: 30,
+    rarity: "epic",
   },
   {
     id: "twenty-old-albums",
     metric: "pre1970Albums",
     target: 20,
+    rarity: "epic",
   },
   {
     id: "twenty-high-genres",
     metric: "highRatedGenres",
     target: 20,
+    rarity: "epic",
   },
   {
     id: "hundred-day-streak",
     metric: "bestStreak",
     target: 100,
+    rarity: "legendary",
     reward: {
       streakShields: 1,
     },
@@ -117,6 +142,7 @@ const achievementDefinitions: AchievementDefinition[] = [
     id: "three-hundred-sixty-five-albums",
     metric: "completedAlbums",
     target: 365,
+    rarity: "legendary",
     reward: {
       streakShields: 2,
     },
@@ -125,6 +151,7 @@ const achievementDefinitions: AchievementDefinition[] = [
     id: "seventy-five-genres",
     metric: "uniqueGenres",
     target: 75,
+    rarity: "legendary",
     reward: {
       streakShields: 1,
       tripleChoiceTokens: 1,
@@ -134,12 +161,20 @@ const achievementDefinitions: AchievementDefinition[] = [
     id: "thousand-albums",
     metric: "completedAlbums",
     target: 1000,
+    rarity: "legendary",
     reward: {
       streakShields: 3,
       frame: "thousand-albums",
     },
   },
 ];
+
+const achievementXP = {
+  common: 50,
+  rare: 150,
+  epic: 300,
+  legendary: 1000,
+};
 
 function jsonResponse(
   body: unknown,
@@ -163,6 +198,36 @@ function uniqueValues(values: unknown[]) {
       )
       .filter(Boolean),
   );
+}
+
+function getXPRequiredForLevel(
+  level: number,
+) {
+  if (level <= 1) {
+    return 0;
+  }
+
+  const previousLevel = level - 1;
+
+  return (
+    500 * previousLevel +
+    50 *
+      previousLevel *
+      (previousLevel - 1)
+  );
+}
+
+function getLevelFromXP(totalXP: number) {
+  let level = 1;
+
+  while (
+    totalXP >=
+    getXPRequiredForLevel(level + 1)
+  ) {
+    level += 1;
+  }
+
+  return level;
 }
 
 Deno.serve(async (request) => {
@@ -564,6 +629,107 @@ Deno.serve(async (request) => {
             onConflict: "user_id",
           },
         );
+    }
+
+    for (const achievement of newlyUnlocked) {
+      const amount =
+        achievementXP[
+          achievement.rarity
+        ];
+
+      const sourceId =
+        achievement.id;
+
+      const {
+        data: existingXP,
+        error: existingXPError,
+      } = await adminClient
+        .from("xp_history")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("source_type", "achievement")
+        .eq("source_id", sourceId)
+        .maybeSingle();
+
+      if (existingXPError) {
+        throw existingXPError;
+      }
+
+      if (existingXP) {
+        continue;
+      }
+
+      const {
+        data: currentProfile,
+        error: profileXPError,
+      } = await adminClient
+        .from("profiles")
+        .select(`
+          total_xp,
+          musical_level
+        `)
+        .eq("id", user.id)
+        .single();
+
+      if (profileXPError) {
+        throw profileXPError;
+      }
+
+      const previousXP = Number(
+        currentProfile.total_xp ?? 0,
+      );
+
+      const nextXP =
+        previousXP + amount;
+
+      const nextLevel =
+        getLevelFromXP(nextXP);
+
+      const {
+        error: achievementXPError,
+      } = await adminClient
+        .from("xp_history")
+        .insert({
+          user_id: user.id,
+          amount,
+          reason:
+            "Logro desbloqueado",
+          source_type: "achievement",
+          source_id: sourceId,
+          metadata: {
+            achievementId:
+              achievement.id,
+            rarity:
+              achievement.rarity,
+          },
+        });
+
+      if (achievementXPError) {
+        if (
+          achievementXPError.code ===
+          "23505"
+        ) {
+          continue;
+        }
+
+        throw achievementXPError;
+      }
+
+      const {
+        error: updateXPError,
+      } = await adminClient
+        .from("profiles")
+        .update({
+          total_xp: nextXP,
+          musical_level: nextLevel,
+          updated_at:
+            new Date().toISOString(),
+        })
+        .eq("id", user.id);
+
+      if (updateXPError) {
+        throw updateXPError;
+      }
     }
 
     return jsonResponse({

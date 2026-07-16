@@ -13,6 +13,7 @@ import {
     completeAlbumReview,
     getUserAlbumForReview,
 } from "../services/reviews";
+import { awardXP } from "../services/xp";
 import "./Review.css";
 
 const reactions = [
@@ -236,7 +237,8 @@ function Review() {
                 userAlbum,
                 reaction,
                 rating:
-                    reaction === "abandoned" && rating === ""
+                    reaction === "abandoned" &&
+                        rating === ""
                         ? null
                         : rating,
                 reviewText,
@@ -244,20 +246,101 @@ function Review() {
                 favoriteTrackIds,
             });
 
+            /*
+             * Los discos abandonados no cuentan como
+             * terminados ni conceden XP de valoración.
+             */
+            if (reaction !== "abandoned") {
+                const xpRewards = [
+                    {
+                        rewardType: "album_completed",
+                        sourceId: userAlbum.id,
+                        metadata: {
+                            albumId:
+                                userAlbum.album?.id ??
+                                userAlbum.album_id,
+
+                            albumTitle:
+                                userAlbum.album?.title ??
+                                null,
+                        },
+                    },
+                    {
+                        rewardType: "album_reviewed",
+                        sourceId: userAlbum.id,
+                        metadata: {
+                            albumId:
+                                userAlbum.album?.id ??
+                                userAlbum.album_id,
+
+                            rating: Number(rating),
+                        },
+                    },
+                ];
+
+                if (favoriteTrackIds.length > 0) {
+                    xpRewards.push({
+                        rewardType: "favorite_tracks",
+                        sourceId: userAlbum.id,
+                        metadata: {
+                            albumId:
+                                userAlbum.album?.id ??
+                                userAlbum.album_id,
+
+                            favoriteCount:
+                                favoriteTrackIds.length,
+                        },
+                    });
+                }
+
+                /*
+                 * Las concedemos una detrás de otra para
+                 * evitar tres peticiones simultáneas que
+                 * intenten actualizar el mismo total de XP.
+                 */
+                for (const reward of xpRewards) {
+                    try {
+                        await awardXP(reward);
+                    } catch (xpError) {
+                        /*
+                         * La valoración ya está guardada.
+                         * Un fallo en XP no debe impedir
+                         * terminar el proceso.
+                         */
+                        console.error(
+                            `No se pudo conceder ${reward.rewardType}:`,
+                            xpError,
+                        );
+                    }
+                }
+            }
+
             await refreshProfile();
 
             window.dispatchEvent(
-                new CustomEvent("audite:listening-changed"),
+                new CustomEvent(
+                    "audite:listening-changed",
+                ),
+            );
+
+            window.dispatchEvent(
+                new CustomEvent(
+                    "audite:music-changed",
+                ),
             );
 
             navigate("/library", {
                 replace: true,
                 state: {
-                    message: "Disco valorado y añadido a tu Biblioteca.",
+                    message:
+                        reaction === "abandoned"
+                            ? "El disco se ha guardado como no terminado."
+                            : "Disco valorado y añadido a tu Biblioteca.",
                 },
             });
         } catch (error) {
             console.error(error);
+
             setMessage(
                 "No hemos podido guardar la valoración.",
             );
