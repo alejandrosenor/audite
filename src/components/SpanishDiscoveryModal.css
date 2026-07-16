@@ -1,0 +1,313 @@
+.spanish-discovery-overlay {
+    position: fixed;
+    z-index: 300;
+    inset: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: rgba(0, 0, 0, 0.76);
+    padding: 18px;
+
+    backdrop-filter: blur(15px);
+}
+
+.spanish-discovery-modal {
+    width: min(100%, 680px);
+    max-height:
+        calc(100dvh - 36px - env(safe-area-inset-bottom));
+
+    overflow-y: auto;
+    overscroll-behavior: contain;
+
+    border: 1px solid var(--color-border-strong);
+    border-radius: 30px;
+
+    background:
+        radial-gradient(circle at 0 0,
+            rgba(255, 71, 87, 0.13),
+            transparent 300px),
+        radial-gradient(circle at 100% 0,
+            rgba(255, 205, 61, 0.1),
+            transparent 280px),
+        var(--color-surface);
+
+    box-shadow:
+        0 35px 100px rgba(0, 0, 0, 0.75);
+
+    padding: 25px;
+}
+
+.spanish-discovery-modal>header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+}
+
+.spanish-discovery-modal>header p {
+    color: var(--color-accent);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+}
+
+.spanish-discovery-modal>header h2 {
+    margin-top: 7px;
+
+    font-family: var(--font-display);
+    font-size: clamp(38px, 8vw, 59px);
+    line-height: 0.95;
+    letter-spacing: -0.045em;
+}
+
+.spanish-discovery-modal>header div>span {
+    display: block;
+    margin-top: 12px;
+
+    color: var(--color-text-secondary);
+    font-size: 15px;
+    line-height: 1.55;
+}
+
+.spanish-discovery-modal>header>button {
+    display: grid;
+    width: 46px;
+    height: 46px;
+    flex-shrink: 0;
+    place-items: center;
+
+    border: 1px solid var(--color-border);
+    border-radius: 50%;
+
+    background:
+        rgba(255, 255, 255, 0.05);
+
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    font-size: 25px;
+}
+
+.spanish-discovery-field {
+    margin-top: 25px;
+    border-top: 1px solid var(--color-border);
+    padding-top: 22px;
+}
+
+.spanish-discovery-field__heading {
+    display: flex;
+    align-items: flex-start;
+    gap: 13px;
+}
+
+.spanish-discovery-field__heading>span {
+    display: grid;
+    width: 39px;
+    height: 39px;
+    flex-shrink: 0;
+    place-items: center;
+
+    border-radius: 12px;
+    background:
+        var(--color-accent-soft);
+
+    color: var(--color-accent);
+    font-family: var(--font-display);
+    font-size: 13px;
+}
+
+.spanish-discovery-field__heading h3 {
+    font-family: var(--font-display);
+    font-size: 25px;
+}
+
+.spanish-discovery-field__heading p {
+    margin-top: 4px;
+    color: var(--color-text-muted);
+    font-size: 13px;
+}
+
+.spanish-region-grid {
+    display: grid;
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+    gap: 9px;
+    margin-top: 17px;
+}
+
+.spanish-region-card {
+    display: flex;
+    min-width: 0;
+    min-height: 125px;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 13px;
+
+    border: 1px solid var(--color-border);
+    border-radius: 18px;
+
+    background:
+        var(--color-background);
+    padding: 15px;
+
+    color: var(--color-text-primary);
+    cursor: pointer;
+    text-align: left;
+}
+
+.spanish-region-card>span {
+    font-size: 28px;
+}
+
+.spanish-region-card strong,
+.spanish-region-card small {
+    display: block;
+}
+
+.spanish-region-card strong {
+    font-size: 14px;
+}
+
+.spanish-region-card small {
+    margin-top: 5px;
+
+    color: var(--color-text-muted);
+    font-size: 11px;
+    line-height: 1.4;
+}
+
+.spanish-region-card--active {
+    border-color:
+        var(--color-accent);
+
+    background:
+        var(--color-accent-soft);
+
+    box-shadow:
+        0 0 25px var(--color-accent-soft);
+}
+
+.spanish-style-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 17px;
+}
+
+.spanish-style-chip {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+    gap: 7px;
+
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-pill);
+
+    background:
+        var(--color-background);
+    padding: 0 14px;
+
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.spanish-style-chip--active {
+    border-color:
+        var(--color-accent);
+
+    background:
+        var(--color-accent);
+    color: white;
+
+    box-shadow:
+        var(--shadow-accent);
+}
+
+.spanish-discovery-modal form>footer {
+    display: grid;
+    grid-template-columns:
+        auto minmax(0, 1fr);
+    gap: 9px;
+
+    margin-top: 26px;
+    border-top: 1px solid var(--color-border);
+    padding-top: 20px;
+}
+
+.spanish-discovery-modal form>footer button {
+    min-height: 52px;
+
+    border-radius:
+        var(--radius-pill);
+
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.spanish-discovery-modal form>footer button:first-child {
+    border: 1px solid var(--color-border);
+
+    background:
+        var(--color-background);
+    padding: 0 20px;
+
+    color: var(--color-text-secondary);
+}
+
+.spanish-discovery-modal form>footer button:last-child {
+    border: 0;
+    background:
+        var(--color-accent);
+    box-shadow:
+        var(--shadow-accent);
+    color: white;
+}
+
+.spanish-discovery-modal button:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+
+@media (max-width: 620px) {
+    .spanish-discovery-overlay {
+        align-items: flex-end;
+        padding: 0;
+    }
+
+    .spanish-discovery-modal {
+        width: 100%;
+        max-height:
+            calc(94dvh - env(safe-area-inset-bottom));
+
+        border-right: 0;
+        border-bottom: 0;
+        border-left: 0;
+        border-radius:
+            28px 28px 0 0;
+
+        padding:
+            22px 18px calc(22px + env(safe-area-inset-bottom));
+    }
+
+    .spanish-region-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .spanish-region-card {
+        min-height: auto;
+        align-items: center;
+        flex-direction: row;
+    }
+
+    .spanish-discovery-modal form>footer {
+        grid-template-columns: 1fr;
+    }
+
+    .spanish-discovery-modal form>footer button:first-child {
+        order: 2;
+    }
+}

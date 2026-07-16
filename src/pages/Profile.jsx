@@ -25,6 +25,7 @@ import {
     getMusicalTitle,
 } from "../utils/xp";
 import { getXPHistory } from "../services/xp";
+import GenreAffinitySection from "../components/GenreAffinitySection";
 import "./Profile.css";
 
 const activityLabels = {
@@ -830,6 +831,10 @@ function Profile() {
                     </p>
                 )}
             </section>
+
+            <GenreAffinitySection
+                userId={user?.id}
+            />
 
             <section className="profile-section">
                 <header className="profile-section__header">

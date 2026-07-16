@@ -89,7 +89,7 @@
     color: var(--color-text-secondary);
 }
 
-.discover-empty__album-button  {
+.discover-empty__album-button {
     display: inline-flex;
     min-height: 54px;
     align-items: center;
@@ -404,5 +404,136 @@
     .discover-empty button {
         width: 100%;
         max-width: 340px;
+    }
+}
+
+.discover-spanish-button {
+    position: relative;
+    display: grid;
+    width: 100%;
+    min-width: 0;
+    margin-top: 25px;
+
+    grid-template-columns:
+        62px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 14px;
+
+    overflow: hidden;
+
+    border: 1px solid rgba(255, 205, 61, 0.25);
+    border-radius:
+        var(--radius-large);
+
+    background:
+        radial-gradient(circle at 0 50%,
+            rgba(255, 71, 87, 0.17),
+            transparent 220px),
+        radial-gradient(circle at 100% 50%,
+            rgba(255, 205, 61, 0.1),
+            transparent 230px),
+        var(--color-surface);
+
+    padding: 15px;
+
+    color: var(--color-text-primary);
+    cursor: pointer;
+    text-align: left;
+}
+
+.discover-spanish-button::after {
+    position: absolute;
+    right: -35px;
+    bottom: -65px;
+
+    color:
+        rgba(255, 255, 255, 0.025);
+
+    content: "Ñ";
+    font-family: var(--font-display);
+    font-size: 180px;
+    line-height: 1;
+
+    pointer-events: none;
+}
+
+.discover-spanish-button__icon {
+    position: relative;
+    z-index: 1;
+
+    display: grid;
+    width: 62px;
+    height: 62px;
+    place-items: center;
+
+    border-radius: 19px;
+
+    background:
+        linear-gradient(145deg,
+            #ff4757,
+            #ffc93d);
+
+    box-shadow:
+        0 15px 35px rgba(255, 71, 87, 0.22);
+
+    color: white;
+    font-family: var(--font-display);
+    font-size: 29px;
+}
+
+.discover-spanish-button>span:nth-child(2) {
+    position: relative;
+    z-index: 1;
+    min-width: 0;
+}
+
+.discover-spanish-button strong,
+.discover-spanish-button small {
+    display: block;
+}
+
+.discover-spanish-button strong {
+    font-family: var(--font-display);
+    font-size: 21px;
+}
+
+.discover-spanish-button small {
+    margin-top: 5px;
+
+    color: var(--color-text-secondary);
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.discover-spanish-button>i {
+    position: relative;
+    z-index: 1;
+
+    color: #ffc93d;
+    font-size: 25px;
+    font-style: normal;
+}
+
+.discover-spanish-button:hover {
+    border-color:
+        rgba(255, 205, 61, 0.5);
+
+    transform: translateY(-2px);
+}
+
+.discover-spanish-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+
+@media (max-width: 520px) {
+    .discover-spanish-button {
+        grid-template-columns:
+            58px minmax(0, 1fr) auto;
+    }
+
+    .discover-spanish-button__icon {
+        width: 58px;
+        height: 58px;
     }
 }

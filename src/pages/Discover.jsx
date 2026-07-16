@@ -11,6 +11,10 @@ import {
     updateUserAlbumStatus,
 } from "../services/albums";
 import GenreSelectorModal from "../components/GenreSelectorModal";
+import SpanishDiscoveryModal from "../components/SpanishDiscoveryModal";
+import {
+    discoverSpanishAlbum,
+} from "../services/spanishDiscovery";
 import "./Discover.css";
 
 function formatDuration(durationMs) {
@@ -38,6 +42,14 @@ function Discover() {
     const [message, setMessage] = useState("");
     const [genreModalOpen, setGenreModalOpen] = useState(false);
     const [selectedGenre, setSelectedGenre] = useState("");
+    const [
+        spanishModalOpen,
+        setSpanishModalOpen,
+    ] = useState(false);
+    const [
+        generatingSpanish,
+        setGeneratingSpanish,
+    ] = useState(false);
 
     async function loadTracks(albumId) {
         if (!albumId) {
@@ -51,6 +63,62 @@ function Discover() {
         } catch (error) {
             console.error("No se pudieron cargar las canciones:", error);
             setTracks([]);
+        }
+    }
+
+    async function handleGenerateSpanishAlbum({
+        region,
+        style,
+    }) {
+        if (
+            !user?.id ||
+            generating ||
+            generatingSpanish
+        ) {
+            return;
+        }
+
+        setGeneratingSpanish(true);
+        setMessage("");
+        setTracks([]);
+
+        try {
+            const result =
+                await discoverSpanishAlbum({
+                    region,
+                    style,
+                });
+
+            const generatedUserAlbum =
+                result.userAlbum;
+
+            setUserAlbum(
+                generatedUserAlbum,
+            );
+
+            if (
+                generatedUserAlbum?.album?.id
+            ) {
+                await loadTracks(
+                    generatedUserAlbum.album.id,
+                );
+            }
+
+            setSpanishModalOpen(false);
+
+            window.scrollTo({
+                top: 0,
+                behavior: "smooth",
+            });
+        } catch (error) {
+            console.error(error);
+
+            setMessage(
+                error.message ||
+                "No hemos podido descubrir un disco en español.",
+            );
+        } finally {
+            setGeneratingSpanish(false);
         }
     }
 
@@ -282,6 +350,36 @@ function Discover() {
                         <span>⌘</span>
                         Elegir género
                     </button>
+
+                    <button
+                        disabled
+                        type="button"
+                        className="discover-spanish-button"
+                        onClick={() =>
+                            setSpanishModalOpen(true)
+                        }
+                        disabled={
+                            generating ||
+                            generatingSpanish
+                        }
+                    >
+                        <span className="discover-spanish-button__icon">
+                            Ñ
+                        </span>
+
+                        <span>
+                            <strong>
+                                Música en español
+                            </strong>
+
+                            <small>
+                                España, Latinoamérica y todos
+                                sus estilos.
+                            </small>
+                        </span>
+
+                        <i>→</i>
+                    </button>
                 </article>
             ) : (
                 <article className="discovered-album fade-up">
@@ -431,6 +529,19 @@ function Discover() {
                     setSelectedGenre(genre);
                     handleGenerateAlbum(genre);
                 }}
+            />
+
+            <SpanishDiscoveryModal
+                open={spanishModalOpen}
+                generating={generatingSpanish}
+                onClose={() => {
+                    if (!generatingSpanish) {
+                        setSpanishModalOpen(false);
+                    }
+                }}
+                onGenerate={
+                    handleGenerateSpanishAlbum
+                }
             />
         </section>
     );

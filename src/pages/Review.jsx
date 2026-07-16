@@ -14,6 +14,9 @@ import {
     getUserAlbumForReview,
 } from "../services/reviews";
 import { awardXP } from "../services/xp";
+import {
+    evaluateGenreAffinity,
+} from "../services/genreAffinity";
 import "./Review.css";
 
 const reactions = [
@@ -312,6 +315,28 @@ function Review() {
                             xpError,
                         );
                     }
+                }
+            }
+
+            if (reaction !== "abandoned") {
+                try {
+                    await evaluateGenreAffinity();
+
+                    window.dispatchEvent(
+                        new CustomEvent(
+                            "audite:genre-affinity-changed",
+                        ),
+                    );
+                } catch (affinityError) {
+                    /*
+                     * La valoración ya está guardada.
+                     * Un error en la afinidad no debe
+                     * bloquear el flujo.
+                     */
+                    console.error(
+                        "No se pudo actualizar la afinidad:",
+                        affinityError,
+                    );
                 }
             }
 
