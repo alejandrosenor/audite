@@ -37,7 +37,30 @@ function Library() {
     const [deleting, setDeleting] = useState(false);
     const [selectedAlbumDetail, setSelectedAlbumDetail] = useState(null);
     const [detailLoading, setDetailLoading] = useState(false);
-    const [sortBy, setSortBy] = useState("recent");
+    const LIBRARY_SORT_OPTIONS = [
+        "recent",
+        "oldest",
+        "rating-desc",
+        "rating-asc",
+        "title-asc",
+        "title-desc",
+        "artist-asc",
+        "year-desc",
+        "year-asc",
+        "favorites-desc",
+    ];
+    const [sortBy, setSortBy] = useState(() => {
+        const storedSort =
+            localStorage.getItem(
+                "audite:library-sort",
+            );
+
+        return LIBRARY_SORT_OPTIONS.includes(
+            storedSort,
+        )
+            ? storedSort
+            : "recent";
+    });
 
     useEffect(() => {
         if (!user?.id) {
@@ -62,6 +85,13 @@ function Library() {
 
         loadLibrary();
     }, [user?.id]);
+
+    useEffect(() => {
+        localStorage.setItem(
+            "audite:library-sort",
+            sortBy,
+        );
+    }, [sortBy]);
 
     const filteredReviews =
         filter === "all"
