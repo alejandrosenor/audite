@@ -323,27 +323,65 @@ export async function getRankedAlbums(userId) {
         throw error;
     }
 
-    const reviews = data ?? [];
+    const reviews = (data ?? []).map(
+        (review) => ({
+            ...review,
+            rating: Number(review.rating),
+        }),
+    );
+
+    reviews.sort((first, second) => {
+        const ratingDifference =
+            second.rating - first.rating;
+
+        if (ratingDifference !== 0) {
+            return ratingDifference;
+        }
+
+        const firstDate =
+            first.user_album?.completed_at ??
+            first.created_at ??
+            "";
+
+        const secondDate =
+            second.user_album?.completed_at ??
+            second.created_at ??
+            "";
+
+        const dateDifference =
+            new Date(secondDate).getTime() -
+            new Date(firstDate).getTime();
+
+        if (dateDifference !== 0) {
+            return dateDifference;
+        }
+
+        return (
+            first.album?.title ?? ""
+        ).localeCompare(
+            second.album?.title ?? "",
+            "es",
+            {
+                sensitivity: "base",
+            },
+        );
+    });
 
     let previousRating = null;
-    let previousPosition = 0;
+    let densePosition = 0;
 
-    return reviews.map((review, index) => {
-        const numericRating = Number(review.rating);
-
-        const position =
-            previousRating !== null &&
-                numericRating === previousRating
-                ? previousPosition
-                : index + 1;
-
-        previousRating = numericRating;
-        previousPosition = position;
+    return reviews.map((review) => {
+        if (
+            previousRating === null ||
+            review.rating !== previousRating
+        ) {
+            densePosition += 1;
+            previousRating = review.rating;
+        }
 
         return {
             ...review,
-            rating: numericRating,
-            position,
+            position: densePosition,
         };
     });
 }
