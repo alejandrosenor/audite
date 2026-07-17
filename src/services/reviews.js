@@ -582,6 +582,24 @@ export async function updateAlbumReview({
         );
     }
 
+    const {
+        data: existingReview,
+        error: existingReviewError,
+    } = await supabase
+        .from("album_reviews")
+        .select(`
+            id,
+            album_id,
+            user_album_id
+        `)
+        .eq("id", reviewId)
+        .eq("user_id", userId)
+        .single();
+
+    if (existingReviewError) {
+        throw existingReviewError;
+    }
+
     const normalizedRating =
         rating === "" ||
             rating === null ||
@@ -631,14 +649,16 @@ export async function updateAlbumReview({
     );
 
     if (uniqueTrackIds.length > 0) {
-        const favoriteRows = uniqueTrackIds.map(
-            (trackId, index) => ({
-                user_id: userId,
-                review_id: reviewId,
-                track_id: trackId,
-                position: index + 1,
-            }),
-        );
+        const favoriteRows =
+            uniqueTrackIds.map(
+                (trackId, index) => ({
+                    user_id: userId,
+                    review_id: reviewId,
+                    album_id: existingReview.album_id,
+                    track_id: trackId,
+                    position: index + 1,
+                }),
+            );
 
         const { error: favoritesError } =
             await supabase
@@ -651,4 +671,33 @@ export async function updateAlbumReview({
     }
 
     return updatedReview;
+}
+
+export async function getUserAlbumForEditing({
+    userAlbumId,
+    userId,
+}) {
+    if (!userAlbumId || !userId) {
+        throw new Error(
+            "Faltan datos para editar la valoración.",
+        );
+    }
+
+    const { data, error } =
+        await supabase
+            .from("user_albums")
+            .select(`
+                *,
+                album:albums (*)
+            `)
+            .eq("id", userAlbumId)
+            .eq("user_id", userId)
+            .eq("status", "completed")
+            .maybeSingle();
+
+    if (error) {
+        throw error;
+    }
+
+    return data;
 }

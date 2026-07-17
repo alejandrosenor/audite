@@ -1,5 +1,9 @@
 import { useEffect, useState, useMemo } from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import {
+    NavLink,
+    useLocation,
+    useNavigate,
+} from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import AlbumDetailModal from "../components/AlbumDetailModal";
 import {
@@ -23,6 +27,7 @@ const reactionLabels = {
 function Library() {
     const { user } = useAuth();
     const location = useLocation();
+    const navigate = useNavigate();
 
     const [reviews, setReviews] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -802,6 +807,16 @@ function Library() {
                     });
 
                     setDeleteMode("single");
+                }}
+                onEdit={(detail) => {
+                    navigate(
+                        `/review/${detail.user_album.id}?mode=edit`,
+                        {
+                            state: {
+                                mode: "edit",
+                            },
+                        },
+                    );
                 }}
             />
         </section>

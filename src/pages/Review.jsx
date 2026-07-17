@@ -1,6 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import {
+    useEffect,
+    useMemo,
+    useState,
+} from "react";
 import {
     Navigate,
+    useLocation,
     useNavigate,
     useParams,
 } from "react-router-dom";
@@ -11,7 +16,10 @@ import {
 } from "../services/albums";
 import {
     completeAlbumReview,
+    getExistingAlbumReview,
+    getUserAlbumForEditing,
     getUserAlbumForReview,
+    updateAlbumReview,
 } from "../services/reviews";
 import { awardXP } from "../services/xp";
 import {
@@ -77,25 +85,75 @@ function Review() {
     const { user, refreshProfile } = useAuth();
     const { userAlbumId } = useParams();
     const navigate = useNavigate();
+    const location = useLocation();
 
-    const [userAlbum, setUserAlbum] = useState(null);
-    const [tracks, setTracks] = useState([]);
+    const searchParams = useMemo(
+        () => new URLSearchParams(location.search),
+        [location.search],
+    );
 
-    const [reaction, setReaction] = useState("");
-    const [rating, setRating] = useState("");
-    const [reviewText, setReviewText] = useState("");
-    const [wouldListenAgain, setWouldListenAgain] =
+    const isEditMode =
+        searchParams.get("mode") === "edit" ||
+        location.state?.mode === "edit";
+
+    const [userAlbum, setUserAlbum] =
         useState(null);
-    const [favoriteTrackIds, setFavoriteTrackIds] =
+
+    const [existingReview, setExistingReview] =
+        useState(null);
+
+    const [tracks, setTracks] =
         useState([]);
 
-    const [loading, setLoading] = useState(true);
-    const [saving, setSaving] = useState(false);
-    const [message, setMessage] = useState("");
+    const [reaction, setReaction] =
+        useState("");
+
+    const [rating, setRating] =
+        useState("");
+
+    const [reviewText, setReviewText] =
+        useState("");
+
+    const [
+        wouldListenAgain,
+        setWouldListenAgain,
+    ] = useState(null);
+
+    const [
+        favoriteTrackIds,
+        setFavoriteTrackIds,
+    ] = useState([]);
+
+    const [loading, setLoading] =
+        useState(true);
+
+    const [saving, setSaving] =
+        useState(false);
+
+    const [message, setMessage] =
+        useState("");
 
     const selectedReaction = useMemo(
-        () => reactions.find((item) => item.id === reaction),
+        () =>
+            reactions.find(
+                (item) =>
+                    item.id === reaction,
+            ),
         [reaction],
+    );
+
+    const favoriteTracks = useMemo(
+        () =>
+            favoriteTrackIds
+                .map((trackId) =>
+                    tracks.find(
+                        (track) =>
+                            track.id ===
+                            trackId,
+                    ),
+                )
+                .filter(Boolean),
+        [favoriteTrackIds, tracks],
     );
 
     useEffect(() => {
@@ -106,12 +164,20 @@ function Review() {
         let cancelled = false;
 
         async function loadReviewData() {
+            setLoading(true);
+            setMessage("");
+
             try {
                 const currentUserAlbum =
-                    await getUserAlbumForReview({
-                        userAlbumId,
-                        userId: user.id,
-                    });
+                    isEditMode
+                        ? await getUserAlbumForEditing({
+                            userAlbumId,
+                            userId: user.id,
+                        })
+                        : await getUserAlbumForReview({
+                            userAlbumId,
+                            userId: user.id,
+                        });
 
                 if (!currentUserAlbum) {
                     if (!cancelled) {
@@ -121,9 +187,10 @@ function Review() {
                     return;
                 }
 
-                let albumTracks = await getAlbumTracks(
-                    currentUserAlbum.album.id,
-                );
+                let albumTracks =
+                    await getAlbumTracks(
+                        currentUserAlbum.album.id,
+                    );
 
                 if (
                     albumTracks.length === 0 &&
@@ -134,9 +201,11 @@ function Review() {
                             currentUserAlbum.album.id,
                         );
 
-                        albumTracks = await getAlbumTracks(
-                            currentUserAlbum.album.id,
-                        );
+                        albumTracks =
+                            await getAlbumTracks(
+                                currentUserAlbum
+                                    .album.id,
+                            );
                     } catch (syncError) {
                         console.error(
                             "No se pudieron recuperar las canciones:",
@@ -145,16 +214,90 @@ function Review() {
                     }
                 }
 
+                let loadedReview = null;
+
+                if (isEditMode) {
+                    loadedReview =
+                        await getExistingAlbumReview({
+                            userId: user.id,
+                            userAlbumId,
+                        });
+
+                    if (!loadedReview) {
+                        throw new Error(
+                            "No existe una valoración para editar.",
+                        );
+                    }
+
+                    if (
+                        loadedReview.reaction ===
+                        "abandoned"
+                    ) {
+                        throw new Error(
+                            "Los discos no terminados no se editan desde esta pantalla.",
+                        );
+                    }
+                }
+
                 if (!cancelled) {
-                    setUserAlbum(currentUserAlbum);
-                    setTracks(albumTracks);
+                    setUserAlbum(
+                        currentUserAlbum,
+                    );
+
+                    setTracks(
+                        albumTracks,
+                    );
+
+                    setExistingReview(
+                        loadedReview,
+                    );
+
+                    if (loadedReview) {
+                        setReaction(
+                            loadedReview.reaction ??
+                            "",
+                        );
+
+                        setRating(
+                            loadedReview.rating ===
+                                null ||
+                                loadedReview.rating ===
+                                undefined
+                                ? ""
+                                : String(
+                                    loadedReview.rating,
+                                ),
+                        );
+
+                        setReviewText(
+                            loadedReview.review_text ??
+                            "",
+                        );
+
+                        setWouldListenAgain(
+                            loadedReview.would_listen_again ??
+                            null,
+                        );
+
+                        setFavoriteTrackIds(
+                            loadedReview.favorite_tracks?.map(
+                                (favorite) =>
+                                    favorite.track_id ??
+                                    favorite.track?.id,
+                            ) ?? [],
+                        );
+                    }
                 }
             } catch (error) {
                 console.error(error);
 
                 if (!cancelled) {
                     setMessage(
-                        "No hemos podido preparar la valoración.",
+                        error instanceof Error
+                            ? error.message
+                            : isEditMode
+                                ? "No hemos podido preparar la edición."
+                                : "No hemos podido preparar la valoración.",
                     );
                 }
             } finally {
@@ -169,32 +312,118 @@ function Review() {
         return () => {
             cancelled = true;
         };
-    }, [user?.id, userAlbumId]);
+    }, [
+        isEditMode,
+        user?.id,
+        userAlbumId,
+    ]);
 
-    function handleReactionChange(reactionId) {
-        const nextReaction = reactions.find(
-            (item) => item.id === reactionId,
-        );
+    function handleReactionChange(
+        reactionId,
+    ) {
+        const nextReaction =
+            reactions.find(
+                (item) =>
+                    item.id ===
+                    reactionId,
+            );
 
         setReaction(reactionId);
 
-        if (nextReaction.min === nextReaction.max) {
-            setRating(String(nextReaction.min));
-        } else {
+        if (
+            nextReaction.min ===
+            nextReaction.max
+        ) {
+            setRating(
+                String(
+                    nextReaction.min,
+                ),
+            );
+            return;
+        }
+
+        const numericRating =
+            Number(rating);
+
+        const ratingStillValid =
+            rating !== "" &&
+            Number.isFinite(
+                numericRating,
+            ) &&
+            numericRating >=
+            nextReaction.min &&
+            numericRating <=
+            nextReaction.max;
+
+        if (!ratingStillValid) {
             setRating("");
         }
     }
 
-    function toggleFavoriteTrack(trackId) {
-        setFavoriteTrackIds((currentIds) => {
-            if (currentIds.includes(trackId)) {
-                return currentIds.filter(
-                    (currentId) => currentId !== trackId,
-                );
-            }
+    function toggleFavoriteTrack(
+        trackId,
+    ) {
+        setFavoriteTrackIds(
+            (currentIds) => {
+                if (
+                    currentIds.includes(
+                        trackId,
+                    )
+                ) {
+                    return currentIds.filter(
+                        (currentId) =>
+                            currentId !==
+                            trackId,
+                    );
+                }
 
-            return [...currentIds, trackId];
-        });
+                return [
+                    ...currentIds,
+                    trackId,
+                ];
+            },
+        );
+    }
+
+    function moveFavoriteTrack(
+        trackId,
+        direction,
+    ) {
+        setFavoriteTrackIds(
+            (currentIds) => {
+                const currentIndex =
+                    currentIds.indexOf(
+                        trackId,
+                    );
+
+                const nextIndex =
+                    currentIndex +
+                    direction;
+
+                if (
+                    currentIndex < 0 ||
+                    nextIndex < 0 ||
+                    nextIndex >=
+                    currentIds.length
+                ) {
+                    return currentIds;
+                }
+
+                const nextIds = [
+                    ...currentIds,
+                ];
+
+                [
+                    nextIds[currentIndex],
+                    nextIds[nextIndex],
+                ] = [
+                        nextIds[nextIndex],
+                        nextIds[currentIndex],
+                    ];
+
+                return nextIds;
+            },
+        );
     }
 
     function validateForm() {
@@ -202,35 +431,320 @@ function Review() {
             return "Selecciona primero cómo te ha parecido.";
         }
 
-        if (selectedReaction.id !== "abandoned") {
-            const numericRating = Number(rating);
+        if (
+            isEditMode &&
+            selectedReaction.id ===
+            "abandoned"
+        ) {
+            return "Una valoración terminada no puede convertirse en no terminada desde esta pantalla.";
+        }
 
-            if (!rating || Number.isNaN(numericRating)) {
+        if (
+            selectedReaction.id !==
+            "abandoned"
+        ) {
+            const numericRating =
+                Number(rating);
+
+            if (
+                !rating ||
+                Number.isNaN(
+                    numericRating,
+                )
+            ) {
                 return "Selecciona una puntuación.";
             }
 
             if (
-                numericRating < selectedReaction.min ||
-                numericRating > selectedReaction.max
+                numericRating <
+                selectedReaction.min ||
+                numericRating >
+                selectedReaction.max
             ) {
                 return `La puntuación debe estar entre ${selectedReaction.min} y ${selectedReaction.max}.`;
             }
         }
 
-        if (wouldListenAgain === null) {
+        if (
+            wouldListenAgain === null
+        ) {
             return "Indica si volverías a escucharlo.";
         }
 
         return "";
     }
 
-    async function handleSubmit(event) {
+    async function recalculateDerivedData() {
+        try {
+            await evaluateGenreAffinity();
+
+            window.dispatchEvent(
+                new CustomEvent(
+                    "audite:genre-affinity-changed",
+                ),
+            );
+        } catch (affinityError) {
+            console.error(
+                "No se pudo actualizar la afinidad:",
+                affinityError,
+            );
+        }
+    }
+
+    async function handleCreateReview() {
+        await completeAlbumReview({
+            userId: user.id,
+            userAlbum,
+            reaction,
+            rating:
+                reaction ===
+                    "abandoned" &&
+                    rating === ""
+                    ? null
+                    : rating,
+            reviewText,
+            wouldListenAgain,
+            favoriteTrackIds,
+        });
+
+        if (
+            reaction !== "abandoned"
+        ) {
+            const xpRewards = [
+                {
+                    rewardType:
+                        "album_completed",
+                    sourceId:
+                        userAlbum.id,
+                    metadata: {
+                        albumId:
+                            userAlbum.album
+                                ?.id ??
+                            userAlbum.album_id,
+
+                        albumTitle:
+                            userAlbum.album
+                                ?.title ??
+                            null,
+                    },
+                },
+                {
+                    rewardType:
+                        "album_reviewed",
+                    sourceId:
+                        userAlbum.id,
+                    metadata: {
+                        albumId:
+                            userAlbum.album
+                                ?.id ??
+                            userAlbum.album_id,
+
+                        rating:
+                            Number(
+                                rating,
+                            ),
+                    },
+                },
+            ];
+
+            if (
+                favoriteTrackIds.length >
+                0
+            ) {
+                xpRewards.push({
+                    rewardType:
+                        "favorite_tracks",
+                    sourceId:
+                        userAlbum.id,
+                    metadata: {
+                        albumId:
+                            userAlbum.album
+                                ?.id ??
+                            userAlbum.album_id,
+
+                        favoriteCount:
+                            favoriteTrackIds.length,
+                    },
+                });
+            }
+
+            for (const reward of xpRewards) {
+                try {
+                    await awardXP(
+                        reward,
+                    );
+                } catch (xpError) {
+                    console.error(
+                        `No se pudo conceder ${reward.rewardType}:`,
+                        xpError,
+                    );
+                }
+            }
+
+            await recalculateDerivedData();
+        }
+
+        try {
+            const album =
+                userAlbum.album;
+
+            if (
+                reaction !==
+                "abandoned"
+            ) {
+                await updateDailyChallenges({
+                    eventType:
+                        "album_completed",
+
+                    eventId:
+                        `album-completed:${userAlbum.id}`,
+
+                    metadata: {
+                        rating:
+                            Number(
+                                rating,
+                            ),
+
+                        reaction,
+                        reviewText,
+                        wouldListenAgain,
+
+                        favoriteCount:
+                            favoriteTrackIds.length,
+
+                        genres:
+                            album?.genres ??
+                            [],
+
+                        releaseYear:
+                            album?.release_year ??
+                            null,
+
+                        trackCount:
+                            album?.track_count ??
+                            album?.total_tracks ??
+                            null,
+
+                        language:
+                            album?.language ??
+                            null,
+
+                        country:
+                            album?.country ??
+                            null,
+
+                        artistName:
+                            album?.artist_name ??
+                            null,
+
+                        source:
+                            album?.discovery_source ??
+                            userAlbum?.source ??
+                            null,
+
+                        resumed:
+                            Boolean(
+                                userAlbum?.resumed_at,
+                            ),
+                    },
+                });
+            }
+
+            await updateDailyChallenges({
+                eventType:
+                    "review_saved",
+
+                eventId:
+                    `review-saved:${userAlbum.id}`,
+
+                metadata: {
+                    rating:
+                        reaction ===
+                            "abandoned"
+                            ? null
+                            : Number(
+                                rating,
+                            ),
+
+                    reaction,
+                    reviewText,
+                },
+            });
+
+            if (
+                reaction !==
+                "abandoned" &&
+                favoriteTrackIds.length >
+                0
+            ) {
+                await updateDailyChallenges({
+                    eventType:
+                        "favorites_saved",
+
+                    eventId:
+                        `favorites-saved:${userAlbum.id}`,
+
+                    metadata: {
+                        favoriteCount:
+                            favoriteTrackIds.length,
+                    },
+                });
+            }
+        } catch (challengeError) {
+            console.error(
+                "No se pudieron actualizar los retos:",
+                challengeError,
+            );
+        }
+    }
+
+    async function handleEditReview() {
+        await updateAlbumReview({
+            userId: user.id,
+            reviewId:
+                existingReview.id,
+            reaction,
+            rating,
+            reviewText,
+            wouldListenAgain,
+            favoriteTrackIds,
+        });
+
+        /*
+         * Editar no concede XP, no suma retos,
+         * no cuenta como nueva escucha y no altera
+         * la racha. Solo recalculamos datos derivados
+         * que sí dependen de la nota actual.
+         */
+        await recalculateDerivedData();
+
+        window.dispatchEvent(
+            new CustomEvent(
+                "audite:review-edited",
+                {
+                    detail: {
+                        reviewId:
+                            existingReview.id,
+                        userAlbumId:
+                            userAlbum.id,
+                    },
+                },
+            ),
+        );
+    }
+
+    async function handleSubmit(
+        event,
+    ) {
         event.preventDefault();
 
-        const validationMessage = validateForm();
+        const validationMessage =
+            validateForm();
 
         if (validationMessage) {
-            setMessage(validationMessage);
+            setMessage(
+                validationMessage,
+            );
             return;
         }
 
@@ -238,204 +752,10 @@ function Review() {
         setMessage("");
 
         try {
-            await completeAlbumReview({
-                userId: user.id,
-                userAlbum,
-                reaction,
-                rating:
-                    reaction === "abandoned" &&
-                        rating === ""
-                        ? null
-                        : rating,
-                reviewText,
-                wouldListenAgain,
-                favoriteTrackIds,
-            });
-
-            /*
-             * Los discos abandonados no cuentan como
-             * terminados ni conceden XP de valoración.
-             */
-            if (reaction !== "abandoned") {
-                const xpRewards = [
-                    {
-                        rewardType: "album_completed",
-                        sourceId: userAlbum.id,
-                        metadata: {
-                            albumId:
-                                userAlbum.album?.id ??
-                                userAlbum.album_id,
-
-                            albumTitle:
-                                userAlbum.album?.title ??
-                                null,
-                        },
-                    },
-                    {
-                        rewardType: "album_reviewed",
-                        sourceId: userAlbum.id,
-                        metadata: {
-                            albumId:
-                                userAlbum.album?.id ??
-                                userAlbum.album_id,
-
-                            rating: Number(rating),
-                        },
-                    },
-                ];
-
-                if (favoriteTrackIds.length > 0) {
-                    xpRewards.push({
-                        rewardType: "favorite_tracks",
-                        sourceId: userAlbum.id,
-                        metadata: {
-                            albumId:
-                                userAlbum.album?.id ??
-                                userAlbum.album_id,
-
-                            favoriteCount:
-                                favoriteTrackIds.length,
-                        },
-                    });
-                }
-
-                /*
-                 * Las concedemos una detrás de otra para
-                 * evitar tres peticiones simultáneas que
-                 * intenten actualizar el mismo total de XP.
-                 */
-                for (const reward of xpRewards) {
-                    try {
-                        await awardXP(reward);
-                    } catch (xpError) {
-                        /*
-                         * La valoración ya está guardada.
-                         * Un fallo en XP no debe impedir
-                         * terminar el proceso.
-                         */
-                        console.error(
-                            `No se pudo conceder ${reward.rewardType}:`,
-                            xpError,
-                        );
-                    }
-                }
-            }
-
-            if (reaction !== "abandoned") {
-                try {
-                    await evaluateGenreAffinity();
-
-                    window.dispatchEvent(
-                        new CustomEvent(
-                            "audite:genre-affinity-changed",
-                        ),
-                    );
-                } catch (affinityError) {
-                    /*
-                     * La valoración ya está guardada.
-                     * Un error en la afinidad no debe
-                     * bloquear el flujo.
-                     */
-                    console.error(
-                        "No se pudo actualizar la afinidad:",
-                        affinityError,
-                    );
-                }
-            }
-
-            try {
-                const album = userAlbum.album;
-
-                if (reaction !== "abandoned") {
-                    await updateDailyChallenges({
-                        eventType: "album_completed",
-
-                        eventId:
-                            `album-completed:${userAlbum.id}`,
-
-                        metadata: {
-                            rating: Number(rating),
-                            reaction,
-                            reviewText,
-                            wouldListenAgain,
-
-                            favoriteCount:
-                                favoriteTrackIds.length,
-
-                            genres:
-                                album?.genres ?? [],
-
-                            releaseYear:
-                                album?.release_year ??
-                                null,
-
-                            trackCount:
-                                album?.track_count ??
-                                album?.total_tracks ??
-                                null,
-
-                            language:
-                                album?.language ?? null,
-
-                            country:
-                                album?.country ?? null,
-
-                            artistName:
-                                album?.artist_name ??
-                                null,
-
-                            source:
-                                album?.discovery_source ??
-                                userAlbum?.source ??
-                                null,
-
-                            resumed:
-                                Boolean(
-                                    userAlbum?.resumed_at,
-                                ),
-                        },
-                    });
-                }
-
-                await updateDailyChallenges({
-                    eventType: "review_saved",
-
-                    eventId:
-                        `review-saved:${userAlbum.id}`,
-
-                    metadata: {
-                        rating:
-                            reaction === "abandoned"
-                                ? null
-                                : Number(rating),
-
-                        reaction,
-                        reviewText,
-                    },
-                });
-
-                if (
-                    reaction !== "abandoned" &&
-                    favoriteTrackIds.length > 0
-                ) {
-                    await updateDailyChallenges({
-                        eventType:
-                            "favorites_saved",
-
-                        eventId:
-                            `favorites-saved:${userAlbum.id}`,
-
-                        metadata: {
-                            favoriteCount:
-                                favoriteTrackIds.length,
-                        },
-                    });
-                }
-            } catch (challengeError) {
-                console.error(
-                    "No se pudieron actualizar los retos:",
-                    challengeError,
-                );
+            if (isEditMode) {
+                await handleEditReview();
+            } else {
+                await handleCreateReview();
             }
 
             await refreshProfile();
@@ -456,16 +776,23 @@ function Review() {
                 replace: true,
                 state: {
                     message:
-                        reaction === "abandoned"
-                            ? "El disco se ha guardado como no terminado."
-                            : "Disco valorado y añadido a tu Biblioteca.",
+                        isEditMode
+                            ? "Valoración actualizada correctamente."
+                            : reaction ===
+                                "abandoned"
+                                ? "El disco se ha guardado como no terminado."
+                                : "Disco valorado y añadido a tu Biblioteca.",
                 },
             });
         } catch (error) {
             console.error(error);
 
             setMessage(
-                "No hemos podido guardar la valoración.",
+                error instanceof Error
+                    ? error.message
+                    : isEditMode
+                        ? "No hemos podido actualizar la valoración."
+                        : "No hemos podido guardar la valoración.",
             );
         } finally {
             setSaving(false);
@@ -476,34 +803,67 @@ function Review() {
         return (
             <section className="review-page">
                 <p className="review-page__eyebrow">
-                    VALORANDO
+                    {isEditMode
+                        ? "EDITANDO"
+                        : "VALORANDO"}
                 </p>
 
-                <h1>Preparando tu valoración...</h1>
+                <h1>
+                    {isEditMode
+                        ? "Preparando la edición..."
+                        : "Preparando tu valoración..."}
+                </h1>
             </section>
         );
     }
 
     if (!userAlbum) {
-        return <Navigate to="/listening" replace />;
+        return (
+            <Navigate
+                to={
+                    isEditMode
+                        ? "/library"
+                        : "/listening"
+                }
+                replace
+            />
+        );
     }
 
-    const album = userAlbum.album;
+    const album =
+        userAlbum.album;
 
     return (
         <section className="review-page">
             <header className="review-page__header">
                 <p className="review-page__eyebrow">
-                    FIN DE LA ESCUCHA
+                    {isEditMode
+                        ? "TU VALORACIÓN"
+                        : "FIN DE LA ESCUCHA"}
                 </p>
 
-                <h1>¿Qué te ha parecido?</h1>
+                <h1>
+                    {isEditMode
+                        ? "Edita tu valoración"
+                        : "¿Qué te ha parecido?"}
+                </h1>
+
+                {isEditMode && (
+                    <span className="review-page__edit-notice">
+                        Puedes cambiar la nota,
+                        la reseña y el orden de
+                        tus canciones top. No
+                        recibirás XP otra vez.
+                    </span>
+                )}
             </header>
 
             <article className="review-album">
                 {album.cover_url ? (
                     <img
-                        src={album.cover_url}
+                        src={
+                            album.cover_url
+                        }
                         alt={`Portada de ${album.title}`}
                     />
                 ) : (
@@ -511,50 +871,91 @@ function Review() {
                 )}
 
                 <div>
-                    <h2>{album.title}</h2>
-                    <p>{album.artist_name}</p>
+                    <h2>
+                        {album.title}
+                    </h2>
+
+                    <p>
+                        {
+                            album.artist_name
+                        }
+                    </p>
                 </div>
             </article>
 
             <form
                 className="review-form"
-                onSubmit={handleSubmit}
+                onSubmit={
+                    handleSubmit
+                }
             >
                 <section className="review-section">
                     <div className="review-section__header">
                         <span>01</span>
 
                         <div>
-                            <h2>Sensación general</h2>
+                            <h2>
+                                Sensación general
+                            </h2>
+
                             <p>
-                                Elige la opción que mejor represente
-                                tu escucha.
+                                Elige la opción
+                                que mejor
+                                represente tu
+                                escucha.
                             </p>
                         </div>
                     </div>
 
                     <div className="reaction-grid">
-                        {reactions.map((item) => (
-                            <button
-                                key={item.id}
-                                type="button"
-                                className={
-                                    reaction === item.id
-                                        ? "reaction-card reaction-card--active"
-                                        : "reaction-card"
-                                }
-                                onClick={() =>
-                                    handleReactionChange(item.id)
-                                }
-                            >
-                                <span>{item.emoji}</span>
+                        {reactions
+                            .filter(
+                                (item) =>
+                                    !isEditMode ||
+                                    item.id !==
+                                    "abandoned",
+                            )
+                            .map(
+                                (item) => (
+                                    <button
+                                        key={
+                                            item.id
+                                        }
+                                        type="button"
+                                        className={
+                                            reaction ===
+                                                item.id
+                                                ? "reaction-card reaction-card--active"
+                                                : "reaction-card"
+                                        }
+                                        onClick={() =>
+                                            handleReactionChange(
+                                                item.id,
+                                            )
+                                        }
+                                    >
+                                        <span>
+                                            {
+                                                item.emoji
+                                            }
+                                        </span>
 
-                                <div>
-                                    <strong>{item.label}</strong>
-                                    <small>{item.description}</small>
-                                </div>
-                            </button>
-                        ))}
+                                        <div>
+                                            <strong>
+                                                {
+                                                    item.label
+                                                }
+                                            </strong>
+
+                                            <small>
+                                                {
+                                                    item.description
+                                                }
+                                            </small>
+                                        </div>
+                                    </button>
+                                ),
+                            )}
                     </div>
                 </section>
 
@@ -564,36 +965,73 @@ function Review() {
                             <span>02</span>
 
                             <div>
-                                <h2>Puntuación</h2>
+                                <h2>
+                                    Puntuación
+                                </h2>
 
                                 <p>
-                                    {selectedReaction.id === "abandoned"
+                                    {selectedReaction.id ===
+                                        "abandoned"
                                         ? "Puedes dejarlo sin nota o puntuar lo que escuchaste."
                                         : `Puedes puntuarlo entre ${selectedReaction.min} y ${selectedReaction.max}.`}
                                 </p>
                             </div>
                         </div>
 
-                        {selectedReaction.id === "abandoned" ? (
+                        {selectedReaction.id ===
+                            "abandoned" ? (
                             <select
                                 className="rating-select"
-                                value={rating}
-                                onChange={(event) =>
-                                    setRating(event.target.value)
+                                value={
+                                    rating
+                                }
+                                onChange={(
+                                    event,
+                                ) =>
+                                    setRating(
+                                        event
+                                            .target
+                                            .value,
+                                    )
                                 }
                             >
                                 <option value="">
-                                    Sin puntuación
+                                    Sin
+                                    puntuación
                                 </option>
-                                {[1, 1.5, 2, 2.5, 3, 3.5, 4].map(
-                                    (score) => (
+
+                                {[
+                                    1,
+                                    1.5,
+                                    2,
+                                    2.5,
+                                    3,
+                                    3.5,
+                                    4,
+                                ].map(
+                                    (
+                                        score,
+                                    ) => (
                                         <option
-                                            key={score}
-                                            value={score}
+                                            key={
+                                                score
+                                            }
+                                            value={
+                                                score
+                                            }
                                         >
-                                            {Number.isInteger(score)
+                                            {Number.isInteger(
+                                                score,
+                                            )
                                                 ? score
-                                                : score.toFixed(1).replace(".", ",")}
+                                                : score
+                                                    .toFixed(
+                                                        1,
+                                                    )
+                                                    .replace(
+                                                        ".",
+                                                        ",",
+                                                    )}
                                         </option>
                                     ),
                                 )}
@@ -608,26 +1046,53 @@ function Review() {
                                             2 +
                                             1,
                                     },
-                                    (_, index) =>
-                                        selectedReaction.min + index * 0.5,
-                                ).map((score) => (
-                                    <button
-                                        key={score}
-                                        type="button"
-                                        className={
-                                            Number(rating) === score
-                                                ? "rating-options__item rating-options__item--active"
-                                                : "rating-options__item"
-                                        }
-                                        onClick={() =>
-                                            setRating(String(score))
-                                        }
-                                    >
-                                        {Number.isInteger(score)
-                                            ? score
-                                            : score.toFixed(1).replace(".", ",")}
-                                    </button>
-                                ))}
+                                    (
+                                        _,
+                                        index,
+                                    ) =>
+                                        selectedReaction.min +
+                                        index *
+                                        0.5,
+                                ).map(
+                                    (
+                                        score,
+                                    ) => (
+                                        <button
+                                            key={
+                                                score
+                                            }
+                                            type="button"
+                                            className={
+                                                Number(
+                                                    rating,
+                                                ) ===
+                                                    score
+                                                    ? "rating-options__item rating-options__item--active"
+                                                    : "rating-options__item"
+                                            }
+                                            onClick={() =>
+                                                setRating(
+                                                    String(
+                                                        score,
+                                                    ),
+                                                )
+                                            }
+                                        >
+                                            {Number.isInteger(
+                                                score,
+                                            )
+                                                ? score
+                                                : score
+                                                    .toFixed(
+                                                        1,
+                                                    )
+                                                    .replace(
+                                                        ".",
+                                                        ",",
+                                                    )}
+                                        </button>
+                                    ),
+                                )}
                             </div>
                         )}
                     </section>
@@ -638,42 +1103,171 @@ function Review() {
                         <span>03</span>
 
                         <div>
-                            <h2>Tus canciones top</h2>
+                            <h2>
+                                Tus canciones top
+                            </h2>
+
                             <p>
-                                Selecciona todas las que quieras guardar.
+                                Selecciona tus
+                                favoritas y
+                                ordénalas de mejor
+                                a peor.
                             </p>
                         </div>
                     </div>
 
-                    {tracks.length > 0 ? (
-                        <div className="review-track-list">
-                            {tracks.map((track) => {
-                                const selected =
-                                    favoriteTrackIds.includes(track.id);
+                    {favoriteTracks.length >
+                        0 && (
+                            <div className="review-favorite-ranking">
+                                <header>
+                                    <strong>
+                                        Tu clasificación
+                                    </strong>
 
-                                return (
-                                    <button
-                                        key={track.id}
-                                        type="button"
-                                        className={
-                                            selected
-                                                ? "review-track review-track--active"
-                                                : "review-track"
-                                        }
-                                        onClick={() =>
-                                            toggleFavoriteTrack(track.id)
-                                        }
-                                    >
-                                        <span>{track.track_number}</span>
-                                        <strong>{track.title}</strong>
-                                        <i>{selected ? "★" : "☆"}</i>
-                                    </button>
-                                );
-                            })}
+                                    <span>
+                                        {
+                                            favoriteTracks.length
+                                        }{" "}
+                                        elegidas
+                                    </span>
+                                </header>
+
+                                <ol>
+                                    {favoriteTracks.map(
+                                        (
+                                            track,
+                                            index,
+                                        ) => (
+                                            <li
+                                                key={
+                                                    track.id
+                                                }
+                                            >
+                                                <strong>
+                                                    {index +
+                                                        1}
+                                                </strong>
+
+                                                <div>
+                                                    <span>
+                                                        {
+                                                            track.title
+                                                        }
+                                                    </span>
+
+                                                    <small>
+                                                        Pista{" "}
+                                                        {
+                                                            track.track_number
+                                                        }
+                                                    </small>
+                                                </div>
+
+                                                <div className="review-favorite-ranking__actions">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            moveFavoriteTrack(
+                                                                track.id,
+                                                                -1,
+                                                            )
+                                                        }
+                                                        disabled={
+                                                            index ===
+                                                            0
+                                                        }
+                                                        aria-label={`Subir ${track.title}`}
+                                                    >
+                                                        ↑
+                                                    </button>
+
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            moveFavoriteTrack(
+                                                                track.id,
+                                                                1,
+                                                            )
+                                                        }
+                                                        disabled={
+                                                            index ===
+                                                            favoriteTracks.length -
+                                                            1
+                                                        }
+                                                        aria-label={`Bajar ${track.title}`}
+                                                    >
+                                                        ↓
+                                                    </button>
+                                                </div>
+                                            </li>
+                                        ),
+                                    )}
+                                </ol>
+                            </div>
+                        )}
+
+                    {tracks.length >
+                        0 ? (
+                        <div className="review-track-list">
+                            {tracks.map(
+                                (
+                                    track,
+                                ) => {
+                                    const selected =
+                                        favoriteTrackIds.includes(
+                                            track.id,
+                                        );
+
+                                    const rankingPosition =
+                                        favoriteTrackIds.indexOf(
+                                            track.id,
+                                        );
+
+                                    return (
+                                        <button
+                                            key={
+                                                track.id
+                                            }
+                                            type="button"
+                                            className={
+                                                selected
+                                                    ? "review-track review-track--active"
+                                                    : "review-track"
+                                            }
+                                            onClick={() =>
+                                                toggleFavoriteTrack(
+                                                    track.id,
+                                                )
+                                            }
+                                        >
+                                            <span>
+                                                {selected
+                                                    ? rankingPosition +
+                                                    1
+                                                    : track.track_number}
+                                            </span>
+
+                                            <strong>
+                                                {
+                                                    track.title
+                                                }
+                                            </strong>
+
+                                            <i>
+                                                {selected
+                                                    ? "★"
+                                                    : "☆"}
+                                            </i>
+                                        </button>
+                                    );
+                                },
+                            )}
                         </div>
                     ) : (
                         <p className="review-section__empty">
-                            No tenemos disponible la lista de canciones.
+                            No tenemos
+                            disponible la lista
+                            de canciones.
                         </p>
                     )}
                 </section>
@@ -683,9 +1277,15 @@ function Review() {
                         <span>04</span>
 
                         <div>
-                            <h2>¿Volverías a escucharlo?</h2>
+                            <h2>
+                                ¿Volverías a
+                                escucharlo?
+                            </h2>
+
                             <p>
-                                A veces una nota no cuenta toda la historia.
+                                A veces una nota
+                                no cuenta toda la
+                                historia.
                             </p>
                         </div>
                     </div>
@@ -694,11 +1294,16 @@ function Review() {
                         <button
                             type="button"
                             className={
-                                wouldListenAgain === true
+                                wouldListenAgain ===
+                                    true
                                     ? "listen-again-options__active"
                                     : ""
                             }
-                            onClick={() => setWouldListenAgain(true)}
+                            onClick={() =>
+                                setWouldListenAgain(
+                                    true,
+                                )
+                            }
                         >
                             Sí, volvería
                         </button>
@@ -706,11 +1311,16 @@ function Review() {
                         <button
                             type="button"
                             className={
-                                wouldListenAgain === false
+                                wouldListenAgain ===
+                                    false
                                     ? "listen-again-options__active"
                                     : ""
                             }
-                            onClick={() => setWouldListenAgain(false)}
+                            onClick={() =>
+                                setWouldListenAgain(
+                                    false,
+                                )
+                            }
                         >
                             Probablemente no
                         </button>
@@ -722,24 +1332,39 @@ function Review() {
                         <span>05</span>
 
                         <div>
-                            <h2>Reseña personal</h2>
+                            <h2>
+                                Reseña personal
+                            </h2>
+
                             <p>
-                                Opcional. Escribe lo que quieras recordar.
+                                Opcional. Escribe
+                                lo que quieras
+                                recordar.
                             </p>
                         </div>
                     </div>
 
                     <textarea
-                        value={reviewText}
-                        onChange={(event) =>
-                            setReviewText(event.target.value)
+                        value={
+                            reviewText
+                        }
+                        onChange={(
+                            event,
+                        ) =>
+                            setReviewText(
+                                event.target
+                                    .value,
+                            )
                         }
                         placeholder="Qué te ha gustado, qué no, cómo te ha hecho sentir..."
                         maxLength={2000}
                     />
 
                     <small className="review-form__counter">
-                        {reviewText.length}/2000
+                        {
+                            reviewText.length
+                        }
+                        /2000
                     </small>
                 </section>
 
@@ -755,8 +1380,12 @@ function Review() {
                     disabled={saving}
                 >
                     {saving
-                        ? "Guardando valoración..."
-                        : "Guardar en mi Biblioteca"}
+                        ? isEditMode
+                            ? "Actualizando valoración..."
+                            : "Guardando valoración..."
+                        : isEditMode
+                            ? "Guardar cambios"
+                            : "Guardar en mi Biblioteca"}
                 </button>
             </form>
         </section>

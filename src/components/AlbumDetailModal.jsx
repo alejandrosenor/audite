@@ -593,9 +593,10 @@ function AlbumDetailModal({
                         {!isAbandoned && onEdit && (
                             <button
                                 type="button"
-                                onClick={() =>
-                                    onEdit(detail)
-                                }
+                                onClick={() => {
+                                    onClose();
+                                    onEdit(detail);
+                                }}
                             >
                                 Editar valoración
                             </button>

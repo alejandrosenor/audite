@@ -318,3 +318,111 @@
         grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 }
+
+.review-page__edit-notice {
+    display: block;
+    max-width: 640px;
+    margin-top: 10px;
+    color: var(--color-text-secondary);
+    font-size: 14px;
+    line-height: 1.55;
+}
+
+.review-favorite-ranking {
+    margin-bottom: 15px;
+    border: 1px solid var(--color-border);
+    border-radius: 18px;
+    background: var(--color-background);
+    padding: 14px;
+}
+
+.review-favorite-ranking>header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.review-favorite-ranking>header strong {
+    font-family: var(--font-display);
+    font-size: 18px;
+}
+
+.review-favorite-ranking>header span {
+    color: var(--color-text-muted);
+    font-size: 11px;
+}
+
+.review-favorite-ranking ol {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    list-style: none;
+}
+
+.review-favorite-ranking li {
+    display: grid;
+    grid-template-columns:
+        34px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid var(--color-border);
+    border-radius: 13px;
+    padding: 9px;
+}
+
+.review-favorite-ranking li>strong {
+    display: grid;
+    width: 34px;
+    height: 34px;
+    place-items: center;
+    border-radius: 11px;
+    background: var(--color-accent-soft);
+    color: var(--color-accent);
+}
+
+.review-favorite-ranking li div>span,
+.review-favorite-ranking li div>small {
+    display: block;
+}
+
+.review-favorite-ranking li div>span {
+    font-weight: 800;
+}
+
+.review-favorite-ranking li div>small {
+    margin-top: 3px;
+    color: var(--color-text-muted);
+    font-size: 10px;
+}
+
+.review-favorite-ranking__actions {
+    display: flex;
+    gap: 5px;
+}
+
+.review-favorite-ranking__actions button {
+    display: grid;
+    width: 35px;
+    height: 35px;
+    place-items: center;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    background: var(--color-surface);
+    color: var(--color-text-primary);
+    cursor: pointer;
+    font-size: 17px;
+}
+
+.review-favorite-ranking__actions button:disabled {
+    cursor: not-allowed;
+    opacity: 0.3;
+}
+
+@media (max-width: 520px) {
+    .review-favorite-ranking li {
+        grid-template-columns:
+            32px minmax(0, 1fr) auto;
+    }
+}
