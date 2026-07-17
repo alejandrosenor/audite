@@ -28,6 +28,9 @@ import {
 import {
     updateDailyChallenges,
 } from "../services/dailyChallenges";
+import {
+    publishReview,
+} from "../services/socialFeed";
 import "./Review.css";
 
 const reactions = [
@@ -132,6 +135,16 @@ function Review() {
 
     const [message, setMessage] =
         useState("");
+
+    const [
+        shareReview,
+        setShareReview,
+    ] = useState(false);
+
+    const [
+        shareVisibility,
+        setShareVisibility,
+    ] = useState("friends");
 
     const selectedReaction = useMemo(
         () =>
@@ -492,20 +505,43 @@ function Review() {
     }
 
     async function handleCreateReview() {
-        await completeAlbumReview({
-            userId: user.id,
-            userAlbum,
-            reaction,
-            rating:
-                reaction ===
-                    "abandoned" &&
-                    rating === ""
-                    ? null
-                    : rating,
-            reviewText,
-            wouldListenAgain,
-            favoriteTrackIds,
-        });
+        const savedReview =
+            await completeAlbumReview({
+                userId: user.id,
+                userAlbum,
+                reaction,
+                rating:
+                    reaction ===
+                        "abandoned" &&
+                        rating === ""
+                        ? null
+                        : rating,
+                reviewText,
+                wouldListenAgain,
+                favoriteTrackIds,
+            });
+
+        if (
+            shareReview &&
+            savedReview?.id
+        ) {
+            await publishReview({
+                userId:
+                    user.id,
+
+                reviewId:
+                    savedReview.id,
+
+                visibility:
+                    shareVisibility,
+            });
+
+            window.dispatchEvent(
+                new CustomEvent(
+                    "audite:social-feed-changed",
+                ),
+            );
+        }
 
         if (
             reaction !== "abandoned"
@@ -1366,6 +1402,66 @@ function Review() {
                         }
                         /2000
                     </small>
+                </section>
+
+                <section className="review-section">
+                    <div className="review-section__header">
+                        <span>06</span>
+
+                        <div>
+                            <h2>
+                                Compartir escucha
+                            </h2>
+
+                            <p>
+                                Publica tu valoración
+                                para que la vean tus
+                                amigos.
+                            </p>
+                        </div>
+                    </div>
+
+                    <label className="review-share-option">
+                        <input
+                            type="checkbox"
+                            checked={shareReview}
+                            onChange={(event) =>
+                                setShareReview(
+                                    event.target.checked,
+                                )
+                            }
+                        />
+
+                        <span>
+                            Compartir esta valoración
+                            en Social
+                        </span>
+                    </label>
+
+                    {shareReview && (
+                        <select
+                            value={
+                                shareVisibility
+                            }
+                            onChange={(event) =>
+                                setShareVisibility(
+                                    event.target.value,
+                                )
+                            }
+                        >
+                            <option value="friends">
+                                Solo amigos
+                            </option>
+
+                            <option value="public">
+                                Público
+                            </option>
+
+                            <option value="private">
+                                Solo yo
+                            </option>
+                        </select>
+                    )}
                 </section>
 
                 {message && (

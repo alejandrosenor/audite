@@ -13,6 +13,9 @@ import {
     getLibraryAlbumDetail,
 } from "../services/reviews";
 import LibraryTabs from "../components/LibraryTabs";
+import {
+    publishReview,
+} from "../services/socialFeed";
 import "./Library.css";
 
 const reactionLabels = {
@@ -817,6 +820,31 @@ function Library() {
                             },
                         },
                     );
+                }}
+                onShare={async (detail) => {
+                    try {
+                        await publishReview({
+                            userId:
+                                user.id,
+
+                            reviewId:
+                                detail.id,
+
+                            visibility:
+                                "friends",
+                        });
+
+                        window.dispatchEvent(
+                            new CustomEvent(
+                                "audite:social-feed-changed",
+                            ),
+                        );
+                    } catch (error) {
+                        console.error(
+                            "No se pudo compartir:",
+                            error,
+                        );
+                    }
                 }}
             />
         </section>

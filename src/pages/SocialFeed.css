@@ -1,0 +1,55 @@
+.social-feed-page {
+    width: min(100%, 760px);
+    margin: 0 auto;
+    padding-bottom: 120px
+}
+
+.social-feed-page>header>p {
+    color: var(--color-accent);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: .12em
+}
+
+.social-feed-page>header h1 {
+    margin-top: 5px;
+    font-family: var(--font-display);
+    font-size: clamp(42px, 8vw, 70px);
+    line-height: .95
+}
+
+.social-feed-page>header span {
+    display: block;
+    margin-top: 10px;
+    color: var(--color-text-secondary)
+}
+
+.social-feed-list {
+    display: grid;
+    gap: 13px;
+    margin-top: 22px
+}
+
+.social-feed-empty {
+    margin-top: 22px;
+    border: 1px solid var(--color-border);
+    border-radius: 24px;
+    background: var(--color-surface);
+    padding: 40px 24px;
+    text-align: center
+}
+
+.social-feed-empty>span {
+    font-size: 44px
+}
+
+.social-feed-empty h2 {
+    margin-top: 12px;
+    font-family: var(--font-display);
+    font-size: 27px
+}
+
+.social-feed-empty p {
+    margin-top: 8px;
+    color: var(--color-text-secondary)
+}

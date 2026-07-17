@@ -616,6 +616,15 @@ function AlbumDetailModal({
 
                         <button
                             type="button"
+                            onClick={() =>
+                                onShare(detail)
+                            }
+                        >
+                            Compartir en Social
+                        </button>
+
+                        <button
+                            type="button"
                             onClick={onClose}
                         >
                             Cerrar ficha

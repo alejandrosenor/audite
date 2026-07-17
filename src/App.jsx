@@ -15,6 +15,8 @@ import ToListen from "./pages/ToListen";
 import Review from "./pages/Review";
 import Achievements from "./pages/Achievements";
 import Social from "./pages/Social";
+import SocialFeed from "./pages/SocialFeed";
+import SocialProfile from "./pages/SocialProfile";
 
 function App() {
   return (
@@ -35,6 +37,8 @@ function App() {
           <Route path="/ranking" element={<Ranking />} />
           <Route path="/achievements" element={<Achievements />} />
           <Route path="/social" element={<Social />} />
+          <Route path="/social/feed" element={<SocialFeed />} />
+          <Route path="/social/user/:userId" element={<SocialProfile />} />
         </Route>
       </Route>
 

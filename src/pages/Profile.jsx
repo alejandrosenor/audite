@@ -420,6 +420,51 @@ function Profile() {
                 </button>
             </article>
 
+            {editing && (
+                <form
+                    className="profile-editor"
+                    onSubmit={handleSaveProfile}
+                >
+                    <header>
+                        <p>PERSONALIZACIÓN</p>
+                        <h2>Edita tu identidad musical</h2>
+                    </header>
+
+                    <label className="profile-editor__name">
+                        <span>Nombre</span>
+
+                        <input
+                            value={username}
+                            onChange={(event) =>
+                                setUsername(event.target.value)
+                            }
+                            maxLength={40}
+                            placeholder="Tu nombre"
+                        />
+                    </label>
+
+                    <AvatarSelector
+                        profile={previewProfile}
+                        selectedType={avatarType}
+                        selectedEmoji={selectedEmoji}
+                        selectedArtist={selectedArtist}
+                        onTypeChange={setAvatarType}
+                        onEmojiChange={setSelectedEmoji}
+                        onArtistChange={setSelectedArtist}
+                    />
+
+                    <button
+                        type="submit"
+                        className="profile-editor__submit"
+                        disabled={saving}
+                    >
+                        {saving
+                            ? "Guardando..."
+                            : "Guardar cambios"}
+                    </button>
+                </form>
+            )}
+
             <section className="profile-xp-card">
                 <header className="profile-xp-card__header">
                     <div>
@@ -487,51 +532,6 @@ function Profile() {
                 >
                     {message}
                 </p>
-            )}
-
-            {editing && (
-                <form
-                    className="profile-editor"
-                    onSubmit={handleSaveProfile}
-                >
-                    <header>
-                        <p>PERSONALIZACIÓN</p>
-                        <h2>Edita tu identidad musical</h2>
-                    </header>
-
-                    <label className="profile-editor__name">
-                        <span>Nombre</span>
-
-                        <input
-                            value={username}
-                            onChange={(event) =>
-                                setUsername(event.target.value)
-                            }
-                            maxLength={40}
-                            placeholder="Tu nombre"
-                        />
-                    </label>
-
-                    <AvatarSelector
-                        profile={previewProfile}
-                        selectedType={avatarType}
-                        selectedEmoji={selectedEmoji}
-                        selectedArtist={selectedArtist}
-                        onTypeChange={setAvatarType}
-                        onEmojiChange={setSelectedEmoji}
-                        onArtistChange={setSelectedArtist}
-                    />
-
-                    <button
-                        type="submit"
-                        className="profile-editor__submit"
-                        disabled={saving}
-                    >
-                        {saving
-                            ? "Guardando..."
-                            : "Guardar cambios"}
-                    </button>
-                </form>
             )}
 
             <NavLink
