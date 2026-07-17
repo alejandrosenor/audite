@@ -83,16 +83,19 @@ function Ranking() {
     }, [user?.id]);
 
     const podiumAlbums = useMemo(() => {
-        return podiumData
-            .map((podiumItem) => ({
-                ...podiumItem,
-                review: rankedAlbums.find(
-                    (review) =>
-                        review.position ===
-                        podiumItem.position,
-                ),
-            }))
-            .filter((item) => item.review);
+        return podiumData.flatMap(
+            (podiumItem) =>
+                rankedAlbums
+                    .filter(
+                        (review) =>
+                            review.position ===
+                            podiumItem.position,
+                    )
+                    .map((review) => ({
+                        ...podiumItem,
+                        review,
+                    })),
+        );
     }, [rankedAlbums]);
 
     const remainingAlbums = useMemo(() => {
