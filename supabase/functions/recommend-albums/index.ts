@@ -193,11 +193,25 @@ async function fetchSpotifyJson(
       response.headers.get("Retry-After"),
     );
 
+    if (
+      response.status === 429
+    ) {
+      const retryAfterSeconds =
+        Number.isFinite(retryAfter) &&
+        retryAfter > 0
+          ? retryAfter
+          : 60;
+
+      throw new Error(
+        `SPOTIFY_RATE_LIMIT:${retryAfterSeconds}`,
+      );
+    }
+
     const waitTime =
-      Number.isFinite(retryAfter) &&
-      retryAfter > 0
-        ? retryAfter * 1000
-        : attempt * 600;
+      Math.min(
+        attempt * 600,
+        1800,
+      );
 
     await new Promise((resolve) =>
       setTimeout(resolve, waitTime),
@@ -216,7 +230,7 @@ async function searchArtistsByGenre(
   const randomLetters =
     shuffle(
       "abcdefghijklmnopqrstuvwxyz".split(""),
-    ).slice(0, 3);
+    ).slice(0, 1);;
 
   const artists: SpotifyArtist[] = [];
 
@@ -596,7 +610,7 @@ Deno.serve(async (request) => {
     for (
       const artist of shuffle(
         uniqueArtists,
-      ).slice(0, 12)
+      ).slice(0, 4)
     ) {
       if (recommendations.length >= 6) {
         break;
@@ -706,19 +720,31 @@ Deno.serve(async (request) => {
         recommendations.slice(0, 3),
     });
   } catch (error) {
-    console.error(
-      "recommend-albums error:",
-      error,
-    );
+    const message =
+      error instanceof Error
+        ? error.message
+        : "";
 
-    return jsonResponse(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : "No hemos podido preparar tus recomendaciones.",
-      },
-      500,
-    );
+    if (
+      message.startsWith(
+        "SPOTIFY_RATE_LIMIT:",
+      )
+    ) {
+      return jsonResponse(
+        {
+          error:
+            "Spotify está limitando temporalmente las recomendaciones.",
+
+          code:
+            "spotify_rate_limit",
+
+          retryAfter:
+            Number(
+              message.split(":")[1],
+            ) || 60,
+        },
+        429,
+      );
+    }
   }
 });

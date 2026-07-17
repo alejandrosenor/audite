@@ -11,7 +11,18 @@ import {
     getAlbumRecommendations,
     markRecommendationKnown,
 } from "../services/recommendations";
+import {
+    updateDailyChallenges,
+} from "../services/dailyChallenges";
 import "./AlbumRecommendations.css";
+
+const LOAD_STATUS = {
+    IDLE: "idle",
+    LOADING: "loading",
+    READY: "ready",
+    EMPTY: "empty",
+    ERROR: "error",
+};
 
 function AlbumRecommendations({ userId }) {
     const carouselRef = useRef(null);
@@ -19,53 +30,69 @@ function AlbumRecommendations({ userId }) {
     const [seed, setSeed] = useState(null);
     const [recommendations, setRecommendations] =
         useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loadStatus, setLoadStatus] = useState(
+        LOAD_STATUS.IDLE,
+    );
+    const [loadError, setLoadError] = useState("");
     const [actionId, setActionId] = useState("");
-    const [message, setMessage] = useState("");
+    const [actionMessage, setActionMessage] =
+        useState("");
     const [activeIndex, setActiveIndex] = useState(0);
 
     async function loadRecommendations() {
         if (!userId) {
+            setSeed(null);
+            setRecommendations([]);
+            setLoadStatus(LOAD_STATUS.IDLE);
+            setLoadError("");
             return;
         }
 
-        setLoading(true);
-        setMessage("");
+        setLoadStatus(LOAD_STATUS.LOADING);
+        setLoadError("");
+        setActionMessage("");
 
         try {
             const result =
                 await getAlbumRecommendations();
 
-            setSeed(result.seed);
-            setRecommendations(
-                result.recommendations ?? [],
-            );
+            const nextRecommendations =
+                result.recommendations ?? [];
+
+            setSeed(result.seed ?? null);
+            setRecommendations(nextRecommendations);
             setActiveIndex(0);
 
-            if (!result.recommendations?.length) {
-                setMessage(
-                    result.reason ||
-                    "Todavía no tenemos suficientes pistas sobre tus gustos.",
-                );
+            if (nextRecommendations.length > 0) {
+                setLoadStatus(LOAD_STATUS.READY);
+                return;
             }
-        } catch (error) {
-            console.error(error);
 
-            setMessage(
-                error.message ||
-                "No hemos podido preparar tus recomendaciones.",
+            setLoadStatus(LOAD_STATUS.EMPTY);
+            setLoadError(
+                result.reason ||
+                "Termina y valora algunos discos para recibir recomendaciones más personales.",
             );
-        } finally {
-            setLoading(false);
+        } catch (error) {
+            console.error(
+                "Error cargando recomendaciones:",
+                error,
+            );
+
+            setSeed(null);
+            setRecommendations([]);
+            setLoadStatus(LOAD_STATUS.ERROR);
+            setLoadError(
+                error instanceof Error
+                    ? error.message
+                    : "No hemos podido preparar tus recomendaciones.",
+            );
         }
     }
 
     useEffect(() => {
         loadRecommendations();
     }, [userId]);
-
-    const activeAlbum =
-        recommendations[activeIndex] ?? null;
 
     const progressText = useMemo(() => {
         if (!recommendations.length) {
@@ -95,8 +122,7 @@ function AlbumRecommendations({ userId }) {
             return;
         }
 
-        const card =
-            carousel.children[safeIndex];
+        const card = carousel.children[safeIndex];
 
         card?.scrollIntoView({
             behavior: "smooth",
@@ -122,9 +148,7 @@ function AlbumRecommendations({ userId }) {
             return;
         }
 
-        const cards = Array.from(
-            carousel.children,
-        );
+        const cards = Array.from(carousel.children);
 
         if (!cards.length) {
             return;
@@ -174,6 +198,14 @@ function AlbumRecommendations({ userId }) {
                     ),
                 );
 
+                if (nextRecommendations.length === 0) {
+                    setSeed(null);
+                    setLoadStatus(LOAD_STATUS.EMPTY);
+                    setLoadError(
+                        "Has revisado todas las recomendaciones disponibles. Puedes buscar otras cuando quieras.",
+                    );
+                }
+
                 return nextRecommendations;
             },
         );
@@ -184,10 +216,8 @@ function AlbumRecommendations({ userId }) {
             return;
         }
 
-        setActionId(
-            `accept-${album.spotify_id}`,
-        );
-        setMessage("");
+        setActionId(`accept-${album.spotify_id}`);
+        setActionMessage("");
 
         try {
             await acceptRecommendation({
@@ -195,9 +225,30 @@ function AlbumRecommendations({ userId }) {
                 album,
             });
 
-            removeAlbum(album.spotify_id);
+            try {
+                await updateDailyChallenges({
+                    eventType:
+                        "recommendation_accepted",
+                    eventId:
+                        `recommendation-accepted:${album.spotify_id}`,
+                    metadata: {
+                        spotifyId:
+                            album.spotify_id ?? null,
+                        artistName:
+                            album.artist_name ?? null,
+                        genres: album.genres ?? [],
+                        source: "recommendation",
+                    },
+                });
+            } catch (challengeError) {
+                console.error(
+                    "No se pudo actualizar el reto de recomendación aceptada:",
+                    challengeError,
+                );
+            }
 
-            setMessage(
+            removeAlbum(album.spotify_id);
+            setActionMessage(
                 `${album.title} se ha añadido a Pendientes.`,
             );
 
@@ -214,8 +265,7 @@ function AlbumRecommendations({ userId }) {
             );
         } catch (error) {
             console.error(error);
-
-            setMessage(
+            setActionMessage(
                 "No hemos podido añadir el disco.",
             );
         } finally {
@@ -228,10 +278,8 @@ function AlbumRecommendations({ userId }) {
             return;
         }
 
-        setActionId(
-            `known-${album.spotify_id}`,
-        );
-        setMessage("");
+        setActionId(`known-${album.spotify_id}`);
+        setActionMessage("");
 
         try {
             await markRecommendationKnown({
@@ -239,9 +287,28 @@ function AlbumRecommendations({ userId }) {
                 album,
             });
 
-            removeAlbum(album.spotify_id);
+            try {
+                await updateDailyChallenges({
+                    eventType:
+                        "recommendation_known",
+                    eventId:
+                        `recommendation-known:${album.spotify_id}`,
+                    metadata: {
+                        spotifyId:
+                            album.spotify_id ?? null,
+                        artistName:
+                            album.artist_name ?? null,
+                    },
+                });
+            } catch (challengeError) {
+                console.error(
+                    "No se pudo actualizar el reto de recomendación conocida:",
+                    challengeError,
+                );
+            }
 
-            setMessage(
+            removeAlbum(album.spotify_id);
+            setActionMessage(
                 `${album.title} se ha marcado como conocido.`,
             );
 
@@ -252,8 +319,7 @@ function AlbumRecommendations({ userId }) {
             );
         } catch (error) {
             console.error(error);
-
-            setMessage(
+            setActionMessage(
                 "No hemos podido guardar tu decisión.",
             );
         } finally {
@@ -266,10 +332,8 @@ function AlbumRecommendations({ userId }) {
             return;
         }
 
-        setActionId(
-            `dismiss-${album.spotify_id}`,
-        );
-        setMessage("");
+        setActionId(`dismiss-${album.spotify_id}`);
+        setActionMessage("");
 
         try {
             await dismissRecommendation({
@@ -280,8 +344,7 @@ function AlbumRecommendations({ userId }) {
             removeAlbum(album.spotify_id);
         } catch (error) {
             console.error(error);
-
-            setMessage(
+            setActionMessage(
                 "No hemos podido descartar el disco.",
             );
         } finally {
@@ -289,7 +352,10 @@ function AlbumRecommendations({ userId }) {
         }
     }
 
-    if (loading) {
+    if (
+        loadStatus === LOAD_STATUS.IDLE ||
+        loadStatus === LOAD_STATUS.LOADING
+    ) {
         return (
             <section className="recommendations-carousel recommendations-carousel--loading">
                 <div className="recommendations-carousel__loading-cover" />
@@ -304,7 +370,40 @@ function AlbumRecommendations({ userId }) {
         );
     }
 
-    if (!recommendations.length) {
+    if (loadStatus === LOAD_STATUS.ERROR) {
+        return (
+            <article className="recommendations-empty recommendations-empty--error">
+                <span>⚠️</span>
+
+                <div>
+                    <p>
+                        RECOMENDACIONES NO DISPONIBLES
+                    </p>
+
+                    <h3>
+                        Ha ocurrido un problema técnico
+                    </h3>
+
+                    <span>
+                        {loadError ||
+                            "No hemos podido cargar tus recomendaciones."}
+                    </span>
+
+                    <button
+                        type="button"
+                        onClick={loadRecommendations}
+                    >
+                        Volver a intentarlo
+                    </button>
+                </div>
+            </article>
+        );
+    }
+
+    if (
+        loadStatus === LOAD_STATUS.EMPTY ||
+        !recommendations.length
+    ) {
         return (
             <article className="recommendations-empty">
                 <span>🧭</span>
@@ -317,13 +416,22 @@ function AlbumRecommendations({ userId }) {
                     </h3>
 
                     <span>
-                        {message ||
+                        {loadError ||
                             "Termina y valora algunos discos para recibir recomendaciones más personales."}
                     </span>
 
-                    <Link to="/discover">
-                        Seguir descubriendo
-                    </Link>
+                    <div className="recommendations-empty__actions">
+                        <Link to="/discover">
+                            Seguir descubriendo
+                        </Link>
+
+                        <button
+                            type="button"
+                            onClick={loadRecommendations}
+                        >
+                            Buscar otras
+                        </button>
+                    </div>
                 </div>
             </article>
         );
@@ -363,9 +471,9 @@ function AlbumRecommendations({ userId }) {
                 </header>
             )}
 
-            {message && (
+            {actionMessage && (
                 <p className="recommendations-carousel__message">
-                    {message}
+                    {actionMessage}
                 </p>
             )}
 
@@ -420,19 +528,13 @@ function AlbumRecommendations({ userId }) {
                                         <div>💿</div>
                                     )}
 
-                                    <span>
-                                        {index + 1}
-                                    </span>
+                                    <span>{index + 1}</span>
                                 </div>
 
                                 <div className="recommendation-slide__content">
                                     <p>RECOMENDADO PARA TI</p>
-
                                     <h3>{album.title}</h3>
-
-                                    <h4>
-                                        {album.artist_name}
-                                    </h4>
+                                    <h4>{album.artist_name}</h4>
 
                                     <div className="recommendation-slide__metadata">
                                         {album.release_year && (
