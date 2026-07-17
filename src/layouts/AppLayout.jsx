@@ -5,6 +5,7 @@ import { useAuth } from "../context/AuthContext";
 import { getCurrentListeningAlbum } from "../services/albums";
 import UserAvatar from "../components/UserAvatar";
 import XPToast from "../components/XPToast";
+import PresenceHeartbeat from "../components/PresenceHeartbeat";
 
 function AppLayout() {
     const { profile, user } = useAuth();
@@ -77,6 +78,8 @@ function AppLayout() {
 
     return (
         <div className="app-layout">
+            <PresenceHeartbeat />
+            
             <header className="mobile-header">
                 <NavLink
                     to="/"

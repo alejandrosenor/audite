@@ -14,6 +14,7 @@ import Songs from "./pages/Songs";
 import ToListen from "./pages/ToListen";
 import Review from "./pages/Review";
 import Achievements from "./pages/Achievements";
+import Social from "./pages/Social";
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
           <Route path="/review/:userAlbumId" element={<Review />} />
           <Route path="/ranking" element={<Ranking />} />
           <Route path="/achievements" element={<Achievements />} />
+          <Route path="/social" element={<Social />} />
         </Route>
       </Route>
 

@@ -4,7 +4,7 @@ import {
     useMemo,
     useState,
 } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, NavLink } from "react-router-dom";
 import AvatarSelector from "../components/AvatarSelector";
 import UserAvatar from "../components/UserAvatar";
 import { useAuth } from "../context/AuthContext";
@@ -533,6 +533,34 @@ function Profile() {
                     </button>
                 </form>
             )}
+
+            <NavLink
+                to="/social"
+                className="profile-social-card"
+            >
+                <div className="profile-social-card__icon">
+                    👥
+                </div>
+
+                <div className="profile-social-card__content">
+                    <span className="profile-social-card__eyebrow">
+                        COMUNIDAD
+                    </span>
+
+                    <h3>Social</h3>
+
+                    <p>
+                        Encuentra amigos, comparte
+                        discos y descubre qué están
+                        escuchando.
+                    </p>
+
+                    <strong>
+                        Entrar en Social
+                        <span>→</span>
+                    </strong>
+                </div>
+            </NavLink>
 
             <section className="profile-section">
                 <header className="profile-section__header">
