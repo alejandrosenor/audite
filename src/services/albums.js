@@ -332,21 +332,56 @@ export async function addManualAlbum({
             .from("albums")
             .upsert(
                 {
-                    spotify_id: album.spotify_id,
-                    title: album.title,
-                    artist_name: album.artist_name,
-                    release_year: album.release_year,
-                    cover_url: album.cover_url,
-                    spotify_image_url: album.cover_url,
-                    spotify_url: album.spotify_url,
+                    spotify_id:
+                        album.spotify_id,
+
+                    spotify_artist_id:
+                        album.spotify_artist_id ??
+                        null,
+
+                    title:
+                        album.title,
+
+                    artist_name:
+                        album.artist_name,
+
+                    release_year:
+                        album.release_year,
+
+                    cover_url:
+                        album.cover_url,
+
+                    spotify_image_url:
+                        album.cover_url,
+
+                    spotify_url:
+                        album.spotify_url,
+
                     spotify_artist_url:
-                        album.spotify_artist_url,
+                        album.spotify_artist_url ??
+                        null,
+
                     spotify_release_date:
                         album.spotify_release_date,
-                    album_type: album.album_type,
-                    track_count: album.track_count,
-                    total_tracks: album.total_tracks,
-                    updated_at: new Date().toISOString(),
+
+                    album_type:
+                        album.album_type,
+
+                    track_count:
+                        album.track_count,
+
+                    total_tracks:
+                        album.total_tracks,
+
+                    genres:
+                        Array.isArray(
+                            album.genres,
+                        )
+                            ? album.genres
+                            : [],
+
+                    updated_at:
+                        new Date().toISOString(),
                 },
                 {
                     onConflict: "spotify_id",
