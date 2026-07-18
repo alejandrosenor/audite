@@ -537,3 +537,179 @@
         height: 58px;
     }
 }
+
+.discover-world-card {
+    position: relative;
+
+    display: flex;
+    align-items: center;
+    gap: 18px;
+
+    width: 100%;
+
+    margin: 28px 0 32px;
+
+    padding: 22px;
+
+    border: 1px solid rgba(255, 255, 255, .08);
+    border-radius: 24px;
+
+    background:
+        radial-gradient(circle at top right,
+            rgba(124, 92, 255, .22),
+            transparent 45%),
+        linear-gradient(145deg,
+            #1d1833 0%,
+            #17141f 55%,
+            #121218 100%);
+
+    overflow: hidden;
+
+    cursor: pointer;
+
+    transition:
+        transform .25s ease,
+        box-shadow .25s ease,
+        border-color .25s ease;
+}
+
+.discover-world-card:hover {
+    transform: translateY(-4px);
+
+    border-color: rgba(140, 92, 255, .45);
+
+    box-shadow:
+        0 20px 45px rgba(0, 0, 0, .45),
+        0 0 35px rgba(124, 92, 255, .18);
+}
+
+.discover-world-card::before {
+    content: "";
+
+    position: absolute;
+
+    top: -70px;
+    right: -70px;
+
+    width: 180px;
+    height: 180px;
+
+    border-radius: 50%;
+
+    background: rgba(139, 92, 246, .08);
+}
+
+.discover-world-card span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 72px;
+    height: 72px;
+
+    border-radius: 20px;
+
+    background:
+        linear-gradient(135deg,
+            #8b5cf6,
+            #6d5efb);
+
+    font-size: 34px;
+
+    flex-shrink: 0;
+
+    box-shadow:
+        0 12px 30px rgba(139, 92, 246, .35);
+}
+
+.discover-world-card div {
+    flex: 1;
+    min-width: 0;
+}
+
+.discover-world-card p {
+    margin: 0 0 8px;
+
+    color: #a855f7;
+
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+}
+
+.discover-world-card h3 {
+    margin: 0;
+
+    font-family: var(--font-display);
+
+    font-size: 30px;
+    line-height: .95;
+
+    color: white;
+}
+
+.discover-world-card small {
+    display: block;
+
+    margin-top: 10px;
+
+    color: rgba(255, 255, 255, .72);
+
+    font-size: 14px;
+    line-height: 1.45;
+}
+
+.discover-world-card b {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 46px;
+    height: 46px;
+
+    border-radius: 50%;
+
+    background: rgba(255, 255, 255, .08);
+
+    color: #facc15;
+
+    font-size: 28px;
+    font-weight: 300;
+
+    transition: .2s;
+}
+
+.discover-world-card:hover b {
+    transform: translateX(4px);
+}
+
+@media(max-width:640px) {
+
+    .discover-world-card {
+
+        margin: 22px 0 26px;
+
+        padding: 18px;
+
+        gap: 14px;
+    }
+
+    .discover-world-card span {
+
+        width: 60px;
+        height: 60px;
+
+        font-size: 28px;
+    }
+
+    .discover-world-card h3 {
+
+        font-size: 25px;
+    }
+
+    .discover-world-card small {
+
+        font-size: 13px;
+    }
+}

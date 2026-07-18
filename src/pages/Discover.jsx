@@ -18,6 +18,7 @@ import {
 import {
     updateDailyChallenges,
 } from "../services/dailyChallenges";
+import WorldMusicDiscovery from "../components/WorldMusicDiscovery";
 import "./Discover.css";
 
 function formatDuration(durationMs) {
@@ -52,6 +53,10 @@ function Discover() {
     const [
         generatingSpanish,
         setGeneratingSpanish,
+    ] = useState(false);
+    const [
+        worldMusicOpen,
+        setWorldMusicOpen,
     ] = useState(false);
 
     async function loadTracks(albumId) {
@@ -682,6 +687,53 @@ function Discover() {
                     handleGenerateSpanishAlbum
                 }
             />
+
+            <button
+                type="button"
+                className="discover-world-card"
+                onClick={() =>
+                    setWorldMusicOpen(true)
+                }
+            >
+                <span>🌍</span>
+
+                <div>
+                    <p>NUEVO VIAJE</p>
+
+                    <h3>
+                        Músicas del Mundo
+                    </h3>
+
+                    <small>
+                        Elige un país y descubre
+                        un disco nacido allí.
+                    </small>
+                </div>
+
+                <b>→</b>
+            </button>
+
+            {worldMusicOpen && (
+                <div className="world-music-overlay">
+                    <WorldMusicDiscovery
+                        onClose={() =>
+                            setWorldMusicOpen(false)
+                        }
+                        onGenerated={(result) => {
+                            setWorldMusicOpen(false);
+
+                            setUserAlbum(
+                                result.userAlbum,
+                            );
+
+                            setMessage(
+                                result.context
+                                    ?.message ?? "",
+                            );
+                        }}
+                    />
+                </div>
+            )}
         </section>
     );
 }
