@@ -20,6 +20,7 @@ import SocialProfile from "./pages/SocialProfile";
 import ListeningStatistics from "./pages/ListeningStatistics";
 import ChallengeCalendar from "./pages/ChallengeCalendar";
 import MonthlyReport from "./pages/MonthlyReport";
+import DataBackup from "./pages/DataBackup";
 
 function App() {
   return (
@@ -45,6 +46,7 @@ function App() {
           <Route path="/statistics/listening" element={<ListeningStatistics />} />
           <Route path="/challenge-calendar" element={<ChallengeCalendar />} />
           <Route path="/monthly-report" element={<MonthlyReport />} />
+          <Route path="/data-backup" element={<DataBackup />} />
         </Route>
       </Route>
 

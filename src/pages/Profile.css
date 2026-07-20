@@ -1382,3 +1382,142 @@
 
     color: white;
 }
+
+/* ==========================================
+   COPIA DE SEGURIDAD
+========================================== */
+
+.profile-backup-card {
+    display: grid;
+    grid-template-columns: 64px 1fr auto;
+    align-items: center;
+    gap: 18px;
+
+    width: 100%;
+    margin: 22px 0;
+
+    padding: 22px;
+
+    border: 1px solid rgba(139, 92, 246, 0.18);
+    border-radius: 28px;
+
+    background:
+        radial-gradient(circle at top right,
+            rgba(139, 92, 246, .14),
+            transparent 60%),
+        linear-gradient(180deg,
+            rgba(26, 26, 36, .98),
+            rgba(18, 18, 26, .98));
+
+    text-decoration: none;
+    color: inherit;
+
+    transition:
+        transform .25s,
+        border-color .25s,
+        box-shadow .25s;
+}
+
+.profile-backup-card:hover {
+    transform: translateY(-3px);
+
+    border-color: rgba(139, 92, 246, .45);
+
+    box-shadow:
+        0 12px 40px rgba(139, 92, 246, .16);
+}
+
+.profile-backup-card>span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 64px;
+    height: 64px;
+
+    border-radius: 20px;
+
+    background:
+        linear-gradient(135deg,
+            #9b6bff,
+            #6f42ff);
+
+    color: white;
+
+    font-size: 28px;
+
+    box-shadow:
+        0 8px 22px rgba(139, 92, 246, .35);
+}
+
+.profile-backup-card p {
+    margin: 0;
+
+    color: var(--color-accent);
+
+    font-size: .72rem;
+    font-weight: 800;
+
+    letter-spacing: .18em;
+
+    text-transform: uppercase;
+}
+
+.profile-backup-card h3 {
+    margin-top: 6px;
+
+    font-size: 2rem;
+    font-weight: 800;
+
+    line-height: 1.05;
+}
+
+.profile-backup-card small {
+    display: block;
+
+    margin-top: 8px;
+
+    color: var(--color-text-secondary);
+
+    font-size: .95rem;
+
+    line-height: 1.5;
+}
+
+.profile-backup-card b {
+    color: var(--color-accent);
+
+    font-size: 2rem;
+
+    transition: transform .25s;
+}
+
+.profile-backup-card:hover b {
+    transform: translateX(6px);
+}
+
+@media (max-width:640px) {
+
+    .profile-backup-card {
+        grid-template-columns: 56px 1fr auto;
+        gap: 16px;
+        padding: 18px;
+        border-radius: 24px;
+    }
+
+    .profile-backup-card>span {
+        width: 56px;
+        height: 56px;
+        font-size: 24px;
+        border-radius: 18px;
+    }
+
+    .profile-backup-card h3 {
+        font-size: 1.8rem;
+    }
+
+    .profile-backup-card small {
+        font-size: .9rem;
+    }
+
+}

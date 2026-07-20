@@ -565,7 +565,7 @@ function Profile() {
                 to="/monthly-report"
                 className="profile-monthly-report-card"
             >
-                <span>◫</span>
+                <span>📋</span>
 
                 <div>
                     <p>TU MES MUSICAL</p>
@@ -1003,6 +1003,24 @@ function Profile() {
                     </p>
                 )}
             </section>
+
+            <NavLink
+                to="/data-backup"
+                className="profile-backup-card"
+            >
+                <span>↓</span>
+
+                <div>
+                    <p>TUS DATOS</p>
+                    <h3>Copia y exportación</h3>
+
+                    <small>
+                        Descarga tu historia musical y guárdala a salvo.
+                    </small>
+                </div>
+
+                <b>→</b>
+            </NavLink>
 
             <button
                 type="button"
