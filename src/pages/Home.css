@@ -268,11 +268,61 @@
     }
 
     .home__header {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+
         width: 100%;
+        max-width: none;
         min-width: 0;
-        flex-direction: column;
+
         gap: 18px;
         margin-bottom: 22px;
+    }
+
+    /*
+     * Fuerza a todos los hijos del header,
+     * sean div, section o cualquier wrapper,
+     * a ocupar toda la fila.
+     */
+    .home__header>* {
+        width: 100%;
+        max-width: none;
+        min-width: 0;
+
+        justify-self: stretch;
+        align-self: stretch;
+    }
+
+    /*
+     * Por si la tarjeta está metida dentro
+     * de un contenedor intermedio.
+     */
+    .home__header>*>.home-streak-card {
+        width: 100%;
+        max-width: none;
+    }
+
+    .home-streak-card {
+        grid-template-columns:
+            56px minmax(0, 1fr);
+
+        width: 100%;
+        max-width: none;
+        min-width: 0;
+
+        justify-self: stretch;
+        align-self: stretch;
+
+        margin: 0;
+        padding: 15px;
+        gap: 13px;
+
+        box-sizing: border-box;
+    }
+
+    .home-streak-card__badge {
+        grid-column: 2;
+        justify-self: start;
     }
 
     .home__header>div {
@@ -518,13 +568,16 @@
     align-items: center;
     gap: 16px;
 
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+
     margin: 20px 0 24px;
+    padding: 18px;
 
     overflow: hidden;
 
-    border:
-        1px solid rgba(255, 142, 66, 0.28);
-
+    border: 1px solid rgba(255, 142, 66, 0.28);
     border-radius: 24px;
 
     background:
@@ -538,12 +591,6 @@
             #1b1110 0%,
             #151117 55%,
             #101015 100%);
-
-    padding: 18px;
-
-    box-shadow:
-        0 18px 45px rgba(0, 0, 0, 0.34),
-        inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .home-streak-card::before {
@@ -753,48 +800,5 @@
     100% {
         transform:
             translateX(120%);
-    }
-}
-
-@media (max-width: 520px) {
-    .home-streak-card {
-        grid-template-columns:
-            56px minmax(0, 1fr);
-
-        gap:
-            13px;
-
-        padding:
-            15px;
-    }
-
-    .home-streak-card__icon {
-        width:
-            56px;
-
-        height:
-            56px;
-
-        border-radius:
-            17px;
-
-        font-size:
-            28px;
-    }
-
-    .home-streak-card__content>strong {
-        font-size:
-            29px;
-    }
-
-    .home-streak-card__badge {
-        grid-column:
-            2;
-
-        justify-self:
-            start;
-
-        margin-top:
-            -4px;
     }
 }
