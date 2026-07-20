@@ -465,6 +465,14 @@ function Profile() {
                 </form>
             )}
 
+            {message && (
+                <p
+                    className={`profile-page__message profile-page__message--${messageType}`}
+                >
+                    {message}
+                </p>
+            )}
+
             <section className="profile-xp-card">
                 <header className="profile-xp-card__header">
                     <div>
@@ -526,13 +534,32 @@ function Profile() {
                 </p>
             </section>
 
-            {message && (
-                <p
-                    className={`profile-page__message profile-page__message--${messageType}`}
-                >
-                    {message}
-                </p>
-            )}
+            <NavLink
+                to="/challenge-calendar"
+                className="profile-calendar-card"
+            >
+                <div className="profile-calendar-icon">
+                    📅
+                </div>
+
+                <div className="profile-calendar-content">
+                    <p className="profile-calendar-label">
+                        TU RETO ANUAL
+                    </p>
+
+                    <h3 className="profile-calendar-title">
+                        Calendario del reto
+                    </h3>
+
+                    <p className="profile-calendar-description">
+                        Recorre todos los días de tu historia musical y descubre cómo ha evolucionado tu año.
+                    </p>
+                </div>
+
+                <span className="profile-calendar-arrow">
+                    →
+                </span>
+            </NavLink>
 
             <NavLink
                 to="/social"
