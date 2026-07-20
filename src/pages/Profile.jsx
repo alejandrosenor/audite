@@ -630,6 +630,30 @@ function Profile() {
                 </div>
             </section>
 
+            <NavLink
+                to="/statistics/listening"
+                className="profile-listening-card"
+            >
+                <div className="profile-listening-card__icon">
+                    📊
+                </div>
+
+                <div className="profile-listening-card__content">
+                    <p>TU HISTORIA</p>
+
+                    <h3>Estadísticas de escucha</h3>
+
+                    <span>
+                        Récords, horas, artistas,
+                        géneros y XP.
+                    </span>
+
+                    <strong>
+                        Ver estadísticas →
+                    </strong>
+                </div>
+            </NavLink>
+
             <section className="profile-section">
                 <header className="profile-section__header">
                     <div>

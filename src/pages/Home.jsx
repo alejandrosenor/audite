@@ -322,22 +322,35 @@ function Home() {
                     </p>
                 </div>
 
-                <div className="streak-card">
-                    <span className="streak-card__icon">
-                        🔥
-                    </span>
+                <section className="home-streak-card">
+                    <div className="home-streak-card__glow" />
 
-                    <div>
+                    <div className="home-streak-card__icon">
+                        🔥
+                    </div>
+
+                    <div className="home-streak-card__content">
+                        <span>RACHA ACTUAL</span>
+
                         <strong>
-                            {currentStreak}{" "}
-                            {currentStreak === 1
-                                ? "día"
-                                : "días"}
+                            {profile?.current_streak ?? 0}
+                            <small>
+                                {currentStreak === 1
+                                    ? " día"
+                                    : " días"}
+                            </small>
                         </strong>
 
-                        <span>Racha actual</span>
+                        <p>
+                            Cada día cuenta. No dejes que
+                            se apague.
+                        </p>
                     </div>
-                </div>
+
+                    <div className="home-streak-card__badge">
+                        EN LLAMAS
+                    </div>
+                </section>
             </header>
 
             {message && (

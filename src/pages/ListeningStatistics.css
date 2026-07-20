@@ -1,0 +1,336 @@
+.listening-stats {
+    width: min(100%, 1100px);
+    margin: 0 auto;
+    padding-bottom: 120px
+}
+
+.listening-stats__hero>p,
+.listening-section>header>p,
+.listening-record>p {
+    color: var(--color-accent);
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: .14em
+}
+
+.listening-stats__hero h1 {
+    max-width: 760px;
+    margin-top: 7px;
+    font-family: var(--font-display);
+    font-size: clamp(44px, 8vw, 78px);
+    line-height: .92
+}
+
+.listening-stats__hero>span {
+    display: block;
+    max-width: 580px;
+    margin-top: 15px;
+    color: var(--color-text-secondary);
+    line-height: 1.55
+}
+
+.listening-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 11px;
+    margin-top: 28px
+}
+
+.listening-summary article {
+    min-height: 140px;
+    border: 1px solid var(--color-border);
+    border-radius: 22px;
+    background: radial-gradient(circle at 100% 0, var(--color-accent-soft), transparent 180px), var(--color-surface);
+    padding: 18px
+}
+
+.listening-summary strong {
+    display: block;
+    margin-top: 18px;
+    font-family: var(--font-display);
+    font-size: 30px
+}
+
+.listening-summary p {
+    margin-top: 7px;
+    color: var(--color-text-secondary);
+    font-size: 12px
+}
+
+.listening-section {
+    margin-top: 42px
+}
+
+.listening-section>header h2 {
+    margin-top: 5px;
+    font-family: var(--font-display);
+    font-size: clamp(34px, 6vw, 54px);
+    line-height: .96
+}
+
+.listening-records {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 18px
+}
+
+.listening-record {
+    border: 1px solid var(--color-border);
+    border-radius: 22px;
+    background: var(--color-surface);
+    padding: 15px
+}
+
+.listening-record__body {
+    display: grid;
+    grid-template-columns: 108px minmax(0, 1fr);
+    align-items: center;
+    gap: 15px;
+    margin-top: 12px
+}
+
+.listening-record__cover {
+    display: grid;
+    width: 108px;
+    aspect-ratio: 1;
+    overflow: hidden;
+    place-items: center;
+    border-radius: 17px;
+    background: var(--color-background)
+}
+
+.listening-record__cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover
+}
+
+.listening-record h3 {
+    font-family: var(--font-display);
+    font-size: 24px;
+    line-height: 1
+}
+
+.listening-record__body div:last-child>span {
+    display: block;
+    margin-top: 6px;
+    color: var(--color-text-secondary)
+}
+
+.listening-record__body strong {
+    display: block;
+    margin-top: 13px;
+    color: var(--color-accent);
+    font-family: var(--font-display);
+    font-size: 24px
+}
+
+.listening-record__empty {
+    margin-top: 18px;
+    color: var(--color-text-secondary)
+}
+
+.listening-artists {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr;
+    gap: 11px;
+    margin-top: 18px
+}
+
+.listening-artists article {
+    min-height: 190px;
+    border: 1px solid var(--color-border);
+    border-radius: 22px;
+    background: var(--color-surface);
+    padding: 20px
+}
+
+.listening-artists .featured {
+    background: radial-gradient(circle at 100% 0, var(--color-accent-soft), transparent 240px), var(--color-surface)
+}
+
+.listening-artists span,
+.favorite-genre span,
+.xp-total>span,
+.xp-highlights span {
+    color: var(--color-accent);
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: .13em
+}
+
+.listening-artists h3 {
+    margin-top: 24px;
+    font-family: var(--font-display);
+    font-size: 30px;
+    line-height: 1
+}
+
+.listening-artists strong {
+    display: block;
+    margin-top: 12px;
+    color: var(--color-accent);
+    font-family: var(--font-display);
+    font-size: 24px
+}
+
+.listening-artists p {
+    margin-top: 10px;
+    color: var(--color-text-secondary);
+    line-height: 1.5
+}
+
+.favorite-genre {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    margin-top: 18px;
+    border: 1px solid var(--color-border);
+    border-radius: 24px;
+    background: radial-gradient(circle at 100% 50%, var(--color-accent-soft), transparent 300px), var(--color-surface);
+    padding: 22px
+}
+
+.favorite-genre h3 {
+    margin-top: 5px;
+    font-family: var(--font-display);
+    font-size: 39px;
+    text-transform: capitalize
+}
+
+.favorite-genre p {
+    margin-top: 8px;
+    color: var(--color-text-secondary)
+}
+
+.favorite-genre>strong {
+    color: var(--color-accent);
+    font-family: var(--font-display);
+    font-size: 35px
+}
+
+.genre-list,
+.xp-list {
+    display: grid;
+    gap: 10px;
+    margin-top: 13px
+}
+
+.genre-list article,
+.xp-list article {
+    border: 1px solid var(--color-border);
+    border-radius: 17px;
+    background: var(--color-surface);
+    padding: 14px
+}
+
+.genre-list header,
+.xp-list header {
+    display: flex;
+    justify-content: space-between
+}
+
+.genre-list article>div,
+.xp-list article>div {
+    height: 7px;
+    margin-top: 10px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: var(--color-background)
+}
+
+.genre-list article>div>span,
+.xp-list article>div>span {
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, var(--color-accent), #b58cff)
+}
+
+.genre-list p {
+    margin-top: 9px;
+    color: var(--color-text-muted);
+    font-size: 11px
+}
+
+.xp-total {
+    margin-top: 18px;
+    border: 1px solid var(--color-border);
+    border-radius: 24px;
+    background: radial-gradient(circle at 100% 0, var(--color-accent-soft), transparent 260px), var(--color-surface);
+    padding: 22px
+}
+
+.xp-total strong {
+    display: block;
+    margin-top: 8px;
+    font-family: var(--font-display);
+    font-size: 54px
+}
+
+.xp-total p {
+    margin-top: 12px;
+    color: var(--color-text-secondary)
+}
+
+.xp-list header strong {
+    color: var(--color-accent)
+}
+
+.xp-highlights {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 11px;
+    margin-top: 13px
+}
+
+.xp-highlights article {
+    border: 1px solid var(--color-border);
+    border-radius: 19px;
+    background: var(--color-surface);
+    padding: 18px
+}
+
+.xp-highlights strong {
+    display: block;
+    margin-top: 10px;
+    font-family: var(--font-display);
+    font-size: 24px
+}
+
+.xp-highlights p {
+    margin-top: 6px;
+    color: var(--color-accent);
+    font-weight: 800
+}
+
+@media(max-width:760px) {
+    .listening-summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr))
+    }
+
+    .listening-records,
+    .listening-artists {
+        grid-template-columns: 1fr
+    }
+}
+
+@media(max-width:480px) {
+    .listening-record__body {
+        grid-template-columns: 86px minmax(0, 1fr)
+    }
+
+    .listening-record__cover {
+        width: 86px
+    }
+
+    .favorite-genre {
+        align-items: flex-start;
+        flex-direction: column
+    }
+
+    .xp-highlights {
+        grid-template-columns: 1fr
+    }
+}
