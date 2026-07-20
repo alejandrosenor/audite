@@ -562,6 +562,27 @@ function Profile() {
             </NavLink>
 
             <NavLink
+                to="/monthly-report"
+                className="profile-monthly-report-card"
+            >
+                <span>◫</span>
+
+                <div>
+                    <p>TU MES MUSICAL</p>
+
+                    <h3>
+                        Informes mensuales
+                    </h3>
+
+                    <small>
+                        Revive cada mes de tu historia musical.
+                    </small>
+                </div>
+
+                <b>→</b>
+            </NavLink>
+
+            <NavLink
                 to="/social"
                 className="profile-social-card"
             >

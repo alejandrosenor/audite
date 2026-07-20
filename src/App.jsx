@@ -19,6 +19,7 @@ import SocialFeed from "./pages/SocialFeed";
 import SocialProfile from "./pages/SocialProfile";
 import ListeningStatistics from "./pages/ListeningStatistics";
 import ChallengeCalendar from "./pages/ChallengeCalendar";
+import MonthlyReport from "./pages/MonthlyReport";
 
 function App() {
   return (
@@ -43,6 +44,7 @@ function App() {
           <Route path="/social/user/:userId" element={<SocialProfile />} />
           <Route path="/statistics/listening" element={<ListeningStatistics />} />
           <Route path="/challenge-calendar" element={<ChallengeCalendar />} />
+          <Route path="/monthly-report" element={<MonthlyReport />} />
         </Route>
       </Route>
 
