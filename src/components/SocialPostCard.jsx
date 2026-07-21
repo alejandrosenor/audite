@@ -4,6 +4,7 @@ import {
     getPostComments,
     addPostComment,
     deletePostComment,
+    deleteSocialPost,
 } from "../services/socialFeed";
 import "./SocialPostCard.css";
 
@@ -36,6 +37,12 @@ export default function SocialPostCard({
         useState("");
 
     const [busy, setBusy] =
+        useState(false);
+
+    const [deleting, setDeleting] =
+        useState(false);
+
+    const [menuOpen, setMenuOpen] =
         useState(false);
 
     async function like() {
@@ -109,6 +116,42 @@ export default function SocialPostCard({
         }
     }
 
+    async function handleDeletePost() {
+        const confirmed = window.confirm(
+            "¿Seguro que quieres eliminar esta publicación?",
+        );
+
+        if (!confirmed || deleting) {
+            return;
+        }
+
+        setDeleting(true);
+
+        try {
+            await deleteSocialPost({
+                postId: post.post_id,
+                userId: currentUserId,
+            });
+
+            onChanged?.();
+        } catch (error) {
+            console.error(
+                "No se pudo eliminar la publicación:",
+                error,
+            );
+
+            window.alert(
+                "No hemos podido eliminar la publicación.",
+            );
+        } finally {
+            setDeleting(false);
+            setMenuOpen(false);
+        }
+    }
+
+    const isOwnPost =
+        post.post_user_id === currentUserId;
+
     return (
         <article className="social-post">
             <header className="social-post__header">
@@ -143,17 +186,53 @@ export default function SocialPostCard({
                     </small>
                 </div>
 
-                <time>
-                    {new Date(
-                        post.created_at,
-                    ).toLocaleDateString(
-                        "es-ES",
-                        {
-                            day: "2-digit",
-                            month: "short",
-                        },
+                <div className="social-post__header-actions">
+                    <time>
+                        {new Date(
+                            post.created_at,
+                        ).toLocaleDateString(
+                            "es-ES",
+                            {
+                                day: "2-digit",
+                                month: "short",
+                            },
+                        )}
+                    </time>
+
+                    {isOwnPost && (
+                        <div className="social-post__menu">
+                            <button
+                                type="button"
+                                className="social-post__menu-trigger"
+                                onClick={() =>
+                                    setMenuOpen(
+                                        (current) => !current,
+                                    )
+                                }
+                                aria-label="Opciones de la publicación"
+                                aria-expanded={menuOpen}
+                            >
+                                •••
+                            </button>
+
+                            {menuOpen && (
+                                <div className="social-post__menu-panel">
+                                    <button
+                                        type="button"
+                                        onClick={handleDeletePost}
+                                        disabled={deleting}
+                                    >
+                                        <span>🗑</span>
+
+                                        {deleting
+                                            ? "Eliminando..."
+                                            : "Eliminar publicación"}
+                                    </button>
+                                </div>
+                            )}
+                        </div>
                     )}
-                </time>
+                </div>
             </header>
 
             <section className="social-post__album">

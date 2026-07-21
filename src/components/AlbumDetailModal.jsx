@@ -87,6 +87,7 @@ function AlbumDetailModal({
     onClose,
     onDelete,
     onEdit,
+    onShare,
 }) {
     useEffect(() => {
         if (!detail && !loading) {

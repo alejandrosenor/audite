@@ -19,5 +19,26 @@ export async function togglePostLike({ postId, userId, liked }) {
 }
 export async function getPostComments(postId) { const { data, error } = await supabase.from("social_post_comments").select(`id,content,created_at,user_id,profile:profiles(username,display_name,avatar_url)`).eq("post_id", postId).order("created_at"); if (error) throw error; return data ?? []; }
 export async function addPostComment({ postId, userId, content }) { const clean = content.trim(); if (!clean) throw new Error("Escribe un comentario."); const { data, error } = await supabase.from("social_post_comments").insert({ post_id: postId, user_id: userId, content: clean }).select().single(); if (error) throw error; return data; }
+export async function deleteSocialPost({
+    postId,
+    userId,
+}) {
+    if (!postId || !userId) {
+        throw new Error(
+            "Faltan datos para eliminar la publicación.",
+        );
+    }
+
+    const { error } =
+        await supabase
+            .from("social_posts")
+            .delete()
+            .eq("id", postId)
+            .eq("user_id", userId);
+
+    if (error) {
+        throw error;
+    }
+}
 export async function deletePostComment({ commentId, userId }) { const { error } = await supabase.from("social_post_comments").delete().eq("id", commentId).eq("user_id", userId); if (error) throw error; }
 export async function getSocialProfile(userId) { const { data, error } = await supabase.rpc("get_social_profile", { target_user_id: userId }); if (error) throw error; return data; }
