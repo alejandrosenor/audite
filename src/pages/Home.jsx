@@ -353,6 +353,31 @@ function Home() {
                 </section>
             </header>
 
+            <section className="home-tutorial-card">
+                <div className="home-tutorial-card__icon">
+                    ?
+                </div>
+
+                <div>
+                    <p>NUEVO EN AUDITE</p>
+
+                    <h2>¿Cómo funciona todo esto?</h2>
+
+                    <span>
+                        Conoce cada pantalla, función y detalle
+                        de la aplicación.
+                    </span>
+                </div>
+
+                <button
+                    type="button"
+                    onClick={() => navigate("/tutorial")}
+                >
+                    Ver guía completa
+                    <span>→</span>
+                </button>
+            </section>
+
             {message && (
                 <p className="home__message">
                     {message}

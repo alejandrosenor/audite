@@ -22,6 +22,7 @@ import ChallengeCalendar from "./pages/ChallengeCalendar";
 import MonthlyReport from "./pages/MonthlyReport";
 import DataBackup from "./pages/DataBackup";
 import ScrollToTop from "./components/ScrollToTop";
+import Tutorial from "./pages/Tutorial";
 
 function App() {
   return (
@@ -39,6 +40,7 @@ function App() {
             <Route path="/library" element={<Library />} />
             <Route path="/songs" element={<Songs />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/tutorial" element={<Tutorial />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/review/:userAlbumId" element={<Review />} />
             <Route path="/ranking" element={<Ranking />} />
