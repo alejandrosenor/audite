@@ -559,57 +559,101 @@ Deno.serve(
           },
         );
 
-      /*
-       * Sustituimos el cálculo anterior.
-       */
+      const calculatedGenres =
+        rows.map(
+          (row) => row.genre,
+        );
+
       const {
-        error: deleteError,
+        data: existingAffinities,
+        error: existingError,
       } =
         await adminClient
           .from(
             "user_genre_affinity",
           )
-          .delete()
+          .select(
+            "id, genre",
+          )
           .eq(
             "user_id",
             user.id,
           );
 
-      if (deleteError) {
-        console.error(
-          "Delete affinities error:",
-          deleteError,
-        );
-
+      if (existingError) {
         throw new Error(
-          `No se pudieron limpiar las afinidades anteriores: ${deleteError.message}`,
+          `No se pudieron revisar las afinidades anteriores: ${existingError.message}`,
         );
       }
 
+      const obsoleteIds =
+        (existingAffinities ?? [])
+          .filter(
+            (affinity) =>
+              !calculatedGenres.includes(
+                affinity.genre,
+              ),
+          )
+          .map(
+            (affinity) =>
+              affinity.id,
+          );
+
       if (
-        rows.length > 0
+        obsoleteIds.length > 0
       ) {
         const {
-          error: insertError,
+          error: obsoleteError,
         } =
           await adminClient
             .from(
               "user_genre_affinity",
             )
-            .insert(
-              rows,
+            .delete()
+            .in(
+              "id",
+              obsoleteIds,
             );
 
         if (
-          insertError
+          obsoleteError
+        ) {
+          throw new Error(
+            `No se pudieron limpiar las afinidades obsoletas: ${obsoleteError.message}`,
+          );
+        }
+      }
+      /*
+      * Guardamos las afinidades calculadas.
+      * Upsert evita errores cuando dos evaluaciones
+      * se ejecutan al mismo tiempo.
+      */
+      if (rows.length > 0) {
+        const {
+          error: upsertError,
+        } =
+          await adminClient
+            .from(
+              "user_genre_affinity",
+            )
+            .upsert(
+              rows,
+              {
+                onConflict:
+                  "user_id,genre",
+              },
+            );
+
+        if (
+          upsertError
         ) {
           console.error(
-            "Insert affinities error:",
-            insertError,
+            "Upsert affinities error:",
+            upsertError,
           );
 
           throw new Error(
-            `No se pudieron guardar las afinidades: ${insertError.message}`,
+            `No se pudieron guardar las afinidades: ${upsertError.message}`,
           );
         }
       }

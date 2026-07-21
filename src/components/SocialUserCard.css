@@ -1,1 +1,118 @@
-.social-user-card{display:grid;grid-template-columns:68px minmax(0,1fr);gap:14px;border:1px solid var(--color-border);border-radius:19px;background:radial-gradient(circle at 100% 0,var(--color-accent-soft),transparent 220px),var(--color-surface);padding:14px}.social-user-card__avatar{display:grid;width:68px;height:68px;overflow:hidden;place-items:center;border-radius:18px;background:var(--color-accent-soft);color:var(--color-accent);font-family:var(--font-display);font-size:28px}.social-user-card__avatar img{width:100%;height:100%;object-fit:cover}.social-user-card__content{min-width:0}.social-user-card__content>header{display:flex;justify-content:space-between;gap:12px}.social-user-card h3{overflow:hidden;font-family:var(--font-display);font-size:21px;line-height:1.05;text-overflow:ellipsis;white-space:nowrap}.social-user-card header div>span{display:block;margin-top:4px;color:var(--color-text-muted);font-size:12px}.social-user-card header>small{flex-shrink:0;color:#5dd685;font-size:10px;font-weight:800}.social-user-card__content>p{margin-top:9px;color:var(--color-text-secondary);font-size:13px;line-height:1.45}.social-user-card__actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:12px}.social-user-card__actions button{min-height:40px;border:0;border-radius:999px;background:var(--color-accent);padding:0 15px;color:white;font:inherit;font-size:12px;font-weight:800}.social-user-card__actions .social-user-card__secondary{border:1px solid var(--color-border);background:var(--color-background);color:var(--color-text-primary)}.social-user-card__friend-badge{color:#5dd685;font-size:12px;font-weight:800}@media(max-width:520px){.social-user-card{grid-template-columns:56px minmax(0,1fr);padding:12px}.social-user-card__avatar{width:56px;height:56px;border-radius:16px}.social-user-card__content>header{flex-direction:column;gap:5px}}
+.social-user-card {
+    display: grid;
+    grid-template-columns: 68px minmax(0, 1fr);
+    gap: 14px;
+    border: 1px solid var(--color-border);
+    border-radius: 19px;
+    background: radial-gradient(circle at 100% 0, var(--color-accent-soft), transparent 220px), var(--color-surface);
+    padding: 14px
+}
+
+.social-user-card__avatar {
+    display: grid;
+    width: 68px;
+    height: 68px;
+    overflow: hidden;
+    place-items: center;
+    border-radius: 18px;
+    background: var(--color-accent-soft);
+    color: var(--color-accent);
+    font-family: var(--font-display);
+    font-size: 28px
+}
+
+.social-user-card__avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover
+}
+
+.social-user-card__content {
+    min-width: 0
+}
+
+.social-user-card__content>header {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px
+}
+
+.social-user-card h3 {
+    overflow: hidden;
+    font-family: var(--font-display);
+    font-size: 21px;
+    line-height: 1.05;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.social-user-card header div>span {
+    display: block;
+    margin-top: 4px;
+    color: var(--color-text-muted);
+    font-size: 12px
+}
+
+.social-user-card header>small {
+    flex-shrink: 0;
+    color: #5dd685;
+    font-size: 10px;
+    font-weight: 800
+}
+
+.social-user-card__content>p {
+    margin-top: 9px;
+    color: var(--color-text-secondary);
+    font-size: 13px;
+    line-height: 1.45
+}
+
+.social-user-card__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px
+}
+
+.social-user-card__actions button {
+    min-height: 40px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--color-accent);
+    padding: 0 15px;
+    color: white;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 800
+}
+
+.social-user-card__actions .social-user-card__secondary {
+    border: 1px solid var(--color-border);
+    background: var(--color-background);
+    color: var(--color-text-primary)
+}
+
+.social-user-card__friend-badge {
+    color: #5dd685;
+    font-size: 12px;
+    font-weight: 800
+}
+
+@media(max-width:520px) {
+    .social-user-card {
+        grid-template-columns: 56px minmax(0, 1fr);
+        padding: 12px
+    }
+
+    .social-user-card__avatar {
+        width: 56px;
+        height: 56px;
+        border-radius: 16px
+    }
+
+    .social-user-card__content>header {
+        flex-direction: column;
+        gap: 5px
+    }
+}

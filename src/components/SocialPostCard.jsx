@@ -1,11 +1,388 @@
 import { useState } from "react";
-import { togglePostLike, getPostComments, addPostComment, deletePostComment } from "../services/socialFeed";
+import {
+    togglePostLike,
+    getPostComments,
+    addPostComment,
+    deletePostComment,
+} from "../services/socialFeed";
 import "./SocialPostCard.css";
-const reactionLabels = { loved: "Me ha encantado", liked: "Me ha gustado", okay: "Sin más", weak: "Flojo", disliked: "No me ha gustado" };
-export default function SocialPostCard({ post, currentUserId, onChanged }) {
-    const [liked, setLiked] = useState(Boolean(post.liked_by_me)); const [likeCount, setLikeCount] = useState(Number(post.like_count ?? 0)); const [commentsOpen, setCommentsOpen] = useState(false); const [comments, setComments] = useState([]); const [commentText, setCommentText] = useState(""); const [busy, setBusy] = useState(false);
-    async function like() { setBusy(true); try { const next = await togglePostLike({ postId: post.post_id, userId: currentUserId, liked }); setLiked(next); setLikeCount(c => Math.max(0, c + (next ? 1 : -1))); } finally { setBusy(false); } }
-    async function openComments() { const next = !commentsOpen; setCommentsOpen(next); if (next && comments.length === 0) setComments(await getPostComments(post.post_id)); }
-    async function submit(e) { e.preventDefault(); if (!commentText.trim()) return; setBusy(true); try { await addPostComment({ postId: post.post_id, userId: currentUserId, content: commentText }); setCommentText(""); setComments(await getPostComments(post.post_id)); onChanged?.(); } finally { setBusy(false); } }
-    return <article className="social-post"><header className="social-post__header"><div className="social-post__avatar">{post.avatar_url ? <img src={post.avatar_url} alt="" /> : <span>{post.display_name?.charAt(0)?.toUpperCase() ?? "A"}</span>}</div><div><strong>{post.display_name}</strong><span>@{post.username}</span></div><time>{new Date(post.created_at).toLocaleDateString("es-ES", { day: "2-digit", month: "short" })}</time></header><div className="social-post__album"><div className="social-post__cover">{post.cover_url ? <img src={post.cover_url} alt={`Portada de ${post.album_title}`} /> : <span>💿</span>}</div><div><p>HA ESCUCHADO</p><h2>{post.album_title}</h2><h3>{post.artist_name}</h3><div className="social-post__rating"><strong>{Number(post.rating).toFixed(1).replace(".", ",")}</strong><span>{reactionLabels[post.reaction]}</span></div></div></div>{post.review_text && <blockquote>“{post.review_text}”</blockquote>}{post.top_tracks?.length > 0 && <section className="social-post__top"><p>TOP 3 CANCIONES</p><ol>{post.top_tracks.map(t => <li key={t.track_id}><strong>{t.position}</strong><span>{t.title}</span></li>)}</ol></section>}<footer className="social-post__footer"><button type="button" className={liked ? "active" : ""} onClick={like} disabled={busy}>{liked ? "♥" : "♡"} {likeCount}</button><button type="button" onClick={openComments}>💬 {post.comment_count ?? 0}</button>{post.spotify_url && <a href={post.spotify_url} target="_blank" rel="noreferrer">▶ Spotify</a>}</footer>{commentsOpen && <section className="social-comments"><div className="social-comments__list">{comments.map(c => <article key={c.id}><div><strong>{c.profile?.display_name}</strong><p>{c.content}</p></div>{c.user_id === currentUserId && <button type="button" onClick={async () => { await deletePostComment({ commentId: c.id, userId: currentUserId }); setComments(v => v.filter(x => x.id !== c.id)); }}>×</button>}</article>)}</div><form onSubmit={submit}><input value={commentText} onChange={e => setCommentText(e.target.value)} placeholder="Escribe un comentario..." maxLength={1000} /><button type="submit" disabled={busy || !commentText.trim()}>Enviar</button></form></section>}</article>;
+
+const reactionLabels = {
+    loved: "Me ha encantado",
+    liked: "Me ha gustado",
+    okay: "Sin más",
+    weak: "Flojo",
+    disliked: "No me ha gustado",
+};
+
+export default function SocialPostCard({
+    post,
+    currentUserId,
+    onChanged,
+}) {
+    const [liked, setLiked] =
+        useState(Boolean(post.liked_by_me));
+
+    const [likeCount, setLikeCount] =
+        useState(Number(post.like_count ?? 0));
+
+    const [commentsOpen, setCommentsOpen] =
+        useState(false);
+
+    const [comments, setComments] =
+        useState([]);
+
+    const [commentText, setCommentText] =
+        useState("");
+
+    const [busy, setBusy] =
+        useState(false);
+
+    async function like() {
+        setBusy(true);
+
+        try {
+            const next =
+                await togglePostLike({
+                    postId: post.post_id,
+                    userId: currentUserId,
+                    liked,
+                });
+
+            setLiked(next);
+
+            setLikeCount((current) =>
+                Math.max(
+                    0,
+                    current + (next ? 1 : -1),
+                ),
+            );
+        } finally {
+            setBusy(false);
+        }
+    }
+
+    async function openComments() {
+        const next = !commentsOpen;
+
+        setCommentsOpen(next);
+
+        if (
+            next &&
+            comments.length === 0
+        ) {
+            setComments(
+                await getPostComments(
+                    post.post_id,
+                ),
+            );
+        }
+    }
+
+    async function submit(event) {
+        event.preventDefault();
+
+        if (!commentText.trim()) {
+            return;
+        }
+
+        setBusy(true);
+
+        try {
+            await addPostComment({
+                postId: post.post_id,
+                userId: currentUserId,
+                content: commentText,
+            });
+
+            setCommentText("");
+
+            setComments(
+                await getPostComments(
+                    post.post_id,
+                ),
+            );
+
+            onChanged?.();
+        } finally {
+            setBusy(false);
+        }
+    }
+
+    return (
+        <article className="social-post">
+            <header className="social-post__header">
+                <div className="social-post__avatar">
+                    {post.avatar_url ? (
+                        <img
+                            src={post.avatar_url}
+                            alt={`Avatar de ${post.display_name}`}
+                        />
+                    ) : (
+                        <span>
+                            {post.display_name
+                                ?.charAt(0)
+                                ?.toUpperCase() ?? "A"}
+                        </span>
+                    )}
+                </div>
+
+                <div className="social-post__author">
+                    <div>
+                        <strong>
+                            {post.display_name}
+                        </strong>
+
+                        <span>
+                            @{post.username}
+                        </span>
+                    </div>
+
+                    <small>
+                        ha compartido una escucha
+                    </small>
+                </div>
+
+                <time>
+                    {new Date(
+                        post.created_at,
+                    ).toLocaleDateString(
+                        "es-ES",
+                        {
+                            day: "2-digit",
+                            month: "short",
+                        },
+                    )}
+                </time>
+            </header>
+
+            <section className="social-post__album">
+                <div className="social-post__cover">
+                    {post.cover_url ? (
+                        <img
+                            src={post.cover_url}
+                            alt={`Portada de ${post.album_title}`}
+                        />
+                    ) : (
+                        <span>💿</span>
+                    )}
+                </div>
+
+                <div className="social-post__album-content">
+                    <p className="social-post__eyebrow">
+                        HA ESCUCHADO
+                    </p>
+
+                    <h2>
+                        {post.album_title}
+                    </h2>
+
+                    <h3>
+                        {post.artist_name}
+                    </h3>
+
+                    <div className="social-post__rating">
+                        <strong>
+                            {Number(
+                                post.rating,
+                            )
+                                .toFixed(1)
+                                .replace(".", ",")}
+                        </strong>
+
+                        <div>
+                            <small>
+                                VALORACIÓN
+                            </small>
+
+                            <span>
+                                {reactionLabels[
+                                    post.reaction
+                                ]}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {post.review_text && (
+                <blockquote>
+                    <span>“</span>
+
+                    <p>
+                        {post.review_text}
+                    </p>
+                </blockquote>
+            )}
+
+            {post.top_tracks?.length > 0 && (
+                <section className="social-post__top">
+                    <header>
+                        <div>
+                            <p>
+                                TOP 3 CANCIONES
+                            </p>
+
+                            <h3>
+                                Lo mejor del disco
+                            </h3>
+                        </div>
+
+                        <span>♪</span>
+                    </header>
+
+                    <ol>
+                        {post.top_tracks.map(
+                            (track) => (
+                                <li
+                                    key={
+                                        track.track_id
+                                    }
+                                >
+                                    <strong>
+                                        {track.position}
+                                    </strong>
+
+                                    <span>
+                                        {track.title}
+                                    </span>
+
+                                    <small>♪</small>
+                                </li>
+                            ),
+                        )}
+                    </ol>
+                </section>
+            )}
+
+            <footer className="social-post__footer">
+                <button
+                    type="button"
+                    className={
+                        liked
+                            ? "social-post__like active"
+                            : "social-post__like"
+                    }
+                    onClick={like}
+                    disabled={busy}
+                >
+                    <span>
+                        {liked ? "♥" : "♡"}
+                    </span>
+
+                    {likeCount}
+                </button>
+
+                <button
+                    type="button"
+                    onClick={openComments}
+                >
+                    <span>💬</span>
+
+                    {post.comment_count ?? 0}
+                </button>
+
+                {post.spotify_url && (
+                    <a
+                        href={post.spotify_url}
+                        target="_blank"
+                        rel="noreferrer"
+                    >
+                        <span>▶</span>
+                        Escuchar
+                    </a>
+                )}
+            </footer>
+
+            {commentsOpen && (
+                <section className="social-comments">
+                    <div className="social-comments__list">
+                        {comments.length === 0 && (
+                            <p className="social-comments__empty">
+                                Todavía no hay comentarios.
+                            </p>
+                        )}
+
+                        {comments.map(
+                            (comment) => (
+                                <article
+                                    key={comment.id}
+                                >
+                                    <div>
+                                        <strong>
+                                            {
+                                                comment
+                                                    .profile
+                                                    ?.display_name
+                                            }
+                                        </strong>
+
+                                        <p>
+                                            {
+                                                comment.content
+                                            }
+                                        </p>
+                                    </div>
+
+                                    {comment.user_id ===
+                                        currentUserId && (
+                                            <button
+                                                type="button"
+                                                aria-label="Eliminar comentario"
+                                                onClick={async () => {
+                                                    await deletePostComment({
+                                                        commentId:
+                                                            comment.id,
+                                                        userId:
+                                                            currentUserId,
+                                                    });
+
+                                                    setComments(
+                                                        (
+                                                            current,
+                                                        ) =>
+                                                            current.filter(
+                                                                (
+                                                                    item,
+                                                                ) =>
+                                                                    item.id !==
+                                                                    comment.id,
+                                                            ),
+                                                    );
+                                                }}
+                                            >
+                                                ×
+                                            </button>
+                                        )}
+                                </article>
+                            ),
+                        )}
+                    </div>
+
+                    <form onSubmit={submit}>
+                        <input
+                            value={commentText}
+                            onChange={(event) =>
+                                setCommentText(
+                                    event.target.value,
+                                )
+                            }
+                            placeholder="Escribe un comentario..."
+                            maxLength={1000}
+                        />
+
+                        <button
+                            type="submit"
+                            disabled={
+                                busy ||
+                                !commentText.trim()
+                            }
+                        >
+                            Enviar
+                        </button>
+                    </form>
+                </section>
+            )}
+        </article>
+    );
 }

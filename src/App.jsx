@@ -21,37 +21,41 @@ import ListeningStatistics from "./pages/ListeningStatistics";
 import ChallengeCalendar from "./pages/ChallengeCalendar";
 import MonthlyReport from "./pages/MonthlyReport";
 import DataBackup from "./pages/DataBackup";
+import ScrollToTop from "./components/ScrollToTop";
 
 function App() {
   return (
-    <Routes>
-      <Route path="/auth" element={<Auth />} />
+    <>
+      <ScrollToTop />
+      <Routes>
+        <Route path="/auth" element={<Auth />} />
 
-      <Route element={<ProtectedRoute />}>
-        <Route element={<AppLayout />}>
-          <Route index element={<Home />} />
-          <Route path="/discover" element={<Discover />} />
-          <Route path="/to-listen" element={<ToListen />} />
-          <Route path="/listening" element={<Listening />} />
-          <Route path="/library" element={<Library />} />
-          <Route path="/songs" element={<Songs />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/review/:userAlbumId" element={<Review />} />
-          <Route path="/ranking" element={<Ranking />} />
-          <Route path="/achievements" element={<Achievements />} />
-          <Route path="/social" element={<Social />} />
-          <Route path="/social/feed" element={<SocialFeed />} />
-          <Route path="/social/user/:userId" element={<SocialProfile />} />
-          <Route path="/statistics/listening" element={<ListeningStatistics />} />
-          <Route path="/challenge-calendar" element={<ChallengeCalendar />} />
-          <Route path="/monthly-report" element={<MonthlyReport />} />
-          <Route path="/data-backup" element={<DataBackup />} />
+        <Route element={<ProtectedRoute />}>
+          <Route element={<AppLayout />}>
+            <Route index element={<Home />} />
+            <Route path="/discover" element={<Discover />} />
+            <Route path="/to-listen" element={<ToListen />} />
+            <Route path="/listening" element={<Listening />} />
+            <Route path="/library" element={<Library />} />
+            <Route path="/songs" element={<Songs />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/review/:userAlbumId" element={<Review />} />
+            <Route path="/ranking" element={<Ranking />} />
+            <Route path="/achievements" element={<Achievements />} />
+            <Route path="/social" element={<Social />} />
+            <Route path="/social/feed" element={<SocialFeed />} />
+            <Route path="/social/user/:userId" element={<SocialProfile />} />
+            <Route path="/statistics/listening" element={<ListeningStatistics />} />
+            <Route path="/challenge-calendar" element={<ChallengeCalendar />} />
+            <Route path="/monthly-report" element={<MonthlyReport />} />
+            <Route path="/data-backup" element={<DataBackup />} />
+          </Route>
         </Route>
-      </Route>
 
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </>
   );
 }
 

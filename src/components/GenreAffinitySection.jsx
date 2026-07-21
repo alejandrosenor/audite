@@ -2,6 +2,7 @@ import {
     useCallback,
     useEffect,
     useMemo,
+    useRef,
     useState,
 } from "react";
 import {
@@ -33,9 +34,14 @@ function GenreAffinitySection({
 
     const loadAffinities =
         useCallback(async () => {
-            if (!userId) {
+            if (
+                !userId ||
+                loadingRequestRef.current
+            ) {
                 return;
             }
+
+            loadingRequestRef.current = true;
 
             setLoading(true);
             setMessage("");
@@ -56,6 +62,7 @@ function GenreAffinitySection({
                     "No hemos podido cargar tus afinidades musicales.",
                 );
             } finally {
+                loadingRequestRef.current = false;
                 setLoading(false);
             }
         }, [userId]);
@@ -84,6 +91,9 @@ function GenreAffinitySection({
                     : affinities.slice(0, 5),
             [affinities, expanded],
         );
+
+    const loadingRequestRef =
+        useRef(false);
 
     if (loading) {
         return (
