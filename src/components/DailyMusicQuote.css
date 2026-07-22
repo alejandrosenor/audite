@@ -1,0 +1,299 @@
+.daily-music-quote {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-large);
+    background:
+        radial-gradient(circle at top right,
+            var(--color-accent-soft),
+            transparent 45%),
+        #101116;
+    padding: 24px;
+}
+
+.daily-music-quote__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.daily-music-quote__header p {
+    color: var(--color-accent);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.13em;
+}
+
+.daily-music-quote__header h2 {
+    margin-top: 7px;
+    font-family: var(--font-display);
+    font-size: clamp(28px, 5vw, 40px);
+    line-height: 1;
+}
+
+.daily-music-quote__header>span {
+    color: var(--color-accent);
+    font-family: Georgia, serif;
+    font-size: 76px;
+    font-weight: 900;
+    line-height: 0.75;
+}
+
+.daily-music-quote blockquote {
+    max-width: 850px;
+    margin-top: 25px;
+    color: var(--color-text-primary);
+    font-family: var(--font-display);
+    font-size: clamp(22px, 4vw, 34px);
+    line-height: 1.25;
+    letter-spacing: -0.025em;
+}
+
+.daily-music-quote__options {
+    display: grid;
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 25px;
+}
+
+.daily-music-quote__options button {
+    display: flex;
+    min-width: 0;
+    min-height: 58px;
+    align-items: center;
+    gap: 13px;
+    border: 1px solid var(--color-border-strong);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.045);
+    padding: 13px 16px;
+    color: var(--color-text-primary);
+    text-align: left;
+    cursor: pointer;
+    transition:
+        transform 160ms ease,
+        border-color 160ms ease,
+        background 160ms ease;
+}
+
+.daily-music-quote__options button:not(:disabled):hover {
+    border-color: var(--color-accent);
+    background: var(--color-accent-soft);
+    transform: translateY(-2px);
+}
+
+.daily-music-quote__options button>span {
+    width: 18px;
+    height: 18px;
+    flex: 0 0 auto;
+    border: 2px solid var(--color-border-strong);
+    border-radius: 50%;
+}
+
+.daily-music-quote__options button strong {
+    min-width: 0;
+    font-size: 14px;
+    overflow-wrap: anywhere;
+}
+
+.daily-music-quote__option--correct {
+    border-color: #45ce8c !important;
+    background:
+        rgba(69, 206, 140, 0.13) !important;
+}
+
+.daily-music-quote__option--correct>span {
+    border-color: #45ce8c !important;
+    background: #45ce8c;
+    box-shadow:
+        inset 0 0 0 4px #101116;
+}
+
+.daily-music-quote__option--incorrect {
+    border-color: #ff626f !important;
+    background:
+        rgba(255, 98, 111, 0.13) !important;
+}
+
+.daily-music-quote__option--incorrect>span {
+    border-color: #ff626f !important;
+    background: #ff626f;
+    box-shadow:
+        inset 0 0 0 4px #101116;
+}
+
+.daily-music-quote__option--disabled {
+    opacity: 0.48;
+}
+
+.daily-music-quote__result {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px;
+    border-radius: 18px;
+    padding: 17px;
+}
+
+.daily-music-quote__result>span {
+    display: grid;
+    width: 38px;
+    height: 38px;
+    flex: 0 0 auto;
+    place-items: center;
+    border-radius: 50%;
+    color: white;
+    font-size: 20px;
+    font-weight: 900;
+}
+
+.daily-music-quote__result strong {
+    display: block;
+    font-size: 15px;
+}
+
+.daily-music-quote__result p {
+    margin-top: 7px;
+    color: var(--color-text-secondary);
+    font-size: 13px;
+    line-height: 1.65;
+}
+
+.daily-music-quote__result b {
+    display: inline-flex;
+    margin-top: 10px;
+    border-radius: var(--radius-pill);
+    background: var(--color-accent);
+    padding: 6px 11px;
+    color: white;
+    font-size: 12px;
+}
+
+.daily-music-quote__result a {
+    display: block;
+    width: fit-content;
+    margin-top: 10px;
+    color: var(--color-text-muted);
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.daily-music-quote__result--correct {
+    background:
+        rgba(69, 206, 140, 0.1);
+}
+
+.daily-music-quote__result--correct>span {
+    background: #45ce8c;
+}
+
+.daily-music-quote__result--incorrect {
+    background:
+        rgba(255, 98, 111, 0.1);
+}
+
+.daily-music-quote__result--incorrect>span {
+    background: #ff626f;
+}
+
+.daily-music-quote__message {
+    margin-top: 15px;
+    color: var(--color-text-secondary);
+    font-size: 12px;
+}
+
+.daily-music-quote--empty {
+    display: flex;
+    min-height: 180px;
+    align-items: center;
+    gap: 20px;
+}
+
+.daily-music-quote--empty>span {
+    font-size: 48px;
+}
+
+.daily-music-quote--empty p {
+    color: var(--color-accent);
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.daily-music-quote--empty h3 {
+    margin-top: 7px;
+    font-family: var(--font-display);
+    font-size: 25px;
+}
+
+.daily-music-quote--empty small {
+    display: block;
+    margin-top: 8px;
+    color: var(--color-text-secondary);
+}
+
+.daily-music-quote--loading {
+    min-height: 290px;
+}
+
+.daily-music-quote--loading span,
+.daily-music-quote--loading strong,
+.daily-music-quote--loading p,
+.daily-music-quote--loading div {
+    display: block;
+    border-radius: 12px;
+    background:
+        linear-gradient(90deg,
+            rgba(255, 255, 255, 0.04),
+            rgba(255, 255, 255, 0.1),
+            rgba(255, 255, 255, 0.04));
+    background-size: 220% 100%;
+    animation:
+        daily-quote-skeleton 1.25s linear infinite;
+}
+
+.daily-music-quote--loading span {
+    width: 130px;
+    height: 12px;
+}
+
+.daily-music-quote--loading strong {
+    width: 60%;
+    height: 42px;
+    margin-top: 18px;
+}
+
+.daily-music-quote--loading p {
+    width: 82%;
+    height: 30px;
+    margin-top: 25px;
+}
+
+.daily-music-quote--loading div {
+    width: 100%;
+    height: 120px;
+    margin-top: 25px;
+}
+
+@keyframes daily-quote-skeleton {
+    to {
+        background-position: -220% 0;
+    }
+}
+
+@media (max-width: 700px) {
+    .daily-music-quote {
+        padding: 20px;
+    }
+
+    .daily-music-quote__options {
+        grid-template-columns: 1fr;
+    }
+
+    .daily-music-quote blockquote {
+        font-size: 24px;
+    }
+
+    .daily-music-quote__header>span {
+        font-size: 58px;
+    }
+}

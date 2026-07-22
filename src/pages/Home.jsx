@@ -13,6 +13,7 @@ import GenreOfTheDayCard from "../components/GenreOfTheDayCard";
 import { getGenreOfTheDay } from "../data/genreOfTheDay";
 import AlbumRecommendations from "../components/AlbumRecommendations";
 import DailyChallengesCard from "../components/DailyChallengesCard";
+import DailyMusicQuote from "../components/DailyMusicQuote";
 import "./Home.css";
 
 function Home() {
@@ -471,6 +472,22 @@ function Home() {
             </article>
 
             <DailyChallengesCard />
+
+            <section className="home-section">
+                <header className="home-section__header">
+                    <div>
+                        <p>PON A PRUEBA TU MEMORIA MUSICAL</p>
+
+                        <h2>¿Quién dijo esto?</h2>
+                    </div>
+
+                    <span>
+                        Una nueva cita cada 24 horas
+                    </span>
+                </header>
+
+                <DailyMusicQuote />
+            </section>
 
             <section className="home-section">
                 <header className="home-section__header">

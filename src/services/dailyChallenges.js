@@ -67,7 +67,8 @@ export async function updateDailyChallenges({
 
     if (
         result?.completed?.length ||
-        result?.bonusCompleted
+        result?.bonusCompleted ||
+        result?.quoteXPAwarded
     ) {
         window.dispatchEvent(
             new CustomEvent(

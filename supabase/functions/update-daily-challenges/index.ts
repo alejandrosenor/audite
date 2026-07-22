@@ -22,6 +22,10 @@ const hasGenre = (genres: unknown, expected: string) =>
   Array.isArray(genres) && genres.some((genre) => normalize(genre).includes(normalize(expected)));
 
 function matches(criteria: Record<string, any>, metadata: Record<string, any>) {
+  if (
+    criteria.correct != null &&
+    metadata.correct !== criteria.correct
+  ) return false;
   if (criteria.min_rating != null && Number(metadata.rating) < Number(criteria.min_rating)) return false;
   if (criteria.reaction && metadata.reaction !== criteria.reaction) return false;
   if (criteria.language && metadata.language !== criteria.language) return false;
@@ -124,6 +128,28 @@ Deno.serve(async (request) => {
     if (eventInsertError) {
       throw eventInsertError;
     }
+    let quoteXPAwarded = false;
+
+    if (
+      eventType ===
+        "daily_music_quote_completed" &&
+      metadata.correct === true
+    ) {
+      quoteXPAwarded = await award(
+        admin,
+        user.id,
+        `daily-music-quote-correct:${eventId}`,
+        10,
+        "Frase del día acertada",
+        {
+          eventId,
+          questionId:
+            metadata.questionId ?? null,
+          selectedPerson:
+            metadata.selectedPerson ?? null,
+        },
+      );
+    }
     const { data: active, error: activeError } = await admin
       .from("user_daily_challenges")
       .select("*,challenge:challenge_definitions(*)")
@@ -197,7 +223,11 @@ Deno.serve(async (request) => {
       }
     }
 
-    return jsonResponse({ completed, bonusCompleted });
+    return jsonResponse({
+      completed,
+      bonusCompleted,
+      quoteXPAwarded,
+    });
   } catch (error) {
     console.error("update-daily-challenges error:", error);
     return jsonResponse({ error: error instanceof Error ? error.message : "No hemos podido actualizar los retos." }, 500);
