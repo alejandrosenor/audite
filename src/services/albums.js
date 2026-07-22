@@ -4,6 +4,9 @@ import {
     FunctionsHttpError,
     FunctionsRelayError,
 } from "@supabase/supabase-js";
+import {
+    generateAlbumEditorial,
+} from "./albumEditorial";
 
 export async function getRandomAlbum(userId) {
     if (!userId) {
@@ -191,7 +194,29 @@ export async function discoverAlbum({ genre = "" } = {}) {
         );
     }
 
-    return data.userAlbum;
+    const generatedUserAlbum =
+        data.userAlbum;
+
+    const albumId =
+        generatedUserAlbum.album?.id;
+
+    if (albumId) {
+        /*
+         * No usamos await. El disco aparece
+         * inmediatamente mientras Wikipedia
+         * prepara su historia.
+         */
+        generateAlbumEditorial(
+            albumId,
+        ).catch((editorialError) => {
+            console.error(
+                "No se pudo preparar la historia del disco descubierto:",
+                editorialError,
+            );
+        });
+    }
+
+    return generatedUserAlbum;
 }
 
 export async function getAlbumTracks(albumId) {
@@ -442,6 +467,20 @@ export async function addManualAlbum({
             syncError,
         );
     }
+
+    /*
+    * Preparamos la información editorial sin impedir
+    * que el disco se añada correctamente si la fuente
+    * externa falla.
+    */
+    generateAlbumEditorial(storedAlbum.id).catch(
+        (editorialError) => {
+            console.error(
+                "El disco se añadió, pero no se pudo preparar su historia:",
+                editorialError,
+            );
+        },
+    );
 
     return userAlbum;
 }

@@ -3,6 +3,9 @@ import {
     FunctionsHttpError,
     FunctionsRelayError,
 } from "@supabase/supabase-js";
+import {
+    generateAlbumEditorial,
+} from "./albumEditorial";
 import { supabase } from "./supabase";
 
 export async function discoverSpanishAlbum({
@@ -61,8 +64,25 @@ export async function discoverSpanishAlbum({
         );
     }
 
+    const generatedUserAlbum =
+        data.userAlbum;
+
+    const albumId =
+        generatedUserAlbum.album?.id;
+
+    if (albumId) {
+        generateAlbumEditorial(
+            albumId,
+        ).catch((editorialError) => {
+            console.error(
+                "No se pudo preparar la historia del disco en español:",
+                editorialError,
+            );
+        });
+    }
+
     return {
-        userAlbum: data.userAlbum,
+        userAlbum: generatedUserAlbum,
         context: data.context ?? null,
     };
 }

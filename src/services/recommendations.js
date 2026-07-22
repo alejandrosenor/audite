@@ -6,6 +6,9 @@ import { supabase } from "./supabase";
 import {
     addManualAlbum,
 } from "./albums";
+import {
+    generateAlbumEditorial,
+} from "./albumEditorial";
 
 export async function getAlbumRecommendations() {
     const { data, error } =
@@ -200,6 +203,15 @@ export async function markRecommendationKnown({
     if (userAlbumError) {
         throw userAlbumError;
     }
+
+    generateAlbumEditorial(
+        storedAlbum.id,
+    ).catch((editorialError) => {
+        console.error(
+            "El disco se marcó como conocido, pero no se pudo preparar su historia:",
+            editorialError,
+        );
+    });
 
     await saveRecommendationFeedback({
         userId,

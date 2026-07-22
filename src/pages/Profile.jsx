@@ -1024,6 +1024,20 @@ function Profile() {
 
             <button
                 type="button"
+                onClick={async () => {
+                    const results =
+                        await generateMissingAlbumEditorials({
+                            limit: 10,
+                        });
+
+                    console.table(results);
+                }}
+            >
+                Generar historias pendientes
+            </button>
+
+            <button
+                type="button"
                 className="profile-page__logout"
                 onClick={handleSignOut}
             >

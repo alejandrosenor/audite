@@ -1,4 +1,5 @@
 import { useEffect, useMemo } from "react";
+import AlbumEditorialCard from "./AlbumEditorialCard";
 import "./AlbumDetailModal.css";
 
 const reactionInformation = {
@@ -295,6 +296,8 @@ function AlbumDetailModal({
                             )}
                         </div>
                     </section>
+
+                    <AlbumEditorialCard album={album} />
 
                     <section className="album-detail-review">
                         <header>
