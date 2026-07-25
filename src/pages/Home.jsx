@@ -305,6 +305,96 @@ function Home() {
         greeting = "Buenas noches";
     }
 
+    const streakStatus = (() => {
+        if (currentStreak === 0) {
+            return {
+                icon: "🕯️",
+                eyebrow: "RACHA APAGADA",
+                badge: "EMPIEZA HOY",
+                message:
+                    "Completa un disco hoy para encender tu primera racha.",
+                level: "off",
+            };
+        }
+
+        if (currentStreak === 1) {
+            return {
+                icon: "✨",
+                eyebrow: "PRIMER PASO",
+                badge: "ENCENDIDA",
+                message:
+                    "Ya has empezado. Mañana puede convertirse en una racha.",
+                level: "starting",
+            };
+        }
+
+        if (currentStreak < 4) {
+            return {
+                icon: "🔥",
+                eyebrow: "RACHA ACTUAL",
+                badge: "COGIENDO FUERZA",
+                message:
+                    "La llama ya está viva. Sigue construyendo el hábito.",
+                level: "warm",
+            };
+        }
+
+        if (currentStreak < 8) {
+            return {
+                icon: "🔥",
+                eyebrow: "RACHA ACTUAL",
+                badge: "EN LLAMAS",
+                message:
+                    "Llevas varios días seguidos. No dejes que se apague.",
+                level: "fire",
+            };
+        }
+
+        if (currentStreak < 15) {
+            return {
+                icon: "❤️‍🔥",
+                eyebrow: "RACHA ACTUAL",
+                badge: "IMPARABLE",
+                message:
+                    "Tu rutina musical ya empieza a ser cosa seria.",
+                level: "hot",
+            };
+        }
+
+        if (currentStreak < 30) {
+            return {
+                icon: "☄️",
+                eyebrow: "RACHA ACTUAL",
+                badge: "INCENDIO MUSICAL",
+                message:
+                    "Estás escuchando música con una constancia brutal.",
+                level: "blazing",
+            };
+        }
+
+        return {
+            icon: "🌋",
+            eyebrow: "RACHA LEGENDARIA",
+            badge: "INCOMBUSTIBLE",
+            message:
+                "Esto ya no es una racha. Es una forma de vida.",
+            level: "legendary",
+        };
+    })();
+
+    const nextStreakMilestone =
+        currentStreak < 4
+            ? 4
+            : currentStreak < 8
+                ? 8
+                : currentStreak < 15
+                    ? 15
+                    : currentStreak < 30
+                        ? 30
+                        : currentStreak < 50
+                            ? 50
+                            : 100;
+
     return (
         <section className="home">
             <header className="home__header fade-up">
@@ -323,18 +413,20 @@ function Home() {
                     </p>
                 </div>
 
-                <section className="home-streak-card">
+                <section
+                    className={`home-streak-card home-streak-card--${streakStatus.level}`}
+                >
                     <div className="home-streak-card__glow" />
 
                     <div className="home-streak-card__icon">
-                        🔥
+                        {streakStatus.icon}
                     </div>
 
                     <div className="home-streak-card__content">
-                        <span>RACHA ACTUAL</span>
+                        <span>{streakStatus.eyebrow}</span>
 
                         <strong>
-                            {profile?.current_streak ?? 0}
+                            {currentStreak}
                             <small>
                                 {currentStreak === 1
                                     ? " día"
@@ -342,14 +434,40 @@ function Home() {
                             </small>
                         </strong>
 
-                        <p>
-                            Cada día cuenta. No dejes que
-                            se apague.
-                        </p>
+                        <p>{streakStatus.message}</p>
+
+                        {bestStreak > 0 && (
+                            <small className="home-streak-card__best">
+                                Récord personal: {bestStreak}{" "}
+                                {bestStreak === 1
+                                    ? "día"
+                                    : "días"}
+                            </small>
+                        )}
+
+                        <div className="home-streak-card__milestone">
+                            <div>
+                                <span
+                                    style={{
+                                        width: `${Math.min(
+                                            100,
+                                            (currentStreak /
+                                                nextStreakMilestone) *
+                                            100,
+                                        )}%`,
+                                    }}
+                                />
+                            </div>
+
+                            <small>
+                                {nextStreakMilestone - currentStreak} días
+                                para el próximo hito
+                            </small>
+                        </div>
                     </div>
 
                     <div className="home-streak-card__badge">
-                        EN LLAMAS
+                        {streakStatus.badge}
                     </div>
                 </section>
             </header>

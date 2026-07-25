@@ -764,6 +764,145 @@
         nowrap;
 }
 
+.home-streak-card__best {
+    display: block;
+    margin-top: 8px;
+    color: rgba(255, 255, 255, 0.42);
+    font-size: 10px;
+    font-weight: 700;
+}
+
+/* RACHA 0 */
+
+.home-streak-card--off {
+    border-color: rgba(160, 160, 180, 0.18);
+    background:
+        radial-gradient(circle at 0 50%,
+            rgba(125, 115, 160, 0.12),
+            transparent 180px),
+        linear-gradient(135deg,
+            #15151a,
+            #111116);
+}
+
+.home-streak-card--off .home-streak-card__icon {
+    border-color: rgba(180, 180, 200, 0.16);
+    background:
+        radial-gradient(circle at 50% 30%,
+            #ddd7b7,
+            #8b8370 48%,
+            #35333a 80%);
+    box-shadow:
+        0 10px 28px rgba(0, 0, 0, 0.28);
+    animation: none;
+    filter: grayscale(0.25);
+}
+
+.home-streak-card--off .home-streak-card__content>span,
+.home-streak-card--off .home-streak-card__content>strong small,
+.home-streak-card--off .home-streak-card__badge {
+    color: #a9a3ba;
+}
+
+.home-streak-card--off .home-streak-card__badge {
+    border-color: rgba(170, 160, 190, 0.2);
+    background: rgba(150, 140, 175, 0.08);
+}
+
+/* PRIMER DÍA */
+
+.home-streak-card--starting {
+    border-color: rgba(163, 118, 255, 0.3);
+    background:
+        radial-gradient(circle at 0 50%,
+            rgba(139, 92, 246, 0.2),
+            transparent 180px),
+        linear-gradient(135deg,
+            #171223,
+            #111117);
+}
+
+.home-streak-card--starting .home-streak-card__icon {
+    border-color: rgba(170, 125, 255, 0.35);
+    background:
+        radial-gradient(circle at 50% 30%,
+            #f0d9ff,
+            #9c61f4 50%,
+            #503090 80%);
+    box-shadow:
+        0 10px 28px rgba(139, 92, 246, 0.3);
+}
+
+.home-streak-card--starting .home-streak-card__content>span,
+.home-streak-card--starting .home-streak-card__content>strong small,
+.home-streak-card--starting .home-streak-card__badge {
+    color: #bd8cff;
+}
+
+.home-streak-card--starting .home-streak-card__badge {
+    border-color: rgba(170, 125, 255, 0.3);
+    background: rgba(139, 92, 246, 0.12);
+}
+
+/* RACHA MEDIA */
+
+.home-streak-card--hot {
+    border-color: rgba(255, 98, 74, 0.38);
+}
+
+.home-streak-card--hot .home-streak-card__icon {
+    animation:
+        streak-fire-pulse 1.7s ease-in-out infinite;
+}
+
+.home-streak-card--blazing {
+    border-color: rgba(255, 67, 35, 0.48);
+    box-shadow:
+        0 0 45px rgba(255, 70, 35, 0.08);
+}
+
+.home-streak-card--blazing .home-streak-card__icon {
+    box-shadow:
+        0 12px 34px rgba(255, 69, 30, 0.45),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    animation:
+        streak-fire-pulse 1.25s ease-in-out infinite;
+}
+
+/* RACHA LEGENDARIA */
+
+.home-streak-card--legendary {
+    border-color: rgba(255, 205, 72, 0.5);
+    background:
+        radial-gradient(circle at 0 50%,
+            rgba(255, 78, 25, 0.28),
+            transparent 190px),
+        radial-gradient(circle at 100% 0,
+            rgba(255, 213, 74, 0.22),
+            transparent 230px),
+        linear-gradient(135deg,
+            #25120d,
+            #181015 55%,
+            #111015);
+    box-shadow:
+        0 0 55px rgba(255, 150, 45, 0.1);
+}
+
+.home-streak-card--legendary .home-streak-card__icon {
+    border-color: rgba(255, 220, 95, 0.55);
+    box-shadow:
+        0 14px 38px rgba(255, 124, 35, 0.52),
+        0 0 35px rgba(255, 207, 74, 0.18);
+    animation:
+        streak-fire-pulse 1s ease-in-out infinite;
+}
+
+.home-streak-card--legendary .home-streak-card__badge {
+    border-color: rgba(255, 213, 74, 0.42);
+    background: rgba(255, 190, 60, 0.14);
+    color: #ffd267;
+}
+
 @keyframes streak-fire-pulse {
 
     0%,
