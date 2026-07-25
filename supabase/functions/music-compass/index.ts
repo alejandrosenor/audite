@@ -1394,9 +1394,12 @@ const rules: CompassRule[] = [
             button:
                 "Volver a mis gustos",
             action:
-                navigateAction(
-                    "/recommendations",
-                ),
+              navigateAction(
+                  "/discover",
+                  {
+                      autoGenerate: true,
+                  },
+              ),
         }),
     },
 
@@ -2537,14 +2540,6 @@ Deno.serve(
 
             return jsonResponse({
                 compass,
-
-                /*
-                 * Resulta útil mientras la
-                 * funcionalidad está en pruebas.
-                 * Puedes quitar stats cuando
-                 * confirmes que todo funciona.
-                 */
-                stats,
             });
         } catch (error) {
             console.error(
