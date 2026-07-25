@@ -1,0 +1,655 @@
+.music-compass {
+    --compass-color: #8da2ff;
+    --compass-color-rgb: 141, 162, 255;
+    --compass-deep: #161a2b;
+
+    position: relative;
+    display: grid;
+    grid-template-columns:
+        112px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: clamp(20px, 4vw, 42px);
+
+    min-height: 245px;
+    overflow: hidden;
+
+    border:
+        1px solid rgba(var(--compass-color-rgb),
+            0.28);
+
+    border-radius: 30px;
+
+    background:
+        radial-gradient(circle at 0% 50%,
+            rgba(var(--compass-color-rgb),
+                0.22),
+            transparent 290px),
+        radial-gradient(circle at 100% 0%,
+            rgba(var(--compass-color-rgb),
+                0.11),
+            transparent 330px),
+        linear-gradient(135deg,
+            var(--compass-deep),
+            #11131a 54%,
+            #0e1015);
+
+    padding:
+        clamp(24px, 4vw, 42px);
+
+    box-shadow:
+        0 28px 80px rgba(0, 0, 0, 0.24),
+        inset 0 1px 0 rgba(255, 255, 255, 0.035);
+
+    isolation: isolate;
+
+    transition:
+        transform 240ms ease,
+        border-color 240ms ease,
+        box-shadow 240ms ease;
+}
+
+.music-compass:hover {
+    transform: translateY(-3px);
+
+    border-color:
+        rgba(var(--compass-color-rgb),
+            0.46);
+
+    box-shadow:
+        0 32px 90px rgba(0, 0, 0, 0.3),
+        0 0 42px rgba(var(--compass-color-rgb),
+            0.07);
+}
+
+.music-compass__noise {
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+
+    pointer-events: none;
+
+    opacity: 0.23;
+
+    background-image:
+        repeating-linear-gradient(115deg,
+            transparent 0,
+            transparent 34px,
+            rgba(255, 255, 255, 0.012) 35px,
+            transparent 36px);
+}
+
+.music-compass__glow {
+    position: absolute;
+    z-index: -1;
+
+    top: -140px;
+    right: -90px;
+
+    width: 330px;
+    height: 330px;
+
+    border-radius: 50%;
+
+    background:
+        rgba(var(--compass-color-rgb),
+            0.17);
+
+    filter: blur(80px);
+
+    pointer-events: none;
+
+    animation:
+        compass-glow 5s ease-in-out infinite;
+}
+
+.music-compass__symbol {
+    position: relative;
+
+    display: grid;
+    width: 104px;
+    height: 104px;
+    place-items: center;
+
+    border:
+        1px solid rgba(var(--compass-color-rgb),
+            0.32);
+
+    border-radius: 50%;
+
+    background:
+        radial-gradient(circle at 40% 30%,
+            rgba(255, 255, 255, 0.17),
+            transparent 34%),
+        rgba(var(--compass-color-rgb),
+            0.08);
+
+    box-shadow:
+        0 18px 45px rgba(var(--compass-color-rgb),
+            0.12),
+        inset 0 0 35px rgba(var(--compass-color-rgb),
+            0.08);
+}
+
+.music-compass__symbol>span {
+    position: relative;
+    z-index: 2;
+
+    font-size: 43px;
+
+    filter:
+        drop-shadow(0 8px 17px rgba(0, 0, 0, 0.3));
+
+    animation:
+        compass-float 3.6s ease-in-out infinite;
+}
+
+.music-compass__orbit {
+    position: absolute;
+    inset: 8px;
+
+    border:
+        1px dashed rgba(var(--compass-color-rgb),
+            0.22);
+
+    border-radius: 50%;
+
+    animation:
+        compass-rotate 15s linear infinite;
+}
+
+.music-compass__orbit::before,
+.music-compass__orbit::after {
+    content: "";
+
+    position: absolute;
+    top: 50%;
+    left: 50%;
+
+    background:
+        rgba(var(--compass-color-rgb),
+            0.22);
+
+    transform:
+        translate(-50%, -50%);
+}
+
+.music-compass__orbit::before {
+    width: 100%;
+    height: 1px;
+}
+
+.music-compass__orbit::after {
+    width: 1px;
+    height: 100%;
+}
+
+.music-compass__orbit i {
+    position: absolute;
+
+    width: 7px;
+    height: 7px;
+
+    border-radius: 50%;
+
+    background:
+        var(--compass-color);
+
+    box-shadow:
+        0 0 16px rgba(var(--compass-color-rgb),
+            0.8);
+}
+
+.music-compass__orbit i:first-child {
+    top: -4px;
+    left: 50%;
+
+    transform:
+        translateX(-50%);
+}
+
+.music-compass__orbit i:last-child {
+    right: -4px;
+    bottom: 22%;
+
+    transform:
+        translateY(50%);
+}
+
+.music-compass__content {
+    position: relative;
+    z-index: 1;
+
+    min-width: 0;
+}
+
+.music-compass__eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+
+    color:
+        var(--compass-color);
+
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 0.15em;
+    line-height: 1.4;
+    text-transform: uppercase;
+}
+
+.music-compass__eyebrow span {
+    font-size: 12px;
+}
+
+.music-compass h2 {
+    max-width: 800px;
+    margin-top: 9px;
+
+    color: #fff;
+
+    font-family:
+        var(--font-display);
+
+    font-size:
+        clamp(27px, 4vw, 42px);
+
+    line-height: 1.02;
+
+    letter-spacing: -0.035em;
+
+    text-wrap: balance;
+}
+
+.music-compass__text {
+    max-width: 720px;
+    margin-top: 14px;
+
+    color:
+        rgba(255, 255, 255, 0.62);
+
+    font-size: 14px;
+    line-height: 1.65;
+}
+
+.music-compass__button {
+    display: inline-flex;
+    min-height: 46px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+
+    margin-top: 23px;
+
+    border:
+        1px solid rgba(var(--compass-color-rgb),
+            0.32);
+
+    border-radius: 999px;
+
+    background:
+        rgba(var(--compass-color-rgb),
+            0.12);
+
+    padding: 0 8px 0 17px;
+
+    color: #fff;
+
+    cursor: pointer;
+
+    font: inherit;
+    font-size: 12px;
+    font-weight: 850;
+
+    transition:
+        transform 180ms ease,
+        background 180ms ease,
+        border-color 180ms ease;
+}
+
+.music-compass__button strong {
+    display: grid;
+    width: 31px;
+    height: 31px;
+    place-items: center;
+
+    border-radius: 50%;
+
+    background:
+        var(--compass-color);
+
+    color: #101116;
+
+    font-size: 15px;
+
+    transition:
+        transform 180ms ease;
+}
+
+.music-compass__button:hover {
+    transform:
+        translateY(-2px);
+
+    border-color:
+        rgba(var(--compass-color-rgb),
+            0.55);
+
+    background:
+        rgba(var(--compass-color-rgb),
+            0.19);
+}
+
+.music-compass__button:hover strong {
+    transform:
+        translateX(2px);
+}
+
+.music-compass__signature {
+    position: relative;
+    z-index: 1;
+
+    display: flex;
+    align-items: center;
+    gap: 7px;
+
+    align-self: flex-end;
+
+    color:
+        rgba(255, 255, 255, 0.25);
+
+    writing-mode: vertical-rl;
+}
+
+.music-compass__signature span {
+    font-size: 15px;
+}
+
+.music-compass__signature small {
+    font-size: 8px;
+    font-weight: 900;
+    letter-spacing: 0.18em;
+}
+
+/* Tonos */
+
+.music-compass--fire {
+    --compass-color: #ff9857;
+    --compass-color-rgb: 255, 152, 87;
+    --compass-deep: #211310;
+}
+
+.music-compass--legendary {
+    --compass-color: #ffd266;
+    --compass-color-rgb: 255, 210, 102;
+    --compass-deep: #22180e;
+}
+
+.music-compass--quiet {
+    --compass-color: #a9a4bd;
+    --compass-color-rgb: 169, 164, 189;
+    --compass-deep: #18171e;
+}
+
+.music-compass--library {
+    --compass-color: #d49aff;
+    --compass-color-rgb: 212, 154, 255;
+    --compass-deep: #1c1424;
+}
+
+.music-compass--artist {
+    --compass-color: #f990bd;
+    --compass-color-rgb: 249, 144, 189;
+    --compass-deep: #21131b;
+}
+
+.music-compass--spanish {
+    --compass-color: #ffbe67;
+    --compass-color-rgb: 255, 190, 103;
+    --compass-deep: #21170f;
+}
+
+.music-compass--travel {
+    --compass-color: #6ed7da;
+    --compass-color-rgb: 110, 215, 218;
+    --compass-deep: #102022;
+}
+
+.music-compass--memory {
+    --compass-color: #b596ff;
+    --compass-color-rgb: 181, 150, 255;
+    --compass-deep: #181426;
+}
+
+.music-compass--reflection {
+    --compass-color: #80b7ff;
+    --compass-color-rgb: 128, 183, 255;
+    --compass-deep: #101a27;
+}
+
+.music-compass--heart {
+    --compass-color: #ff8194;
+    --compass-color-rgb: 255, 129, 148;
+    --compass-deep: #231318;
+}
+
+.music-compass--map {
+    --compass-color: #7ddba7;
+    --compass-color-rgb: 125, 219, 167;
+    --compass-deep: #102019;
+}
+
+.music-compass--data {
+    --compass-color: #7fcfe5;
+    --compass-color-rgb: 127, 207, 229;
+    --compass-deep: #101c21;
+}
+
+/* Carga */
+
+.music-compass--loading {
+    grid-template-columns:
+        104px minmax(0, 1fr);
+
+    min-height: 220px;
+}
+
+.music-compass__skeleton-icon {
+    width: 104px;
+    height: 104px;
+
+    border-radius: 50%;
+
+    background:
+        rgba(255, 255, 255, 0.05);
+
+    animation:
+        compass-skeleton 1.3s ease-in-out infinite;
+}
+
+.music-compass__skeleton-content {
+    display: grid;
+    gap: 11px;
+}
+
+.music-compass__skeleton-content span,
+.music-compass__skeleton-content strong,
+.music-compass__skeleton-content p {
+    display: block;
+
+    border-radius: 999px;
+
+    background:
+        rgba(255, 255, 255, 0.055);
+
+    animation:
+        compass-skeleton 1.3s ease-in-out infinite;
+}
+
+.music-compass__skeleton-content span {
+    width: 180px;
+    height: 9px;
+}
+
+.music-compass__skeleton-content strong {
+    width: min(460px, 80%);
+    height: 35px;
+}
+
+.music-compass__skeleton-content p {
+    width: min(620px, 95%);
+    height: 11px;
+}
+
+.music-compass__skeleton-content p:last-child {
+    width: min(430px, 72%);
+}
+
+@keyframes compass-float {
+
+    0%,
+    100% {
+        transform:
+            translateY(0) rotate(-2deg);
+    }
+
+    50% {
+        transform:
+            translateY(-5px) rotate(2deg);
+    }
+}
+
+@keyframes compass-rotate {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes compass-glow {
+
+    0%,
+    100% {
+        opacity: 0.72;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(1.08);
+    }
+}
+
+@keyframes compass-skeleton {
+
+    0%,
+    100% {
+        opacity: 0.45;
+    }
+
+    50% {
+        opacity: 0.9;
+    }
+}
+
+@media (max-width: 760px) {
+    .music-compass {
+        grid-template-columns:
+            74px minmax(0, 1fr);
+
+        gap: 17px;
+
+        min-height: auto;
+
+        border-radius: 24px;
+
+        padding: 21px;
+    }
+
+    .music-compass__symbol {
+        width: 72px;
+        height: 72px;
+
+        align-self: start;
+    }
+
+    .music-compass__symbol>span {
+        font-size: 31px;
+    }
+
+    .music-compass__orbit {
+        inset: 6px;
+    }
+
+    .music-compass__content {
+        min-width: 0;
+    }
+
+    .music-compass h2 {
+        font-size:
+            clamp(24px, 8vw, 34px);
+    }
+
+    .music-compass__text {
+        font-size: 13px;
+    }
+
+    .music-compass__button {
+        grid-column: 1 / -1;
+
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .music-compass__signature {
+        display: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .music-compass {
+        grid-template-columns:
+            58px minmax(0, 1fr);
+
+        gap: 13px;
+
+        padding: 17px;
+    }
+
+    .music-compass__symbol {
+        width: 58px;
+        height: 58px;
+    }
+
+    .music-compass__symbol>span {
+        font-size: 25px;
+    }
+
+    .music-compass__eyebrow {
+        font-size: 8px;
+    }
+
+    .music-compass h2 {
+        margin-top: 7px;
+        font-size: 25px;
+    }
+
+    .music-compass__text {
+        grid-column: 1 / -1;
+
+        margin-top: 13px;
+    }
+
+    .music-compass__button {
+        min-height: 45px;
+        margin-top: 18px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .music-compass,
+    .music-compass *,
+    .music-compass::before,
+    .music-compass::after {
+        animation: none !important;
+        transition: none !important;
+    }
+}

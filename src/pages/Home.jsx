@@ -14,6 +14,8 @@ import { getGenreOfTheDay } from "../data/genreOfTheDay";
 import AlbumRecommendations from "../components/AlbumRecommendations";
 import DailyChallengesCard from "../components/DailyChallengesCard";
 import DailyMusicQuote from "../components/DailyMusicQuote";
+import MusicCompassCard from "../components/MusicCompassCard";
+import { getMusicCompass } from "../services/musicCompass";
 import "./Home.css";
 
 function Home() {
@@ -47,6 +49,21 @@ function Home() {
     const [
         musicEphemerisMessage,
         setMusicEphemerisMessage,
+    ] = useState("");
+
+    const [
+        musicCompass,
+        setMusicCompass,
+    ] = useState(null);
+
+    const [
+        musicCompassLoading,
+        setMusicCompassLoading,
+    ] = useState(true);
+
+    const [
+        musicCompassMessage,
+        setMusicCompassMessage,
     ] = useState("");
 
     const username =
@@ -200,6 +217,57 @@ function Home() {
             cancelled = true;
         };
     }, [user?.id]);
+
+    useEffect(() => {
+        if (!user?.id) {
+            return;
+        }
+
+        let cancelled = false;
+
+        async function loadMusicCompass() {
+            setMusicCompassLoading(true);
+            setMusicCompassMessage("");
+
+            try {
+                const compass =
+                    await getMusicCompass({
+                        profile,
+                    });
+
+                if (!cancelled) {
+                    setMusicCompass(compass);
+                }
+            } catch (error) {
+                console.error(
+                    "Music compass error:",
+                    error,
+                );
+
+                if (!cancelled) {
+                    setMusicCompassMessage(
+                        error.message ||
+                        "No hemos podido preparar tu brújula musical.",
+                    );
+                }
+            } finally {
+                if (!cancelled) {
+                    setMusicCompassLoading(false);
+                }
+            }
+        }
+
+        loadMusicCompass();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [
+        user?.id,
+        profile?.current_streak,
+        profile?.best_streak,
+        location.key,
+    ]);
 
     function handlePrimaryAction() {
         const { featuredType, featuredUserAlbum } =
@@ -395,6 +463,24 @@ function Home() {
                             ? 50
                             : 100;
 
+    function handleMusicCompassAction(
+        action,
+    ) {
+        if (!action) {
+            return;
+        }
+
+        if (
+            action.type === "navigate" &&
+            action.path
+        ) {
+            navigate(action.path, {
+                state:
+                    action.state ?? null,
+            });
+        }
+    }
+
     return (
         <section className="home">
             <header className="home__header fade-up">
@@ -588,6 +674,28 @@ function Home() {
                     </div>
                 </div>
             </article>
+
+            <section className="home-section">
+                <header className="home-section__header">
+                    <div>
+                        <p>AUDITE LEE TU HISTORIA</p>
+                        <h2>Tu brújula musical</h2>
+                    </div>
+
+                    <span>
+                        Una reflexión pensada para ti
+                    </span>
+                </header>
+
+                <MusicCompassCard
+                    compass={musicCompass}
+                    loading={musicCompassLoading}
+                    message={musicCompassMessage}
+                    onAction={
+                        handleMusicCompassAction
+                    }
+                />
+            </section>
 
             <DailyChallengesCard />
 
