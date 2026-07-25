@@ -23,6 +23,11 @@ type AlbumSeed = {
   cover_url: string | null;
   genres: string[] | null;
   rating: number;
+
+  language: string | null;
+  country: string | null;
+  spanish_region: string | null;
+  spanish_style: string | null;
 };
 
 type SpotifyArtist = {
@@ -442,7 +447,11 @@ Deno.serve(async (request) => {
           title,
           artist_name,
           cover_url,
-          genres
+          genres,
+          language,
+          country,
+          spanish_region,
+          spanish_style
         )
       `)
       .eq("user_id", user.id)
@@ -534,6 +543,211 @@ Deno.serve(async (request) => {
     const seedGenres =
       seed.genres?.filter(Boolean) ?? [];
 
+    const normalizedLanguage =
+      normalize(seed.language ?? "");
+
+    const normalizedCountry =
+      normalize(seed.country ?? "");
+
+    const spanishCountries = new Set([
+      "spain",
+      "espana",
+      "mexico",
+      "argentina",
+      "chile",
+      "colombia",
+      "peru",
+      "uruguay",
+      "venezuela",
+      "ecuador",
+      "bolivia",
+      "paraguay",
+      "costa rica",
+      "cuba",
+      "puerto rico",
+      "dominican republic",
+      "republica dominicana",
+      "guatemala",
+      "honduras",
+      "el salvador",
+      "nicaragua",
+      "panama",
+    ]);
+
+    const seedIsSpanish =
+      normalizedLanguage === "es" ||
+      normalizedLanguage === "spanish" ||
+      normalizedLanguage === "espanol" ||
+      Boolean(seed.spanish_region) ||
+      Boolean(seed.spanish_style) ||
+      spanishCountries.has(normalizedCountry);
+
+    const recommendations: any[] = [];
+
+    if (seedIsSpanish) {
+      let spanishQuery = supabase
+        .from("albums")
+        .select(`
+          id,
+          spotify_id,
+          spotify_artist_id,
+          title,
+          artist_name,
+          release_year,
+          cover_url,
+          spotify_url,
+          spotify_artist_url,
+          album_type,
+          track_count,
+          total_tracks,
+          genres,
+          language,
+          country,
+          spanish_region,
+          spanish_style
+        `)
+        .not("spotify_id", "is", null)
+        .neq("id", seed.id)
+        .limit(50);
+
+      /*
+      * Buscamos discos identificados explícitamente
+      * como españoles o en español.
+      */
+      spanishQuery = spanishQuery.or(
+        [
+          "language.eq.es",
+          "language.ilike.%spanish%",
+          "language.ilike.%español%",
+          "spanish_region.not.is.null",
+          "spanish_style.not.is.null",
+        ].join(","),
+      );
+
+      const {
+        data: spanishAlbums,
+        error: spanishAlbumsError,
+      } = await spanishQuery;
+
+      if (spanishAlbumsError) {
+        console.error(
+          "Spanish albums query error:",
+          spanishAlbumsError,
+        );
+      } else {
+        const seedGenreNames =
+          seedGenres.map(normalize);
+
+        const candidates =
+          shuffle(
+            (spanishAlbums ?? []).filter(
+              (album: any) => {
+                if (
+                  !album.spotify_id ||
+                  excludedSpotifyIds.has(
+                    album.spotify_id,
+                  )
+                ) {
+                  return false;
+                }
+
+                const albumGenres =
+                  Array.isArray(album.genres)
+                    ? album.genres.map(normalize)
+                    : [];
+
+                /*
+                * Si ambos tienen géneros, exigimos
+                * al menos una coincidencia aproximada.
+                */
+                if (
+                  seedGenreNames.length > 0 &&
+                  albumGenres.length > 0
+                ) {
+                  return seedGenreNames.some(
+                    (seedGenre) =>
+                      albumGenres.some(
+                        (albumGenre) =>
+                          albumGenre.includes(
+                            seedGenre,
+                          ) ||
+                          seedGenre.includes(
+                            albumGenre,
+                          ),
+                      ),
+                  );
+                }
+
+                return true;
+              },
+            ),
+          );
+
+        for (const album of candidates) {
+          if (recommendations.length >= 3) {
+            break;
+          }
+
+          excludedSpotifyIds.add(
+            album.spotify_id,
+          );
+
+          recommendations.push({
+            spotify_id:
+              album.spotify_id,
+
+            spotify_artist_id:
+              album.spotify_artist_id,
+
+            title:
+              album.title,
+
+            artist_name:
+              album.artist_name,
+
+            release_year:
+              album.release_year,
+
+            cover_url:
+              album.cover_url,
+
+            spotify_url:
+              album.spotify_url,
+
+            spotify_artist_url:
+              album.spotify_artist_url,
+
+            album_type:
+              album.album_type,
+
+            track_count:
+              album.track_count,
+
+            total_tracks:
+              album.total_tracks,
+
+            genres:
+              album.genres ?? [],
+
+            language:
+              album.language,
+
+            country:
+              album.country,
+
+            spanish_region:
+              album.spanish_region,
+
+            spanish_style:
+              album.spanish_style,
+
+            seed_album_id:
+              seed.id,
+          });
+        }
+      }
+    }
+
     let candidateArtists:
       SpotifyArtist[] = [];
 
@@ -605,106 +819,109 @@ Deno.serve(async (request) => {
       ).values(),
     );
 
-    const recommendations: any[] = [];
-
-    for (
-      const artist of shuffle(
-        uniqueArtists,
-      ).slice(0, 4)
+    if (
+      !seedIsSpanish &&
+      recommendations.length < 3
     ) {
-      if (recommendations.length >= 6) {
-        break;
-      }
-
-      try {
-        const albums =
-          await getArtistAlbums(
-            artist.id,
-            token,
-          );
-
-        const availableAlbums =
-          shuffle(albums).filter(
-            (album) =>
-              album.id &&
-              album.album_type === "album" &&
-              !excludedSpotifyIds.has(
-                album.id,
-              ),
-          );
-
-        const album =
-          availableAlbums[0];
-
-        if (!album) {
-          continue;
+      for (
+        const artist of shuffle(
+          uniqueArtists,
+        ).slice(0, 4)
+      ) {
+        if (recommendations.length >= 6) {
+          break;
         }
 
-        excludedSpotifyIds.add(album.id);
+        try {
+          const albums =
+            await getArtistAlbums(
+              artist.id,
+              token,
+            );
 
-        recommendations.push({
-          spotify_id: album.id,
-          title: album.name,
+          const availableAlbums =
+            shuffle(albums).filter(
+              (album) =>
+                album.id &&
+                album.album_type === "album" &&
+                !excludedSpotifyIds.has(
+                  album.id,
+                ),
+            );
 
-          artist_name:
-            album.artists
-              ?.map(
-                (item) => item.name,
-              )
-              .join(", ") ??
-            artist.name,
+          const album =
+            availableAlbums[0];
 
-          spotify_artist_id:
-            album.artists?.[0]?.id ??
-            artist.id,
+          if (!album) {
+            continue;
+          }
 
-          spotify_artist_url:
-            album.artists?.[0]
-              ?.external_urls?.spotify ??
-            null,
+          excludedSpotifyIds.add(album.id);
 
-          release_year:
-            album.release_date
-              ? Number(
-                  album.release_date.slice(
-                    0,
-                    4,
-                  ),
+          recommendations.push({
+            spotify_id: album.id,
+            title: album.name,
+
+            artist_name:
+              album.artists
+                ?.map(
+                  (item) => item.name,
                 )
-              : null,
+                .join(", ") ??
+              artist.name,
 
-          cover_url:
-            album.images?.[0]?.url ??
-            null,
+            spotify_artist_id:
+              album.artists?.[0]?.id ??
+              artist.id,
 
-          spotify_url:
-            album.external_urls
-              ?.spotify ?? null,
+            spotify_artist_url:
+              album.artists?.[0]
+                ?.external_urls?.spotify ??
+              null,
 
-          album_type:
-            album.album_type,
+            release_year:
+              album.release_date
+                ? Number(
+                    album.release_date.slice(
+                      0,
+                      4,
+                    ),
+                  )
+                : null,
 
-          track_count:
-            album.total_tracks ?? null,
+            cover_url:
+              album.images?.[0]?.url ??
+              null,
 
-          total_tracks:
-            album.total_tracks ?? null,
+            spotify_url:
+              album.external_urls
+                ?.spotify ?? null,
 
-          genres:
-            artist.genres?.length
-              ? artist.genres
-              : seedGenres,
+            album_type:
+              album.album_type,
 
-          seed_album_id: seed.id,
-        });
-      } catch (error) {
-        console.error(
-          `No se pudo obtener el catálogo de ${artist.name}:`,
-          error,
-        );
+            track_count:
+              album.total_tracks ?? null,
+
+            total_tracks:
+              album.total_tracks ?? null,
+
+            genres:
+              artist.genres?.length
+                ? artist.genres
+                : seedGenres,
+
+            seed_album_id: seed.id,
+          });
+        } catch (error) {
+          console.error(
+            `No se pudo obtener el catálogo de ${artist.name}:`,
+            error,
+          );
+        }
       }
     }
-
+    
     return jsonResponse({
       seed: {
         id: seed.id,
