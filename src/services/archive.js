@@ -231,33 +231,6 @@ export async function addArchiveAlbum({
         .select()
         .single();
 
-    let usableFavoriteTrackIds = [
-        ...favoriteTrackIds,
-    ];
-
-    if (
-        storedAlbum.spotify_id &&
-        usableFavoriteTrackIds.length === 0
-    ) {
-        try {
-            const currentTracks =
-                await getAlbumTracks(
-                    storedAlbum.id,
-                );
-
-            if (currentTracks.length === 0) {
-                await syncAlbumTracks(
-                    storedAlbum.id,
-                );
-            }
-        } catch (error) {
-            console.error(
-                "No se pudo preparar el tracklist del Archivo:",
-                error,
-            );
-        }
-    }
-
     if (albumError) {
         throw albumError;
     }
@@ -312,7 +285,7 @@ export async function addArchiveAlbum({
                 album_id: storedAlbum.id,
 
                 status: "completed",
-                source: "pre_audite",
+                source: "manual",
                 pre_audite: true,
 
                 /*
@@ -349,6 +322,33 @@ export async function addArchiveAlbum({
 
     if (userAlbumError) {
         throw userAlbumError;
+    }
+
+    let usableFavoriteTrackIds = [
+        ...favoriteTrackIds,
+    ];
+
+    if (
+        storedAlbum.spotify_id &&
+        usableFavoriteTrackIds.length === 0
+    ) {
+        try {
+            const currentTracks =
+                await getAlbumTracks(
+                    storedAlbum.id,
+                );
+
+            if (currentTracks.length === 0) {
+                await syncAlbumTracks(
+                    storedAlbum.id,
+                );
+            }
+        } catch (error) {
+            console.error(
+                "No se pudo preparar el tracklist del Archivo:",
+                error,
+            );
+        }
     }
 
     const normalizedRating =
@@ -443,32 +443,11 @@ export async function addArchiveAlbum({
         review = data;
     }
 
-    if (favoriteTrackIds.length > 0) {
-        const topTracks =
-            favoriteTrackIds
-                .slice(0, 3)
-                .map((trackId, index) => ({
-                    user_id: userId,
-                    review_id: review.id,
-                    album_id: storedAlbum.id,
-                    track_id: trackId,
-                    position: index + 1,
-                }));
-
-        const { error: favoriteError } =
-            await supabase
-                .from("favorite_tracks")
-                .insert(topTracks);
-
-        if (favoriteError) {
-            throw favoriteError;
-        }
-    }
-
     return {
         ...review,
         album: storedAlbum,
         user_album: userAlbum,
+        favorite_tracks: [],
     };
 }
 
@@ -549,4 +528,60 @@ export async function deleteArchiveAlbum({
     if (userAlbumError) {
         throw userAlbumError;
     }
+}
+
+export async function saveArchiveFavoriteTracks({
+    userId,
+    reviewId,
+    albumId,
+    favoriteTrackIds = [],
+}) {
+    if (!userId || !reviewId || !albumId) {
+        throw new Error(
+            "Faltan datos para guardar las canciones.",
+        );
+    }
+
+    const { error: deleteError } =
+        await supabase
+            .from("favorite_tracks")
+            .delete()
+            .eq("user_id", userId)
+            .eq("review_id", reviewId);
+
+    if (deleteError) {
+        throw deleteError;
+    }
+
+    const selectedTracks =
+        favoriteTrackIds.slice(0, 3);
+
+    if (selectedTracks.length === 0) {
+        return [];
+    }
+
+    const rows = selectedTracks.map(
+        (trackId, index) => ({
+            user_id: userId,
+            review_id: reviewId,
+            album_id: albumId,
+            track_id: trackId,
+            position: index + 1,
+        }),
+    );
+
+    const { data, error } =
+        await supabase
+            .from("favorite_tracks")
+            .insert(rows)
+            .select(`
+                *,
+                track:album_tracks (*)
+            `);
+
+    if (error) {
+        throw error;
+    }
+
+    return data ?? [];
 }

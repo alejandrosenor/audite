@@ -7,6 +7,7 @@ import {
 
 import {
     addArchiveAlbum,
+    saveArchiveFavoriteTracks,
     searchSpotifyAlbums,
 } from "../services/archive";
 
@@ -87,6 +88,24 @@ function ArchiveAlbumModal({
 
     const [message, setMessage] = useState("");
 
+    const [step, setStep] =
+        useState("form");
+
+    const [
+        savedArchive,
+        setSavedArchive,
+    ] = useState(null);
+
+    const [
+        loadingSavedTracks,
+        setLoadingSavedTracks,
+    ] = useState(false);
+
+    const [
+        savingFavoriteTracks,
+        setSavingFavoriteTracks,
+    ] = useState(false);
+
     const selectedFavoriteTracks = useMemo(
         () =>
             favoriteTrackIds
@@ -118,10 +137,18 @@ function ArchiveAlbumModal({
         setLoadingTracks(false);
         setSaving(false);
         setMessage("");
+
+        setStep("form");
+        setSavedArchive(null);
+        setLoadingSavedTracks(false);
+        setSavingFavoriteTracks(false);
     }
 
     function handleClose() {
-        if (saving) {
+        if (
+            saving ||
+            savingFavoriteTracks
+        ) {
             return;
         }
 
@@ -245,34 +272,30 @@ function ArchiveAlbumModal({
                     )
                     .maybeSingle();
 
+            /*
+             * Si el disco no existe todavía en Audite,
+             * no intentamos sincronizarlo antes de guardarlo.
+             */
             if (!storedAlbum?.id) {
                 return;
             }
 
-            let albumTracks =
+            const albumTracks =
                 await getAlbumTracks(
                     storedAlbum.id,
                 );
 
-            if (albumTracks.length === 0) {
-                try {
-                    await syncAlbumTracks(
-                        storedAlbum.id,
-                    );
-
-                    albumTracks =
-                        await getAlbumTracks(
-                            storedAlbum.id,
-                        );
-                } catch (error) {
-                    console.error(
-                        "No se pudieron sincronizar las pistas:",
-                        error,
-                    );
-                }
-            }
-
+            /*
+             * Aquí solo leemos canciones ya existentes.
+             * No llamamos a syncAlbumTracks porque todavía
+             * puede no pertenecer al usuario.
+             */
             setTracks(albumTracks);
+        } catch (error) {
+            console.error(
+                "No se pudieron recuperar las pistas:",
+                error,
+            );
         } finally {
             setLoadingTracks(false);
         }
@@ -395,6 +418,62 @@ function ArchiveAlbumModal({
         return "";
     }
 
+    function wait(milliseconds) {
+        return new Promise((resolve) => {
+            window.setTimeout(
+                resolve,
+                milliseconds,
+            );
+        });
+    }
+
+    async function loadTracksAfterSaving(
+        albumId,
+    ) {
+        if (!albumId) {
+            return [];
+        }
+
+        setLoadingSavedTracks(true);
+
+        try {
+            /*
+             * La Edge Function puede tardar un poco
+             * en terminar de insertar todas las pistas.
+             */
+            for (
+                let attempt = 0;
+                attempt < 5;
+                attempt += 1
+            ) {
+                const albumTracks =
+                    await getAlbumTracks(
+                        albumId,
+                    );
+
+                if (albumTracks.length > 0) {
+                    setTracks(albumTracks);
+                    return albumTracks;
+                }
+
+                await wait(700);
+            }
+
+            setTracks([]);
+            return [];
+        } catch (error) {
+            console.error(
+                "No se pudieron cargar las canciones guardadas:",
+                error,
+            );
+
+            setTracks([]);
+            return [];
+        } finally {
+            setLoadingSavedTracks(false);
+        }
+    }
+
     async function handleSubmit(event) {
         event.preventDefault();
 
@@ -410,18 +489,20 @@ function ArchiveAlbumModal({
         setMessage("");
 
         try {
-            const savedArchive =
+            const createdArchive =
                 await addArchiveAlbum({
                     userId,
 
-                    album: selectedAlbum,
+                    album:
+                        selectedAlbum,
 
-                    genres: genres
-                        .split(",")
-                        .map((genre) =>
-                            genre.trim(),
-                        )
-                        .filter(Boolean),
+                    genres:
+                        genres
+                            .split(",")
+                            .map((genre) =>
+                                genre.trim(),
+                            )
+                            .filter(Boolean),
 
                     discoveryYear:
                         precision === "unknown"
@@ -450,13 +531,42 @@ function ArchiveAlbumModal({
 
                     wouldListenAgain,
 
-                    favoriteTrackIds,
+                    /*
+                     * Ahora se seleccionan después.
+                     */
+                    favoriteTrackIds: [],
                 });
 
-            onSaved(savedArchive);
+            setSavedArchive(
+                createdArchive,
+            );
 
-            resetModal();
-            onClose();
+            setFavoriteTrackIds([]);
+
+            /*
+             * El recuerdo ya está guardado.
+             * Avisamos a Biblioteca inmediatamente.
+             */
+            onSaved(
+                createdArchive,
+            );
+
+            setStep("tracks");
+
+            const albumId =
+                createdArchive.album?.id ??
+                createdArchive.album_id;
+
+            const albumTracks =
+                await loadTracksAfterSaving(
+                    albumId,
+                );
+
+            if (albumTracks.length === 0) {
+                setMessage(
+                    "El recuerdo está guardado, pero no hemos podido recuperar todavía sus canciones.",
+                );
+            }
         } catch (error) {
             console.error(error);
 
@@ -467,6 +577,69 @@ function ArchiveAlbumModal({
         } finally {
             setSaving(false);
         }
+    }
+
+    async function handleSaveFavoriteTracks() {
+        if (!savedArchive) {
+            return;
+        }
+
+        setSavingFavoriteTracks(true);
+        setMessage("");
+
+        try {
+            const savedFavorites =
+                await saveArchiveFavoriteTracks({
+                    userId,
+
+                    reviewId:
+                        savedArchive.id,
+
+                    albumId:
+                        savedArchive.album?.id ??
+                        savedArchive.album_id,
+
+                    favoriteTrackIds,
+                });
+
+            const updatedArchive = {
+                ...savedArchive,
+
+                favorite_tracks:
+                    savedFavorites,
+            };
+
+            /*
+             * Volvemos a avisar a Library para
+             * actualizar la tarjeta con el Top 3.
+             */
+            onSaved(
+                updatedArchive,
+            );
+
+            window.dispatchEvent(
+                new CustomEvent(
+                    "audite:archive-changed",
+                ),
+            );
+
+            resetModal();
+            onClose();
+        } catch (error) {
+            console.error(error);
+
+            setMessage(
+                error.message ||
+                "No hemos podido guardar tus canciones.",
+            );
+        } finally {
+            setSavingFavoriteTracks(false);
+        }
+    }
+
+    function handleSkipFavoriteTracks() {
+        resetModal();
+        onClose();
     }
 
     if (!isOpen) {
@@ -514,95 +687,314 @@ function ArchiveAlbumModal({
 
                 {!selectedAlbum ? (
                     <div className="archive-modal__search-step">
-                        <label className="archive-search">
-                            <span>⌕</span>
+                        <div className="archive-modal__search-step">
+                            <label className="archive-search">
+                                <span>⌕</span>
 
-                            <input
-                                ref={inputRef}
-                                type="search"
-                                value={query}
-                                onChange={(event) =>
-                                    setQuery(
-                                        event.target.value,
-                                    )
-                                }
-                                placeholder="Busca un disco o artista..."
-                            />
-
-                            {searching && (
-                                <i />
-                            )}
-                        </label>
-
-                        {results.length === 0 &&
-                            query.trim().length < 2 && (
-                                <div className="archive-intro">
-                                    <span>📼</span>
-
-                                    <h3>
-                                        ¿Qué disco ya era
-                                        parte de tu historia?
-                                    </h3>
-
-                                    <p>
-                                        Puedes recuperar
-                                        descubrimientos de este
-                                        año o de cualquier etapa
-                                        anterior.
-                                    </p>
-                                </div>
-                            )}
-
-                        <div className="archive-results">
-                            {results.map((album) => (
-                                <button
-                                    type="button"
-                                    key={album.spotify_id}
-                                    onClick={() =>
-                                        handleSelectAlbum(
-                                            album,
+                                <input
+                                    ref={inputRef}
+                                    type="search"
+                                    value={query}
+                                    onChange={(event) =>
+                                        setQuery(
+                                            event.target.value,
                                         )
                                     }
-                                >
-                                    {album.cover_url ? (
-                                        <img
-                                            src={
-                                                album.cover_url
-                                            }
-                                            alt=""
-                                        />
-                                    ) : (
-                                        <span>💿</span>
-                                    )}
+                                    placeholder="Busca un disco o artista..."
+                                />
 
-                                    <div>
-                                        <strong>
-                                            {album.title}
-                                        </strong>
+                                {searching && (
+                                    <i />
+                                )}
+                            </label>
+
+                            {results.length === 0 &&
+                                query.trim().length < 2 && (
+                                    <div className="archive-intro">
+                                        <span>📼</span>
+
+                                        <h3>
+                                            ¿Qué disco ya era
+                                            parte de tu historia?
+                                        </h3>
 
                                         <p>
-                                            {
-                                                album.artist_name
-                                            }
+                                            Puedes recuperar
+                                            descubrimientos de este
+                                            año o de cualquier etapa
+                                            anterior.
                                         </p>
-
-                                        <small>
-                                            {[
-                                                album.release_year,
-                                                album.track_count
-                                                    ? `${album.track_count} canciones`
-                                                    : null,
-                                            ]
-                                                .filter(Boolean)
-                                                .join(" · ")}
-                                        </small>
                                     </div>
+                                )}
 
-                                    <i>›</i>
-                                </button>
-                            ))}
+                            <div className="archive-results">
+                                {results.map((album) => (
+                                    <button
+                                        type="button"
+                                        key={album.spotify_id}
+                                        onClick={() =>
+                                            handleSelectAlbum(
+                                                album,
+                                            )
+                                        }
+                                    >
+                                        {album.cover_url ? (
+                                            <img
+                                                src={
+                                                    album.cover_url
+                                                }
+                                                alt=""
+                                            />
+                                        ) : (
+                                            <span>💿</span>
+                                        )}
+
+                                        <div>
+                                            <strong>
+                                                {album.title}
+                                            </strong>
+
+                                            <p>
+                                                {
+                                                    album.artist_name
+                                                }
+                                            </p>
+
+                                            <small>
+                                                {[
+                                                    album.release_year,
+                                                    album.track_count
+                                                        ? `${album.track_count} canciones`
+                                                        : null,
+                                                ]
+                                                    .filter(Boolean)
+                                                    .join(" · ")}
+                                            </small>
+                                        </div>
+
+                                        <i>›</i>
+                                    </button>
+                                ))}
+                            </div>
                         </div>
                     </div>
+                ) : step === "tracks" ? (
+                    <section className="archive-success-step">
+                        <header className="archive-success-step__header">
+                            <span>✓</span>
+
+                            <div>
+                                <p>RECUERDO GUARDADO</p>
+
+                                <h2>
+                                    Ahora elige tus canciones
+                                </h2>
+
+                                <span>
+                                    Puedes seleccionar hasta tres y
+                                    ordenarlas de mejor a peor.
+                                </span>
+                            </div>
+                        </header>
+
+                        <article className="archive-selected">
+                            {savedArchive?.album?.cover_url ? (
+                                <img
+                                    src={
+                                        savedArchive.album.cover_url
+                                    }
+                                    alt=""
+                                />
+                            ) : (
+                                <div>💿</div>
+                            )}
+
+                            <div>
+                                <p>GUARDADO EN TU ARCHIVO</p>
+
+                                <h3>
+                                    {
+                                        savedArchive?.album?.title
+                                    }
+                                </h3>
+
+                                <span>
+                                    {
+                                        savedArchive?.album
+                                            ?.artist_name
+                                    }
+                                </span>
+                            </div>
+                        </article>
+
+                        <section className="archive-tracks">
+                            <header>
+                                <div>
+                                    <p>TOP 3 OPCIONAL</p>
+
+                                    <h3>
+                                        Tus canciones elegidas
+                                    </h3>
+                                </div>
+
+                                <span>
+                                    {favoriteTrackIds.length}/3
+                                </span>
+                            </header>
+
+                            {selectedFavoriteTracks.length >
+                                0 && (
+                                    <ol className="archive-ranking">
+                                        {selectedFavoriteTracks.map(
+                                            (track, index) => (
+                                                <li key={track.id}>
+                                                    <strong>
+                                                        {index + 1}
+                                                    </strong>
+
+                                                    <span>
+                                                        {track.title}
+                                                    </span>
+
+                                                    <div>
+                                                        <button
+                                                            type="button"
+                                                            disabled={
+                                                                index === 0
+                                                            }
+                                                            onClick={() =>
+                                                                moveFavoriteTrack(
+                                                                    track.id,
+                                                                    -1,
+                                                                )
+                                                            }
+                                                        >
+                                                            ↑
+                                                        </button>
+
+                                                        <button
+                                                            type="button"
+                                                            disabled={
+                                                                index ===
+                                                                selectedFavoriteTracks.length -
+                                                                1
+                                                            }
+                                                            onClick={() =>
+                                                                moveFavoriteTrack(
+                                                                    track.id,
+                                                                    1,
+                                                                )
+                                                            }
+                                                        >
+                                                            ↓
+                                                        </button>
+                                                    </div>
+                                                </li>
+                                            ),
+                                        )}
+                                    </ol>
+                                )}
+
+                            {loadingSavedTracks ? (
+                                <div className="archive-tracks-loading">
+                                    <i />
+
+                                    <p>
+                                        Recuperando las canciones...
+                                    </p>
+                                </div>
+                            ) : tracks.length > 0 ? (
+                                <div className="archive-track-list">
+                                    {tracks.map((track) => {
+                                        const selected =
+                                            favoriteTrackIds.includes(
+                                                track.id,
+                                            );
+
+                                        return (
+                                            <button
+                                                key={track.id}
+                                                type="button"
+                                                className={
+                                                    selected
+                                                        ? "active"
+                                                        : ""
+                                                }
+                                                onClick={() =>
+                                                    toggleFavoriteTrack(
+                                                        track.id,
+                                                    )
+                                                }
+                                            >
+                                                <span>
+                                                    {selected
+                                                        ? favoriteTrackIds.indexOf(
+                                                            track.id,
+                                                        ) + 1
+                                                        : track.track_number}
+                                                </span>
+
+                                                <strong>
+                                                    {track.title}
+                                                </strong>
+
+                                                <i>
+                                                    {selected
+                                                        ? "★"
+                                                        : "☆"}
+                                                </i>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            ) : (
+                                <p className="archive-tracks__empty">
+                                    El recuerdo está guardado, pero
+                                    todavía no tenemos disponible el
+                                    tracklist.
+                                </p>
+                            )}
+                        </section>
+
+                        {message && (
+                            <p className="archive-form__message">
+                                {message}
+                            </p>
+                        )}
+
+                        <div className="archive-success-actions">
+                            <button
+                                type="button"
+                                className="archive-success-actions__skip"
+                                onClick={
+                                    handleSkipFavoriteTracks
+                                }
+                                disabled={
+                                    savingFavoriteTracks
+                                }
+                            >
+                                Ahora no
+                            </button>
+
+                            <button
+                                type="button"
+                                className="archive-success-actions__save"
+                                onClick={
+                                    handleSaveFavoriteTracks
+                                }
+                                disabled={
+                                    savingFavoriteTracks ||
+                                    loadingSavedTracks
+                                }
+                            >
+                                {savingFavoriteTracks
+                                    ? "Guardando canciones..."
+                                    : favoriteTrackIds.length > 0
+                                        ? "Guardar Top 3"
+                                        : "Terminar"}
+                            </button>
+                        </div>
+                    </section>
                 ) : (
                     <form
                         className="archive-form"
@@ -864,134 +1256,6 @@ function ArchiveAlbumModal({
                                 {comment.length}/2000
                             </small>
                         </label>
-
-                        <section className="archive-tracks">
-                            <header>
-                                <div>
-                                    <p>TOP 3 OPCIONAL</p>
-                                    <h3>
-                                        Tus canciones elegidas
-                                    </h3>
-                                </div>
-
-                                <span>
-                                    {
-                                        favoriteTrackIds.length
-                                    }
-                                    /3
-                                </span>
-                            </header>
-
-                            {selectedFavoriteTracks.length >
-                                0 && (
-                                    <ol className="archive-ranking">
-                                        {selectedFavoriteTracks.map(
-                                            (track, index) => (
-                                                <li key={track.id}>
-                                                    <strong>
-                                                        {index + 1}
-                                                    </strong>
-
-                                                    <span>
-                                                        {track.title}
-                                                    </span>
-
-                                                    <div>
-                                                        <button
-                                                            type="button"
-                                                            disabled={
-                                                                index ===
-                                                                0
-                                                            }
-                                                            onClick={() =>
-                                                                moveFavoriteTrack(
-                                                                    track.id,
-                                                                    -1,
-                                                                )
-                                                            }
-                                                        >
-                                                            ↑
-                                                        </button>
-
-                                                        <button
-                                                            type="button"
-                                                            disabled={
-                                                                index ===
-                                                                selectedFavoriteTracks.length -
-                                                                1
-                                                            }
-                                                            onClick={() =>
-                                                                moveFavoriteTrack(
-                                                                    track.id,
-                                                                    1,
-                                                                )
-                                                            }
-                                                        >
-                                                            ↓
-                                                        </button>
-                                                    </div>
-                                                </li>
-                                            ),
-                                        )}
-                                    </ol>
-                                )}
-
-                            {loadingTracks ? (
-                                <p>
-                                    Recuperando las canciones...
-                                </p>
-                            ) : tracks.length > 0 ? (
-                                <div className="archive-track-list">
-                                    {tracks.map((track) => {
-                                        const selected =
-                                            favoriteTrackIds.includes(
-                                                track.id,
-                                            );
-
-                                        return (
-                                            <button
-                                                key={track.id}
-                                                type="button"
-                                                className={
-                                                    selected
-                                                        ? "active"
-                                                        : ""
-                                                }
-                                                onClick={() =>
-                                                    toggleFavoriteTrack(
-                                                        track.id,
-                                                    )
-                                                }
-                                            >
-                                                <span>
-                                                    {selected
-                                                        ? favoriteTrackIds.indexOf(
-                                                            track.id,
-                                                        ) + 1
-                                                        : track.track_number}
-                                                </span>
-
-                                                <strong>
-                                                    {track.title}
-                                                </strong>
-
-                                                <i>
-                                                    {selected
-                                                        ? "★"
-                                                        : "☆"}
-                                                </i>
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            ) : (
-                                <p>
-                                    Podrás guardar el recuerdo
-                                    aunque no tengamos el
-                                    tracklist.
-                                </p>
-                            )}
-                        </section>
 
                         {message && (
                             <p className="archive-form__message">
