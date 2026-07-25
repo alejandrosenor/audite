@@ -30,6 +30,9 @@ function AddAlbumModal({
     const [messageType, setMessageType] =
         useState("");
 
+    const [manualGenre, setManualGenre] =
+        useState("");
+
     function resetModal() {
         setQuery("");
         setResults([]);
@@ -41,6 +44,7 @@ function AddAlbumModal({
         setSaving(false);
         setMessage("");
         setMessageType("");
+        setManualGenre("");
     }
 
     function handleClose() {
@@ -148,12 +152,24 @@ function AddAlbumModal({
 
     function handleSelectAlbum(album) {
         setSelectedAlbum(album);
+
+        setManualGenre(
+            Array.isArray(album.genres) &&
+                album.genres.length > 0
+                ? album.genres.join(", ")
+                : "",
+        );
+
         setMessage("");
         setMessageType("");
     }
 
     async function handleAddAlbum() {
-        if (!selectedAlbum || !userId || saving) {
+        if (
+            !selectedAlbum ||
+            !userId ||
+            saving
+        ) {
             return;
         }
 
@@ -168,19 +184,34 @@ function AddAlbumModal({
             return;
         }
 
+        const genres =
+            manualGenre
+                .split(",")
+                .map((genre) =>
+                    genre
+                        .trim()
+                        .toLowerCase(),
+                )
+                .filter(Boolean);
+
         setSaving(true);
         setMessage("");
         setMessageType("");
 
         try {
-            const addedAlbum = await addManualAlbum({
-                userId,
-                album: selectedAlbum,
-                recommendedBy: isRecommendation
-                    ? recommendedBy
-                    : "",
-                personalNote,
-            });
+            const addedAlbum =
+                await addManualAlbum({
+                    userId,
+                    album: {
+                        ...selectedAlbum,
+                        genres,
+                    },
+                    recommendedBy:
+                        isRecommendation
+                            ? recommendedBy.trim()
+                            : "",
+                    personalNote,
+                });
 
             onAlbumAdded(addedAlbum);
             resetModal();
@@ -200,6 +231,7 @@ function AddAlbumModal({
                     : error.message ||
                     "No hemos podido añadir el disco.",
             );
+
             setMessageType("error");
         } finally {
             setSaving(false);
@@ -470,6 +502,31 @@ function AddAlbumModal({
                             </article>
 
                             <div className="add-album-fields">
+                                <label className="add-album-field">
+                                    <span>
+                                        Géneros
+                                        <small>
+                                            {" "}Separados por comas
+                                        </small>
+                                    </span>
+
+                                    <input
+                                        type="text"
+                                        value={manualGenre}
+                                        onChange={(event) =>
+                                            setManualGenre(
+                                                event.target.value,
+                                            )
+                                        }
+                                        placeholder="rock, soul, folk..."
+                                        maxLength={160}
+                                    />
+
+                                    <small>
+                                        Audite los usará para retos,
+                                        estadísticas y afinidades.
+                                    </small>
+                                </label>
                                 <label className="recommendation-toggle">
                                     <input
                                         type="checkbox"

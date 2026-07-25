@@ -352,6 +352,55 @@ export async function addManualAlbum({
     recommendedBy = "",
     personalNote = "",
 }) {
+    const incomingGenres =
+        Array.isArray(album.genres)
+            ? Array.from(
+                new Set(
+                    album.genres
+                        .filter(
+                            (genre) =>
+                                typeof genre ===
+                                "string" &&
+                                genre.trim(),
+                        )
+                        .map(
+                            (genre) =>
+                                genre
+                                    .trim()
+                                    .toLowerCase(),
+                        ),
+                ),
+            )
+            : [];
+
+    const {
+        data: existingAlbum,
+        error: existingAlbumError,
+    } =
+        await supabase
+            .from("albums")
+            .select("id, genres")
+            .eq(
+                "spotify_id",
+                album.spotify_id,
+            )
+            .maybeSingle();
+
+    if (existingAlbumError) {
+        throw existingAlbumError;
+    }
+
+    const existingGenres =
+        Array.isArray(
+            existingAlbum?.genres,
+        )
+            ? existingAlbum.genres
+            : [];
+
+    const genresToSave =
+        incomingGenres.length > 0
+            ? incomingGenres
+            : existingGenres;
     const { data: storedAlbum, error: albumError } =
         await supabase
             .from("albums")
@@ -399,11 +448,7 @@ export async function addManualAlbum({
                         album.total_tracks,
 
                     genres:
-                        Array.isArray(
-                            album.genres,
-                        )
-                            ? album.genres
-                            : [],
+                        genresToSave,
 
                     updated_at:
                         new Date().toISOString(),

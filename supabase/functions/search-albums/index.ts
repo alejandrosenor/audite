@@ -257,16 +257,18 @@ Deno.serve(
         Array.from(
           new Set(
             albumItems
-              .map(
+              .flatMap(
                 (album: any) =>
-                  album.artists?.[0]
-                    ?.id,
+                  Array.isArray(album.artists)
+                    ? album.artists.map(
+                        (artist: any) =>
+                          artist.id,
+                      )
+                    : [],
               )
-              .filter(
-                Boolean,
-              ),
+              .filter(Boolean),
           ),
-        ).slice(0,5);
+        ).slice(0, 20);
 
       const artistsById =
         new Map<string, any>();
@@ -360,10 +362,15 @@ Deno.serve(
                 primaryArtist
                   ?.external_urls
                   ?.spotify ??
-                fullArtist
-                  ?.external_urls
-                  ?.spotify ??
-                null,
+                (
+                  primaryArtist?.id
+                    ? artistsById.get(
+                        primaryArtist.id,
+                      )?.external_urls
+                        ?.spotify
+                    : null
+                ) ??
+              null,
 
               album_type:
                 album.album_type,
@@ -378,19 +385,42 @@ Deno.serve(
                 album.release_date ??
                 null,
 
-              /*
-               * Aquí está el arreglo principal.
-               * Los géneros proceden del artista,
-               * no del objeto álbum.
-               */
               genres:
-                Array.isArray(
-                  fullArtist
-                    ?.genres,
-                )
-                  ? fullArtist
-                      .genres
-                  : [],
+                Array.from(
+                  new Set(
+                    (album.artists ?? [])
+                      .flatMap(
+                        (artist: any) => {
+                          const artistData =
+                            artist?.id
+                              ? artistsById.get(
+                                  artist.id,
+                                )
+                              : null;
+
+                          return Array.isArray(
+                            artistData?.genres,
+                          )
+                            ? artistData.genres
+                            : [];
+                        },
+                      )
+                      .filter(
+                        (genre: unknown):
+                          genre is string =>
+                            typeof genre ===
+                              "string" &&
+                            genre.trim().length >
+                              0,
+                      )
+                      .map(
+                        (genre: string) =>
+                          genre
+                            .trim()
+                            .toLowerCase(),
+                      ),
+                  ),
+                ),
             };
           },
         );
