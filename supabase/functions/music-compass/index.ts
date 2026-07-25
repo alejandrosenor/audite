@@ -2296,6 +2296,7 @@ Deno.serve(
                     paused_at
                 `)
                 .eq("user_id", userId)
+                .eq("pre_audite", false)
                 .order("updated_at", {
                     ascending: false,
                 })

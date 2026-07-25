@@ -14,12 +14,13 @@ const corsHeaders = {
 };
 
 type ReviewRow = {
-  id: string;
-  album_id: string;
-  rating: number | string | null;
-  reaction: string | null;
-  created_at: string | null;
-  updated_at: string | null;
+    id: string;
+    album_id: string;
+    user_album_id: string;
+    rating: number | string | null;
+    reaction: string | null;
+    created_at: string | null;
+    updated_at: string | null;
 };
 
 type AlbumRow = {
@@ -223,6 +224,7 @@ Deno.serve(
           .select(`
             id,
             album_id,
+            user_album_id,
             rating,
             reaction,
             created_at,
@@ -256,6 +258,48 @@ Deno.serve(
       const reviews =
         (reviewRows ??
           []) as ReviewRow[];
+
+      const userAlbumIds =
+        Array.from(
+            new Set(
+                reviews
+                    .map(
+                        (review) =>
+                            review.user_album_id,
+                    )
+                    .filter(Boolean),
+            ),
+        );
+
+    const {
+        data: normalUserAlbums,
+        error: normalUserAlbumsError,
+    } = await adminClient
+        .from("user_albums")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("pre_audite", false)
+        .in("id", userAlbumIds);
+
+    if (normalUserAlbumsError) {
+        throw normalUserAlbumsError;
+    }
+
+    const allowedUserAlbumIds =
+        new Set(
+            (normalUserAlbums ?? []).map(
+                (userAlbum) =>
+                    userAlbum.id,
+            ),
+        );
+
+    const filteredReviews =
+        reviews.filter(
+            (review) =>
+                allowedUserAlbumIds.has(
+                    review.user_album_id,
+                ),
+        );
 
       /*
        * Si no existen valoraciones,
@@ -292,7 +336,7 @@ Deno.serve(
       const albumIds =
         Array.from(
           new Set(
-            reviews
+            filteredReviews
               .map(
                 (
                   review,
@@ -356,7 +400,7 @@ Deno.serve(
 
       for (
         const review
-        of reviews
+        of filteredReviews
       ) {
         const album =
           albumById.get(
@@ -663,7 +707,7 @@ Deno.serve(
           rows,
 
         processedReviews:
-          reviews.length,
+          filteredReviews.length,
 
         processedAlbums:
           albums.length,

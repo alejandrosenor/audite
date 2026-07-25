@@ -16,6 +16,11 @@ import LibraryTabs from "../components/LibraryTabs";
 import {
     publishReview,
 } from "../services/socialFeed";
+import ArchiveAlbumModal from "../components/ArchiveAlbumModal";
+import {
+    deleteArchiveAlbum,
+    getArchiveAlbums,
+} from "../services/archive";
 import "./Library.css";
 
 const reactionLabels = {
@@ -26,6 +31,62 @@ const reactionLabels = {
     disliked: "No me ha gustado",
     abandoned: "No terminado",
 };
+
+function formatArchiveDiscoveryDate(
+    userAlbum,
+) {
+    if (
+        !userAlbum ||
+        userAlbum.discovery_date_precision ===
+        "unknown"
+    ) {
+        return "Fecha no recordada";
+    }
+
+    const year =
+        userAlbum.discovery_year;
+
+    if (
+        userAlbum.discovery_date_precision ===
+        "year"
+    ) {
+        return year
+            ? `Descubierto en ${year}`
+            : "Año no recordado";
+    }
+
+    if (!userAlbum.discovery_date) {
+        return year
+            ? `Descubierto en ${year}`
+            : "Fecha aproximada";
+    }
+
+    const date = new Date(
+        `${userAlbum.discovery_date}T12:00:00`,
+    );
+
+    if (
+        userAlbum.discovery_date_precision ===
+        "month"
+    ) {
+        return new Intl.DateTimeFormat(
+            "es-ES",
+            {
+                month: "long",
+                year: "numeric",
+            },
+        ).format(date);
+    }
+
+    return new Intl.DateTimeFormat(
+        "es-ES",
+        {
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+        },
+    ).format(date);
+}
 
 function Library() {
     const { user } = useAuth();
@@ -70,6 +131,26 @@ function Library() {
             : "recent";
     });
 
+    const [
+        archiveReviews,
+        setArchiveReviews,
+    ] = useState([]);
+
+    const [
+        archiveModalOpen,
+        setArchiveModalOpen,
+    ] = useState(false);
+
+    const [
+        archiveToDelete,
+        setArchiveToDelete,
+    ] = useState(null);
+
+    const [
+        deletingArchive,
+        setDeletingArchive,
+    ] = useState(false);
+
     useEffect(() => {
         if (!user?.id) {
             return;
@@ -77,10 +158,16 @@ function Library() {
 
         async function loadLibrary() {
             try {
-                const completedAlbums =
-                    await getCompletedAlbums(user.id);
+                const [
+                    completedAlbums,
+                    archivedAlbums,
+                ] = await Promise.all([
+                    getCompletedAlbums(user.id),
+                    getArchiveAlbums(user.id),
+                ]);
 
                 setReviews(completedAlbums);
+                setArchiveReviews(archivedAlbums);
             } catch (error) {
                 console.error(error);
                 setMessage(
@@ -101,18 +188,25 @@ function Library() {
         );
     }, [sortBy]);
 
-    const filteredReviews =
-        filter === "all"
-            ? reviews.filter(
-                (review) =>
-                    review.reaction !== "abandoned",
-            )
-            : reviews.filter(
-                (review) =>
-                    review.reaction === filter,
-            );
+    const normalReviews = reviews.filter(
+        (review) =>
+            review.user_album?.pre_audite !== true,
+    );
 
-    const abandonedReviews = reviews.filter(
+    const filteredReviews =
+        filter === "archive"
+            ? archiveReviews
+            : filter === "all"
+                ? normalReviews.filter(
+                    (review) =>
+                        review.reaction !== "abandoned",
+                )
+                : normalReviews.filter(
+                    (review) =>
+                        review.reaction === filter,
+                );
+
+    const abandonedReviews = normalReviews.filter(
         (review) => review.reaction === "abandoned",
     );
 
@@ -437,6 +531,20 @@ function Library() {
                     Todos
                 </button>
 
+                <button
+                    type="button"
+                    className={
+                        filter === "archive"
+                            ? "active library-filter--archive"
+                            : "library-filter--archive"
+                    }
+                    onClick={() =>
+                        handleFilterChange("archive")
+                    }
+                >
+                    📼 Archivo
+                </button>
+
                 {Object.entries(reactionLabels).map(
                     ([value, label]) => (
                         <button
@@ -452,6 +560,32 @@ function Library() {
                     ),
                 )}
             </div>
+
+            {filter === "archive" && (
+                <section className="library-archive-hero">
+                    <div>
+                        <p>ANTES DE AUDITE</p>
+
+                        <h2>Tu Archivo musical</h2>
+
+                        <span>
+                            Los discos que ya formaban parte
+                            de tu vida antes de comenzar este
+                            viaje.
+                        </span>
+                    </div>
+
+                    <button
+                        type="button"
+                        onClick={() =>
+                            setArchiveModalOpen(true)
+                        }
+                    >
+                        <span>＋</span>
+                        Añadir recuerdo
+                    </button>
+                </section>
+            )}
 
             {filter === "abandoned" && abandonedReviews.length > 0 && (
                 <div className="library-delete-toolbar">
@@ -695,11 +829,23 @@ function Library() {
 
                             <div className="library-album__content">
                                 <span>
-                                    {reactionLabels[review.reaction]}
+                                    {filter === "archive"
+                                        ? "📼 ARCHIVO"
+                                        : reactionLabels[
+                                        review.reaction
+                                        ]}
                                 </span>
 
                                 <h2>{review.album.title}</h2>
                                 <h3>{review.album.artist_name}</h3>
+
+                                {filter === "archive" && (
+                                    <p className="library-album__archive-date">
+                                        {formatArchiveDiscoveryDate(
+                                            review.user_album,
+                                        )}
+                                    </p>
+                                )}
 
                                 {review.favorite_tracks?.length > 0 && (
                                     <p>
@@ -722,6 +868,19 @@ function Library() {
                                         }}
                                     >
                                         Eliminar de Biblioteca
+                                    </button>
+                                )}
+
+                                {filter === "archive" && (
+                                    <button
+                                        type="button"
+                                        className="library-album__archive-delete"
+                                        onClick={(event) => {
+                                            event.stopPropagation();
+                                            setArchiveToDelete(review);
+                                        }}
+                                    >
+                                        Eliminar del Archivo
                                     </button>
                                 )}
                             </div>
@@ -795,6 +954,107 @@ function Library() {
                 </div>
             )}
 
+            {archiveToDelete && (
+                <div
+                    className="library-delete-dialog-backdrop"
+                    onClick={() => {
+                        if (!deletingArchive) {
+                            setArchiveToDelete(null);
+                        }
+                    }}
+                >
+                    <article
+                        className="library-delete-dialog"
+                        onClick={(event) =>
+                            event.stopPropagation()
+                        }
+                    >
+                        <span>📼</span>
+
+                        <h2>
+                            ¿Eliminar este recuerdo?
+                        </h2>
+
+                        <p>
+                            <strong>
+                                {
+                                    archiveToDelete.album
+                                        ?.title
+                                }
+                            </strong>{" "}
+                            desaparecerá del Archivo.
+                        </p>
+
+                        <div>
+                            <button
+                                type="button"
+                                disabled={deletingArchive}
+                                onClick={() =>
+                                    setArchiveToDelete(null)
+                                }
+                            >
+                                Cancelar
+                            </button>
+
+                            <button
+                                type="button"
+                                className="library-delete-dialog__confirm"
+                                disabled={deletingArchive}
+                                onClick={async () => {
+                                    setDeletingArchive(true);
+
+                                    try {
+                                        await deleteArchiveAlbum({
+                                            userId: user.id,
+                                            reviewId:
+                                                archiveToDelete.id,
+                                            userAlbumId:
+                                                archiveToDelete
+                                                    .user_album.id,
+                                        });
+
+                                        setArchiveReviews(
+                                            (
+                                                currentReviews,
+                                            ) =>
+                                                currentReviews.filter(
+                                                    (review) =>
+                                                        review.id !==
+                                                        archiveToDelete.id,
+                                                ),
+                                        );
+
+                                        setArchiveToDelete(
+                                            null,
+                                        );
+
+                                        setMessage(
+                                            "Recuerdo eliminado del Archivo.",
+                                        );
+                                    } catch (error) {
+                                        console.error(
+                                            error,
+                                        );
+
+                                        setMessage(
+                                            "No hemos podido eliminar el recuerdo.",
+                                        );
+                                    } finally {
+                                        setDeletingArchive(
+                                            false,
+                                        );
+                                    }
+                                }}
+                            >
+                                {deletingArchive
+                                    ? "Eliminando..."
+                                    : "Sí, eliminar"}
+                            </button>
+                        </div>
+                    </article>
+                </div>
+            )}
+
             <AlbumDetailModal
                 detail={selectedAlbumDetail}
                 loading={detailLoading}
@@ -845,6 +1105,36 @@ function Library() {
                             error,
                         );
                     }
+                }}
+            />
+
+            <ArchiveAlbumModal
+                isOpen={archiveModalOpen}
+                userId={user?.id}
+                onClose={() =>
+                    setArchiveModalOpen(false)
+                }
+                onSaved={(savedArchive) => {
+                    setArchiveReviews(
+                        (currentReviews) => [
+                            savedArchive,
+                            ...currentReviews.filter(
+                                (review) =>
+                                    review.id !==
+                                    savedArchive.id,
+                            ),
+                        ],
+                    );
+
+                    setMessage(
+                        `${savedArchive.album.title} se ha guardado en tu Archivo.`,
+                    );
+
+                    window.dispatchEvent(
+                        new CustomEvent(
+                            "audite:archive-changed",
+                        ),
+                    );
                 }}
             />
         </section>

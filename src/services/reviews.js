@@ -105,15 +105,19 @@ export async function getCompletedAlbums(userId) {
     const { data, error } = await supabase
         .from("album_reviews")
         .select(`
-      *,
-      album:albums (*),
-      user_album:user_albums (*),
-      favorite_tracks (
-        *,
-        track:album_tracks (*)
-      )
-    `)
+            *,
+            album:albums (*),
+            user_album:user_albums!inner (*),
+            favorite_tracks (
+                *,
+                track:album_tracks (*)
+            )
+        `)
         .eq("user_id", userId)
+        .eq(
+            "user_album.pre_audite",
+            false,
+        )
         .order("completed_at", {
             referencedTable: "user_album",
             ascending: false,
@@ -134,17 +138,26 @@ export async function getFavoriteTracks(userId) {
     const { data, error } = await supabase
         .from("favorite_tracks")
         .select(`
-      *,
-      track:album_tracks (*),
-      album:albums (*),
-      review:album_reviews (
-        id,
-        rating,
-        reaction,
-        created_at
-      )
-    `)
+            *,
+            track:album_tracks (*),
+            album:albums (*),
+            review:album_reviews!inner (
+                id,
+                rating,
+                reaction,
+                created_at,
+
+                user_album:user_albums!inner (
+                    id,
+                    pre_audite
+                )
+            )
+        `)
         .eq("user_id", userId)
+        .eq(
+            "review.user_album.pre_audite",
+            false,
+        )
         .order("created_at", { ascending: false });
 
     if (error) {
@@ -304,12 +317,17 @@ export async function getRankedAlbums(userId) {
                 track_count,
                 duration_ms
             ),
-            user_album:user_albums (
+            user_album:user_albums!inner (
                 id,
-                completed_at
+                completed_at,
+                pre_audite
             )
         `)
         .eq("user_id", userId)
+        .eq(
+            "user_album.pre_audite",
+            false,
+        )
         .neq("reaction", "abandoned")
         .not("rating", "is", null)
         .order("rating", {
