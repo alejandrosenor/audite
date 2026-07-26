@@ -322,12 +322,14 @@ export async function getRankedAlbums(userId) {
                 duration_ms
             ),
 
-            user_album:user_albums (
+            user_album:user_albums!inner (
                 id,
-                completed_at
+                completed_at,
+                pre_audite
             )
         `)
         .eq("user_id", userId)
+        .eq("user_album.pre_audite", false)
         .neq("reaction", "abandoned")
         .not("rating", "is", null)
         .order("current_position", {
