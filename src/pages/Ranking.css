@@ -493,3 +493,217 @@
         font-size: 19px;
     }
 }
+
+/* =========================================================
+   MOVIMIENTOS DEL RANKING
+   ========================================================= */
+
+.ranking-movements-section {
+    margin-top: 32px;
+    padding: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    background:
+        linear-gradient(145deg,
+            rgba(255, 255, 255, 0.07),
+            rgba(255, 255, 255, 0.025));
+}
+
+.ranking-movements-section>header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.ranking-movements-section>header p {
+    margin: 0 0 5px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    opacity: 0.55;
+}
+
+.ranking-movements-section>header h2 {
+    margin: 0;
+    font-size: clamp(1.45rem, 4vw, 2rem);
+}
+
+.ranking-movements-section>header>span {
+    display: grid;
+    width: 46px;
+    height: 46px;
+    place-items: center;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    font-size: 1.35rem;
+}
+
+.ranking-movements-list {
+    display: grid;
+    gap: 10px;
+}
+
+.ranking-movement-card {
+    display: grid;
+    grid-template-columns: 54px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 14px;
+    padding: 12px;
+    border-radius: 17px;
+    background: rgba(0, 0, 0, 0.17);
+}
+
+.ranking-movement-card__cover {
+    display: grid;
+    width: 54px;
+    height: 54px;
+    place-items: center;
+    overflow: hidden;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.07);
+}
+
+.ranking-movement-card__cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.ranking-movement-card__content {
+    min-width: 0;
+}
+
+.ranking-movement-card__content>span {
+    display: block;
+    margin-bottom: 3px;
+    font-size: 0.69rem;
+    font-weight: 750;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    opacity: 0.55;
+}
+
+.ranking-movement-card__content h3 {
+    overflow: hidden;
+    margin: 0;
+    font-size: 0.98rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ranking-movement-card__content p {
+    overflow: hidden;
+    margin: 3px 0 0;
+    font-size: 0.82rem;
+    opacity: 0.62;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ranking-movement-card__result {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+}
+
+.ranking-movement-card__result>small {
+    font-size: 0.67rem;
+    opacity: 0.45;
+}
+
+
+/* =========================================================
+   BADGE DE SUBIDA O BAJADA
+   ========================================================= */
+
+.ranking-movement {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    width: fit-content;
+    padding: 6px 9px;
+    border-radius: 999px;
+    font-size: 0.76rem;
+    line-height: 1;
+}
+
+.ranking-movement b {
+    font-size: 1rem;
+}
+
+.ranking-movement strong {
+    font-size: inherit;
+}
+
+.ranking-movement small {
+    font-size: 0.67rem;
+    opacity: 0.72;
+}
+
+.ranking-movement--up {
+    color: #77e6a6;
+    background: rgba(52, 211, 123, 0.13);
+}
+
+.ranking-movement--down {
+    color: #ff8b8b;
+    background: rgba(255, 91, 91, 0.13);
+}
+
+.ranking-movement--compact {
+    padding: 5px 8px;
+    font-size: 0.68rem;
+}
+
+.ranking-row__score {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+
+/* =========================================================
+   MÓVIL
+   ========================================================= */
+
+@media (max-width: 620px) {
+    .ranking-movements-section {
+        margin-top: 24px;
+        padding: 18px 14px;
+        border-radius: 20px;
+    }
+
+    .ranking-movement-card {
+        grid-template-columns: 46px minmax(0, 1fr) auto;
+        gap: 10px;
+        padding: 10px;
+    }
+
+    .ranking-movement-card__cover {
+        width: 46px;
+        height: 46px;
+        border-radius: 10px;
+    }
+
+    .ranking-movement-card__result .ranking-movement small {
+        display: none;
+    }
+
+    .ranking-movement-card__result>small {
+        font-size: 0.61rem;
+    }
+
+    .ranking-row__score {
+        flex-direction: column-reverse;
+        align-items: flex-end;
+        gap: 4px;
+    }
+
+    .ranking-row__score .ranking-movement b {
+        display: none;
+    }
+}

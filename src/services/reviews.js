@@ -306,6 +306,10 @@ export async function getRankedAlbums(userId) {
             review_text,
             would_listen_again,
             created_at,
+            current_position,
+            previous_position,
+            position_updated_at,
+
             album:albums (
                 id,
                 title,
@@ -317,24 +321,20 @@ export async function getRankedAlbums(userId) {
                 track_count,
                 duration_ms
             ),
-            user_album:user_albums!inner (
+
+            user_album:user_albums (
                 id,
-                completed_at,
-                pre_audite
+                completed_at
             )
         `)
         .eq("user_id", userId)
-        .eq(
-            "user_album.pre_audite",
-            false,
-        )
         .neq("reaction", "abandoned")
         .not("rating", "is", null)
+        .order("current_position", {
+            ascending: true,
+        })
         .order("rating", {
             ascending: false,
-        })
-        .order("created_at", {
-            ascending: true,
         });
 
     if (error) {
@@ -344,16 +344,29 @@ export async function getRankedAlbums(userId) {
     const reviews = (data ?? []).map(
         (review) => ({
             ...review,
-            rating: Number(review.rating),
+
+            rating:
+                Number(review.rating),
+
+            position:
+                Number(review.current_position),
         }),
     );
 
+    /*
+     * Conservamos tu criterio de desempate visual:
+     * 1. Nota.
+     * 2. Fecha de finalización.
+     * 3. Título.
+     *
+     * Los empatados siguen compartiendo position.
+     */
     reviews.sort((first, second) => {
-        const ratingDifference =
-            second.rating - first.rating;
+        const positionDifference =
+            first.position - second.position;
 
-        if (ratingDifference !== 0) {
-            return ratingDifference;
+        if (positionDifference !== 0) {
+            return positionDifference;
         }
 
         const firstDate =
@@ -385,23 +398,7 @@ export async function getRankedAlbums(userId) {
         );
     });
 
-    let previousRating = null;
-    let densePosition = 0;
-
-    return reviews.map((review) => {
-        if (
-            previousRating === null ||
-            review.rating !== previousRating
-        ) {
-            densePosition += 1;
-            previousRating = review.rating;
-        }
-
-        return {
-            ...review,
-            position: densePosition,
-        };
-    });
+    return reviews;
 }
 
 export async function getLibraryAlbumDetail({

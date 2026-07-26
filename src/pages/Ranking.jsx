@@ -36,6 +36,77 @@ function formatRating(rating) {
         .replace(".", ",");
 }
 
+function getMovement(review) {
+    const previousPosition =
+        Number(review.previous_position);
+
+    const currentPosition =
+        Number(review.position);
+
+    if (
+        !Number.isInteger(previousPosition) ||
+        !Number.isInteger(currentPosition)
+    ) {
+        return 0;
+    }
+
+    /*
+     * Anterior 8, actual 3:
+     * 8 - 3 = +5 → ha subido cinco puestos.
+     */
+    return previousPosition - currentPosition;
+}
+
+function RankingMovement({
+    review,
+    compact = false,
+}) {
+    const movement = getMovement(review);
+
+    if (movement === 0) {
+        return null;
+    }
+
+    const movedUp = movement > 0;
+    const amount = Math.abs(movement);
+
+    return (
+        <span
+            className={[
+                "ranking-movement",
+                movedUp
+                    ? "ranking-movement--up"
+                    : "ranking-movement--down",
+                compact
+                    ? "ranking-movement--compact"
+                    : "",
+            ]
+                .filter(Boolean)
+                .join(" ")}
+            title={
+                movedUp
+                    ? `Ha subido ${amount} puestos`
+                    : `Ha bajado ${amount} puestos`
+            }
+        >
+            <b>{movedUp ? "↑" : "↓"}</b>
+
+            <strong>
+                {movedUp ? "+" : "−"}
+                {amount}
+            </strong>
+
+            {!compact && (
+                <small>
+                    {amount === 1
+                        ? "puesto"
+                        : "puestos"}
+                </small>
+            )}
+        </span>
+    );
+}
+
 function Ranking() {
     const { user } = useAuth();
 
@@ -144,6 +215,34 @@ function Ranking() {
             averageRating:
                 total / rankedAlbums.length,
         };
+    }, [rankedAlbums]);
+
+    const recentMovements = useMemo(() => {
+        return rankedAlbums
+            .filter(
+                (review) =>
+                    getMovement(review) !== 0 &&
+                    review.position_updated_at,
+            )
+            .sort((first, second) => {
+                const movementDifference =
+                    Math.abs(getMovement(second)) -
+                    Math.abs(getMovement(first));
+
+                if (movementDifference !== 0) {
+                    return movementDifference;
+                }
+
+                return (
+                    new Date(
+                        second.position_updated_at,
+                    ).getTime() -
+                    new Date(
+                        first.position_updated_at,
+                    ).getTime()
+                );
+            })
+            .slice(0, 6);
     }, [rankedAlbums]);
 
     if (loading) {
@@ -291,6 +390,11 @@ function Ranking() {
                                         <h2>{album?.title}</h2>
                                         <p>{album?.artist_name}</p>
 
+                                        <RankingMovement
+                                            review={review}
+                                            compact
+                                        />
+
                                         {album?.spotify_url && (
                                             <a
                                                 href={album.spotify_url}
@@ -305,6 +409,71 @@ function Ranking() {
                             );
                         })}
                     </section>
+
+                    {recentMovements.length > 0 && (
+                        <section className="ranking-movements-section">
+                            <header>
+                                <div>
+                                    <p>ÚLTIMO MOVIMIENTO</p>
+                                    <h2>El ranking se mueve</h2>
+                                </div>
+
+                                <span>↕</span>
+                            </header>
+
+                            <div className="ranking-movements-list">
+                                {recentMovements.map((review) => {
+                                    const album = review.album;
+                                    const movement =
+                                        getMovement(review);
+
+                                    return (
+                                        <article
+                                            className="ranking-movement-card"
+                                            key={review.id}
+                                        >
+                                            <div className="ranking-movement-card__cover">
+                                                {album?.cover_url ? (
+                                                    <img
+                                                        src={album.cover_url}
+                                                        alt=""
+                                                    />
+                                                ) : (
+                                                    <span>💿</span>
+                                                )}
+                                            </div>
+
+                                            <div className="ranking-movement-card__content">
+                                                <span>
+                                                    Ahora en el puesto
+                                                    {" "}
+                                                    #{review.position}
+                                                </span>
+
+                                                <h3>{album?.title}</h3>
+
+                                                <p>
+                                                    {album?.artist_name}
+                                                </p>
+                                            </div>
+
+                                            <div className="ranking-movement-card__result">
+                                                <RankingMovement
+                                                    review={review}
+                                                />
+
+                                                <small>
+                                                    #{review.previous_position}
+                                                    {" → "}
+                                                    #{review.position}
+                                                </small>
+                                            </div>
+                                        </article>
+                                    );
+                                })}
+                            </div>
+                        </section>
+                    )}
 
                     {rankedAlbums.length > 3 && (
                         <section className="ranking-list-section">
@@ -368,9 +537,16 @@ function Ranking() {
                                                     <p>{album?.artist_name}</p>
                                                 </div>
 
-                                                <strong className="ranking-row__rating">
-                                                    {formatRating(review.rating)}
-                                                </strong>
+                                                <div className="ranking-row__score">
+                                                    <RankingMovement
+                                                        review={review}
+                                                        compact
+                                                    />
+
+                                                    <strong className="ranking-row__rating">
+                                                        {formatRating(review.rating)}
+                                                    </strong>
+                                                </div>
 
                                                 {album?.spotify_url && (
                                                     <a
