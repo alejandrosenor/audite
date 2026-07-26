@@ -56,7 +56,8 @@ export async function getHomeData(userId) {
                 head: true,
             })
             .eq("user_id", userId)
-            .eq("status", "completed"),
+            .eq("status", "completed")
+            .eq("pre_audite", false),
 
         supabase
             .from("album_reviews")

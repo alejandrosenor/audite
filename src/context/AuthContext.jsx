@@ -1,5 +1,6 @@
 import {
     createContext,
+    useCallback,
     useContext,
     useEffect,
     useMemo,
@@ -15,37 +16,58 @@ export function AuthProvider({ children }) {
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    async function loadProfile(userId) {
-        if (!userId) {
-            setProfile(null);
-            return null;
-        }
+    const loadProfile = useCallback(
+        async (userId) => {
+            if (!userId) {
+                setProfile(null);
+                return null;
+            }
 
-        const { error: streakError } =
-            await supabase.rpc("refresh_my_streak");
+            const { error: streakError } =
+                await supabase.rpc(
+                    "refresh_my_streak",
+                );
 
-        if (streakError) {
-            console.error(
-                "Error actualizando la racha:",
-                streakError.message,
-            );
-        }
+            if (streakError) {
+                console.error(
+                    "Error actualizando la racha:",
+                    streakError.message,
+                );
+            }
 
-        const { data, error } = await supabase
-            .from("profiles")
-            .select("*")
-            .eq("id", userId)
-            .single();
+            const { data, error } =
+                await supabase
+                    .from("profiles")
+                    .select("*")
+                    .eq("id", userId)
+                    .single();
 
-        if (error) {
-            console.error("Error cargando el perfil:", error.message);
-            setProfile(null);
-            return null;
-        }
+            if (error) {
+                console.error(
+                    "Error cargando el perfil:",
+                    error.message,
+                );
 
-        setProfile(data);
-        return data;
-    }
+                setProfile(null);
+                return null;
+            }
+
+            setProfile(data);
+            return data;
+        },
+        [],
+    );
+
+    const refreshProfile = useCallback(
+        async () => {
+            if (!user?.id) {
+                return null;
+            }
+
+            return loadProfile(user.id);
+        },
+        [user?.id, loadProfile],
+    );
 
     useEffect(() => {
         let mounted = true;
@@ -151,11 +173,6 @@ export function AuthProvider({ children }) {
         return { error };
     }
 
-    async function refreshProfile() {
-        if (!user) return null;
-        return loadProfile(user.id);
-    }
-
     const value = useMemo(
         () => ({
             session,
@@ -167,7 +184,13 @@ export function AuthProvider({ children }) {
             signOut,
             refreshProfile,
         }),
-        [session, user, profile, loading],
+        [
+            session,
+            user,
+            profile,
+            loading,
+            refreshProfile,
+        ],
     );
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
