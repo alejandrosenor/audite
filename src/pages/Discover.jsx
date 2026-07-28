@@ -19,6 +19,8 @@ import {
     updateDailyChallenges,
 } from "../services/dailyChallenges";
 import WorldMusicDiscovery from "../components/WorldMusicDiscovery";
+import TimeMachineModal
+    from "../components/TimeMachineModal";
 import "./Discover.css";
 
 function formatDuration(durationMs) {
@@ -57,6 +59,14 @@ function Discover() {
     const [
         worldMusicOpen,
         setWorldMusicOpen,
+    ] = useState(false);
+    const [
+        timeMachineOpen,
+        setTimeMachineOpen,
+    ] = useState(false);
+    const [
+        generatingTimeMachine,
+        setGeneratingTimeMachine,
     ] = useState(false);
 
     async function loadTracks(albumId) {
@@ -334,6 +344,109 @@ function Discover() {
         }
     }
 
+    async function handleGenerateTimeAlbum({
+        year,
+        decade,
+    }) {
+        if (
+            !user?.id ||
+            generating ||
+            generatingTimeMachine
+        ) {
+            return;
+        }
+
+        setGeneratingTimeMachine(true);
+        setMessage("");
+        setTracks([]);
+
+        try {
+            const generatedAlbum =
+                await discoverAlbum({
+                    year,
+                    decade,
+                });
+
+            setUserAlbum(
+                generatedAlbum,
+            );
+
+            if (
+                generatedAlbum
+                    ?.album
+                    ?.id
+            ) {
+                await loadTracks(
+                    generatedAlbum.album.id,
+                );
+            }
+
+            try {
+                await updateDailyChallenges({
+                    eventType:
+                        "discovery_generated",
+
+                    eventId:
+                        `time-machine:${generatedAlbum.id}`,
+
+                    metadata: {
+                        year:
+                            year ??
+                            generatedAlbum
+                                .album
+                                ?.release_year ??
+                            null,
+
+                        decade:
+                            decade ?? null,
+
+                        spotifyId:
+                            generatedAlbum
+                                .album
+                                ?.spotify_id ??
+                            null,
+
+                        genres:
+                            generatedAlbum
+                                .album
+                                ?.genres ??
+                            [],
+
+                        source:
+                            "time_machine",
+                    },
+                });
+            } catch (challengeError) {
+                console.error(
+                    "No se pudo actualizar el reto de Máquina del tiempo:",
+                    challengeError,
+                );
+            }
+
+            setTimeMachineOpen(false);
+
+            setMessage(
+                year
+                    ? `Audite te ha llevado hasta ${year}.`
+                    : `Audite te ha llevado a los años ${decade}.`,
+            );
+
+            window.scrollTo({
+                top: 0,
+                behavior: "smooth",
+            });
+        } catch (error) {
+            console.error(error);
+
+            setMessage(
+                error.message ||
+                "No hemos podido completar el viaje temporal.",
+            );
+        } finally {
+            setGeneratingTimeMachine(false);
+        }
+    }
+
     async function handleDecision(status) {
         if (!userAlbum || !user?.id || updating) {
             return;
@@ -494,6 +607,37 @@ function Discover() {
                     >
                         <span>⌘</span>
                         Elegir género
+                    </button>
+
+                    <button
+                        type="button"
+                        className="discover-time-card"
+                        onClick={() =>
+                            setTimeMachineOpen(true)
+                        }
+                        disabled={
+                            generating ||
+                            generatingTimeMachine
+                        }
+                    >
+                        <span className="discover-time-card__icon">
+                            ⏳
+                        </span>
+
+                        <div>
+                            <p>VIAJE TEMPORAL</p>
+
+                            <h3>
+                                Máquina del tiempo
+                            </h3>
+
+                            <small>
+                                Descubre un disco de una
+                                década o un año concreto.
+                            </small>
+                        </div>
+
+                        <b>→</b>
                     </button>
 
                     <button
@@ -688,6 +832,25 @@ function Discover() {
                 }
             />
 
+            <TimeMachineModal
+                open={timeMachineOpen}
+                generating={
+                    generatingTimeMachine
+                }
+                onClose={() => {
+                    if (
+                        !generatingTimeMachine
+                    ) {
+                        setTimeMachineOpen(
+                            false,
+                        );
+                    }
+                }}
+                onGenerate={
+                    handleGenerateTimeAlbum
+                }
+            />
+
             <button
                 type="button"
                 className="discover-world-card"
@@ -719,17 +882,36 @@ function Discover() {
                         onClose={() =>
                             setWorldMusicOpen(false)
                         }
-                        onGenerated={(result) => {
+                        onGenerated={async (result) => {
                             setWorldMusicOpen(false);
 
+                            const generatedUserAlbum =
+                                result.userAlbum;
+
                             setUserAlbum(
-                                result.userAlbum,
+                                generatedUserAlbum,
                             );
 
                             setMessage(
                                 result.context
                                     ?.message ?? "",
                             );
+
+                            if (
+                                generatedUserAlbum
+                                    ?.album
+                                    ?.id
+                            ) {
+                                await loadTracks(
+                                    generatedUserAlbum
+                                        .album.id,
+                                );
+                            }
+
+                            window.scrollTo({
+                                top: 0,
+                                behavior: "smooth",
+                            });
                         }}
                     />
                 </div>

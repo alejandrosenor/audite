@@ -713,3 +713,89 @@
         font-size: 13px;
     }
 }
+
+.discover-time-card {
+    position: relative;
+    display: grid;
+    width: 100%;
+    min-width: 0;
+    grid-template-columns:
+        62px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 14px;
+    overflow: hidden;
+    margin-top: 25px;
+    border: 1px solid rgba(244, 171, 68, 0.25);
+    border-radius: var(--radius-large);
+    background:
+        radial-gradient(circle at 0 50%,
+            rgba(244, 171, 68, 0.18),
+            transparent 220px),
+        radial-gradient(circle at 100% 50%,
+            rgba(139, 92, 246, 0.13),
+            transparent 250px),
+        var(--color-surface);
+    padding: 15px;
+    color: var(--color-text-primary);
+    cursor: pointer;
+    text-align: left;
+    transition:
+        transform 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.discover-time-card:hover {
+    border-color: rgba(244, 171, 68, 0.55);
+    transform: translateY(-2px);
+}
+
+.discover-time-card__icon {
+    display: grid;
+    width: 62px;
+    height: 62px;
+    place-items: center;
+    border-radius: 19px;
+    background:
+        linear-gradient(145deg,
+            #f4ab44,
+            #8b5cf6);
+    box-shadow:
+        0 15px 35px rgba(244, 171, 68, 0.2);
+    font-size: 28px;
+}
+
+.discover-time-card>div {
+    min-width: 0;
+}
+
+.discover-time-card p {
+    margin: 0 0 5px;
+    color: #f4ab44;
+    font-size: 0.66rem;
+    font-weight: 850;
+    letter-spacing: 0.14em;
+}
+
+.discover-time-card h3 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 21px;
+}
+
+.discover-time-card small {
+    display: block;
+    margin-top: 5px;
+    color: var(--color-text-secondary);
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.discover-time-card b {
+    color: #f4ab44;
+    font-size: 25px;
+}
+
+.discover-time-card:disabled {
+    cursor: wait;
+    opacity: 0.55;
+}

@@ -143,13 +143,19 @@ export async function getCurrentGeneratedAlbum(userId) {
     return data;
 }
 
-export async function discoverAlbum({ genre = "" } = {}) {
+export async function discoverAlbum({
+    genre = "",
+    year = null,
+    decade = null,
+} = {}) {
     const { data, error } =
         await supabase.functions.invoke(
             "discover-album",
             {
                 body: {
                     genre,
+                    year,
+                    decade,
                 },
             },
         );

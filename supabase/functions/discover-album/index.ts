@@ -342,17 +342,79 @@ Deno.serve(async (request) => {
       );
     }
 
-    const requestBody = await request.json().catch(() => ({}));
-    const genre =
-      typeof requestBody.genre === "string"
-        ? requestBody.genre.trim()
-        : "";
+    const requestBody =
+    await request.json().catch(
+        () => ({}),
+    );
 
-    const randomYear = 1960 + Math.floor(Math.random() * 66);
+    const genre =
+        typeof requestBody.genre === "string"
+            ? requestBody.genre.trim()
+            : "";
+
+    const requestedYear =
+        Number(requestBody.year);
+
+    const requestedDecade =
+        Number(requestBody.decade);
+
+    const currentYear =
+        new Date().getFullYear();
+
+    const validYear =
+        Number.isInteger(requestedYear) &&
+        requestedYear >= 1950 &&
+        requestedYear <= currentYear
+            ? requestedYear
+            : null;
+
+    const validDecade =
+        Number.isInteger(
+            requestedDecade,
+        ) &&
+        requestedDecade >= 1950 &&
+        requestedDecade <= 2020 &&
+        requestedDecade % 10 === 0
+            ? requestedDecade
+            : null;
+
+    let selectedYear: number;
+
+    if (validYear) {
+        selectedYear = validYear;
+    } else if (validDecade) {
+        const decadeEnd =
+            Math.min(
+                validDecade + 9,
+                currentYear,
+            );
+
+        selectedYear =
+            validDecade +
+            Math.floor(
+                Math.random() *
+                (
+                    decadeEnd -
+                    validDecade +
+                    1
+                ),
+            );
+    } else {
+        selectedYear =
+            1960 +
+            Math.floor(
+                Math.random() *
+                (
+                    currentYear -
+                    1960 +
+                    1
+                ),
+            );
+    }
 
     const queryParts = [
       'primarytype:"Album"',
-      `firstreleasedate:[${randomYear}-01-01 TO ${randomYear}-12-31]`,
+      `firstreleasedate:[${selectedYear}-01-01 TO ${selectedYear}-12-31]`,
       "-secondarytype:Compilation",
       "-secondarytype:Live",
       "-secondarytype:Remix",
@@ -534,6 +596,12 @@ Deno.serve(async (request) => {
             cover_url: coverUrl,
             genres,
             album_type: "album",
+            discovery_source:
+              validYear || validDecade
+                  ? "time_machine"
+                  : cleanGenre
+                      ? "genre_discovery"
+                      : "discovery",
           })
           .select()
           .single();
@@ -702,6 +770,23 @@ Deno.serve(async (request) => {
     return jsonResponse(
       {
         userAlbum: generatedUserAlbum,
+
+        context: {
+          genre: cleanGenre || null,
+
+          selectedYear,
+
+          requestedYear: validYear,
+
+          requestedDecade: validDecade,
+
+          source:
+            validYear || validDecade
+              ? "time_machine"
+              : cleanGenre
+                  ? "genre_discovery"
+                  : "discovery",
+        },
       },
       200,
       corsHeaders,
