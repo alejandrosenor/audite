@@ -347,6 +347,7 @@ function Discover() {
     async function handleGenerateTimeAlbum({
         year,
         decade,
+        genre,
     }) {
         if (
             !user?.id ||
@@ -365,6 +366,7 @@ function Discover() {
                 await discoverAlbum({
                     year,
                     decade,
+                    genre,
                 });
 
             setUserAlbum(
@@ -400,6 +402,9 @@ function Discover() {
                         decade:
                             decade ?? null,
 
+                        selectedGenre:
+                            genre || null,
+
                         spotifyId:
                             generatedAlbum
                                 .album
@@ -425,10 +430,18 @@ function Discover() {
 
             setTimeMachineOpen(false);
 
-            setMessage(
+            const destination =
                 year
-                    ? `Audite te ha llevado hasta ${year}.`
-                    : `Audite te ha llevado a los años ${decade}.`,
+                    ? `${year}`
+                    : `los años ${decade}`;
+
+            const genreLabel =
+                genre
+                    ? ` de ${genre}`
+                    : "";
+
+            setMessage(
+                `Audite te ha llevado a ${destination}${genreLabel}.`,
             );
 
             window.scrollTo({

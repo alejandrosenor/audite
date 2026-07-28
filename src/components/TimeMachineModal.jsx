@@ -15,6 +15,26 @@ const DECADES = [
     2020,
 ];
 
+const GENRES = [
+    { value: "", label: "Cualquier género" },
+    { value: "rock", label: "Rock" },
+    { value: "pop", label: "Pop" },
+    { value: "alternative rock", label: "Rock alternativo" },
+    { value: "indie rock", label: "Indie rock" },
+    { value: "hard rock", label: "Hard rock" },
+    { value: "metal", label: "Metal" },
+    { value: "punk", label: "Punk" },
+    { value: "folk", label: "Folk" },
+    { value: "country", label: "Country" },
+    { value: "soul", label: "Soul" },
+    { value: "funk", label: "Funk" },
+    { value: "jazz", label: "Jazz" },
+    { value: "blues", label: "Blues" },
+    { value: "reggae", label: "Reggae" },
+    { value: "electronic", label: "Electrónica" },
+    { value: "disco", label: "Disco" },
+];
+
 function TimeMachineModal({
     open,
     generating,
@@ -32,6 +52,8 @@ function TimeMachineModal({
 
     const [year, setYear] =
         useState(1994);
+
+    const [genre, setGenre] = useState("");
 
     const [message, setMessage] =
         useState("");
@@ -112,6 +134,7 @@ function TimeMachineModal({
             onGenerate({
                 year: numericYear,
                 decade: null,
+                genre,
             });
 
             return;
@@ -120,6 +143,7 @@ function TimeMachineModal({
         onGenerate({
             year: null,
             decade,
+            genre,
         });
     }
 
@@ -276,6 +300,35 @@ function TimeMachineModal({
                             />
                         </label>
                     )}
+
+                    <label className="time-machine-genre">
+                        <span>Género musical</span>
+
+                        <select
+                            value={genre}
+                            onChange={(event) =>
+                                setGenre(event.target.value)
+                            }
+                            disabled={generating}
+                        >
+                            {GENRES.map((genreOption) => (
+                                <option
+                                    key={
+                                        genreOption.value ||
+                                        "all"
+                                    }
+                                    value={genreOption.value}
+                                >
+                                    {genreOption.label}
+                                </option>
+                            ))}
+                        </select>
+
+                        <small>
+                            Es opcional. Puedes viajar solo por época
+                            o combinar época y género.
+                        </small>
+                    </label>
 
                     {message && (
                         <p className="time-machine-message">
