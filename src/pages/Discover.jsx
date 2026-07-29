@@ -21,6 +21,8 @@ import {
 import WorldMusicDiscovery from "../components/WorldMusicDiscovery";
 import TimeMachineModal
     from "../components/TimeMachineModal";
+import MoodDiscoveryModal
+    from "../components/MoodDiscoveryModal";
 import "./Discover.css";
 
 function formatDuration(durationMs) {
@@ -68,6 +70,14 @@ function Discover() {
         generatingTimeMachine,
         setGeneratingTimeMachine,
     ] = useState(false);
+    const [
+        moodDiscoveryOpen,
+        setMoodDiscoveryOpen,
+    ] = useState(false);
+    const [
+        generatingMoodAlbum,
+        setGeneratingMoodAlbum,
+    ] = useState(false);
 
     async function loadTracks(albumId) {
         if (!albumId) {
@@ -81,6 +91,77 @@ function Discover() {
         } catch (error) {
             console.error("No se pudieron cargar las canciones:", error);
             setTracks([]);
+        }
+    }
+
+    async function handleGenerateMoodAlbum({
+        mood,
+    }) {
+        if (!mood || generatingMoodAlbum) {
+            return;
+        }
+
+        setGeneratingMoodAlbum(true);
+        setMessage("");
+
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth",
+        });
+
+        try {
+            const result =
+                await discoverAlbum({
+                    mood,
+                });
+
+            const generatedUserAlbum =
+                result?.userAlbum ?? result;
+
+            const context =
+                result?.context ?? null;
+
+            setMoodDiscoveryOpen(false);
+
+            setUserAlbum(
+                generatedUserAlbum,
+            );
+
+            if (
+                generatedUserAlbum
+                    ?.album
+                    ?.id
+            ) {
+                await loadTracks(
+                    generatedUserAlbum.album.id,
+                );
+            }
+
+            const moodName =
+                context?.moodLabel ??
+                "ese estado de ánimo";
+
+            const selectedStyle =
+                context?.selectedMoodTag
+                    ? ` Audite ha elegido ${context.selectedMoodTag}.`
+                    : "";
+
+            setMessage(
+                `Un disco para ${moodName}.${selectedStyle}`,
+            );
+        } catch (error) {
+            console.error(
+                "Error en descubrimiento por estado de ánimo:",
+                error,
+            );
+
+            setMessage(
+                error instanceof Error
+                    ? error.message
+                    : "No se ha podido encontrar un disco para ese momento.",
+            );
+        } finally {
+            setGeneratingMoodAlbum(false);
         }
     }
 
@@ -655,6 +736,33 @@ function Discover() {
 
                     <button
                         type="button"
+                        className="discover-mood-card"
+                        onClick={() => setMoodDiscoveryOpen(true)}
+                        disabled={
+                            generating ||
+                            generatingMoodAlbum
+                        }
+                    >
+                        <span className="discover-mood-card__icon">
+                            🎭
+                        </span>
+
+                        <div>
+                            <p>NUEVO MODO</p>
+
+                            <h3>Estado de ánimo</h3>
+
+                            <small>
+                                Encuentra un disco para el momento
+                                que estás viviendo.
+                            </small>
+                        </div>
+
+                        <b>→</b>
+                    </button>
+
+                    <button
+                        type="button"
                         className="discover-spanish-button"
                         onClick={() =>
                             setSpanishModalOpen(true)
@@ -680,6 +788,31 @@ function Discover() {
                         </span>
 
                         <i>→</i>
+                    </button>
+
+                    <button
+                        type="button"
+                        className="discover-world-card"
+                        onClick={() =>
+                            setWorldMusicOpen(true)
+                        }
+                    >
+                        <span>🌍</span>
+
+                        <div>
+                            <p>NUEVO VIAJE</p>
+
+                            <h3>
+                                Músicas del Mundo
+                            </h3>
+
+                            <small>
+                                Elige un país y descubre
+                                un disco nacido allí.
+                            </small>
+                        </div>
+
+                        <b>→</b>
                     </button>
                 </article>
             ) : (
@@ -864,30 +997,18 @@ function Discover() {
                 }
             />
 
-            <button
-                type="button"
-                className="discover-world-card"
-                onClick={() =>
-                    setWorldMusicOpen(true)
+            <MoodDiscoveryModal
+                open={moodDiscoveryOpen}
+                generating={generatingMoodAlbum}
+                onClose={() => {
+                    if (!generatingMoodAlbum) {
+                        setMoodDiscoveryOpen(false);
+                    }
+                }}
+                onGenerate={
+                    handleGenerateMoodAlbum
                 }
-            >
-                <span>🌍</span>
-
-                <div>
-                    <p>NUEVO VIAJE</p>
-
-                    <h3>
-                        Músicas del Mundo
-                    </h3>
-
-                    <small>
-                        Elige un país y descubre
-                        un disco nacido allí.
-                    </small>
-                </div>
-
-                <b>→</b>
-            </button>
+            />
 
             {worldMusicOpen && (
                 <div className="world-music-overlay">

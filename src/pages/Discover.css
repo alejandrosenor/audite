@@ -799,3 +799,105 @@
     cursor: wait;
     opacity: 0.55;
 }
+
+.discover-mood-card {
+    position: relative;
+    display: grid;
+    width: 100%;
+    min-width: 0;
+    grid-template-columns:
+        62px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 14px;
+    overflow: hidden;
+    margin-top: 25px;
+
+    border: 1px solid rgba(255, 92, 138, 0.25);
+    border-radius: var(--radius-large);
+
+    background:
+        radial-gradient(circle at 0 50%,
+            rgba(255, 92, 138, 0.18),
+            transparent 220px),
+        radial-gradient(circle at 100% 50%,
+            rgba(168, 85, 247, 0.12),
+            transparent 250px),
+        var(--color-surface);
+
+    padding: 15px;
+
+    color: var(--color-text-primary);
+    cursor: pointer;
+    text-align: left;
+
+    transition:
+        transform .2s ease,
+        border-color .2s ease;
+}
+
+.discover-mood-card:hover {
+    border-color: rgba(255, 92, 138, .55);
+    transform: translateY(-2px);
+}
+
+.discover-mood-card__icon {
+    display: grid;
+    width: 62px;
+    height: 62px;
+    place-items: center;
+
+    border-radius: 19px;
+
+    background:
+        linear-gradient(145deg,
+            #ff5c8a,
+            #a855f7);
+
+    box-shadow:
+        0 15px 35px rgba(255, 92, 138, .22);
+
+    font-size: 29px;
+}
+
+.discover-mood-card>div {
+    min-width: 0;
+}
+
+.discover-mood-card p {
+    margin: 0 0 5px;
+
+    color: #ff79a8;
+
+    font-size: .66rem;
+    font-weight: 850;
+    letter-spacing: .14em;
+}
+
+.discover-mood-card h3 {
+    margin: 0;
+
+    font-family: var(--font-display);
+
+    font-size: 21px;
+}
+
+.discover-mood-card small {
+    display: block;
+
+    margin-top: 5px;
+
+    color: var(--color-text-secondary);
+
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.discover-mood-card b {
+    color: #ff79a8;
+    font-size: 25px;
+}
+
+.discover-mood-card:disabled {
+    cursor: wait;
+    opacity: .55;
+}

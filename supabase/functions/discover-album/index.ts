@@ -42,6 +42,165 @@ function getRandomOffset(maximum: number) {
   return Math.floor(Math.random() * Math.max(maximum, 1));
 }
 
+type MoodDefinition = {
+  label: string;
+  tags: string[];
+};
+
+const MOOD_DEFINITIONS: Record<string, MoodDefinition> = {
+  energetic: {
+    label: "Energía",
+    tags: [
+      "hard rock",
+      "garage rock",
+      "punk rock",
+      "dance rock",
+      "alternative rock",
+    ],
+  },
+
+  relaxed: {
+    label: "Relajarme",
+    tags: [
+      "dream pop",
+      "ambient",
+      "chillout",
+      "soft rock",
+      "acoustic",
+    ],
+  },
+
+  melancholic: {
+    label: "Melancolía",
+    tags: [
+      "slowcore",
+      "sadcore",
+      "indie folk",
+      "dream pop",
+      "singer-songwriter",
+    ],
+  },
+
+  romantic: {
+    label: "Romántico",
+    tags: [
+      "soul",
+      "soft rock",
+      "sophisti-pop",
+      "romantic pop",
+      "r&b",
+    ],
+  },
+
+  roadtrip: {
+    label: "Roadtrip",
+    tags: [
+      "heartland rock",
+      "americana",
+      "country rock",
+      "pop rock",
+      "folk rock",
+    ],
+  },
+
+  night: {
+    label: "Noche",
+    tags: [
+      "trip hop",
+      "darkwave",
+      "synthpop",
+      "downtempo",
+      "ambient pop",
+    ],
+  },
+
+  focus: {
+    label: "Concentrarme",
+    tags: [
+      "ambient",
+      "minimalism",
+      "post-rock",
+      "instrumental",
+      "neoclassical",
+    ],
+  },
+
+  happy: {
+    label: "Buen rollo",
+    tags: [
+      "power pop",
+      "funk",
+      "disco",
+      "sunshine pop",
+      "dance pop",
+    ],
+  },
+
+  heartbroken: {
+    label: "Corazón roto",
+    tags: [
+      "sadcore",
+      "soul",
+      "indie folk",
+      "slowcore",
+      "singer-songwriter",
+    ],
+  },
+
+  workout: {
+    label: "Entrenar",
+    tags: [
+      "hard rock",
+      "metal",
+      "electronic rock",
+      "dance",
+      "rap rock",
+    ],
+  },
+
+  sunset: {
+    label: "Atardecer",
+    tags: [
+      "yacht rock",
+      "soft rock",
+      "dream pop",
+      "psychedelic soul",
+      "indie pop",
+    ],
+  },
+
+  adventurous: {
+    label: "Sorprenderme",
+    tags: [
+      "psychedelic rock",
+      "world fusion",
+      "experimental rock",
+      "jazz fusion",
+      "progressive folk",
+    ],
+  },
+};
+
+function getRandomItem<T>(items: T[]): T | null {
+  if (!items.length) {
+    return null;
+  }
+
+  return items[
+    Math.floor(Math.random() * items.length)
+  ];
+}
+
+function shuffleItems<T>(items: T[]): T[] {
+  return [...items]
+    .map((item) => ({
+      item,
+      random: Math.random(),
+    }))
+    .sort((a, b) => a.random - b.random)
+    .map(({ item }) => item);
+}
+
 const SPOTIFY_API_URL = "https://api.spotify.com/v1";
 const SPOTIFY_TOKEN_URL = "https://accounts.spotify.com/api/token";
 
@@ -352,6 +511,24 @@ Deno.serve(async (request) => {
             ? requestBody.genre.trim()
             : "";
 
+    const requestedMood =
+      typeof requestBody.mood === "string"
+        ? requestBody.mood.trim().toLowerCase()
+        : "";
+
+    const moodDefinition =
+      requestedMood &&
+      MOOD_DEFINITIONS[requestedMood]
+        ? MOOD_DEFINITIONS[requestedMood]
+        : null;
+
+    const moodTagsToTry =
+      moodDefinition
+        ? shuffleItems(moodDefinition.tags)
+        : [];
+
+    let selectedMoodTag: string | null = null;
+
     const requestedYear =
         Number(requestBody.year);
 
@@ -378,106 +555,181 @@ Deno.serve(async (request) => {
             ? requestedDecade
             : null;
 
-    let selectedYear: number;
+    let selectedYear: number | null = null;
 
     if (validYear) {
-        selectedYear = validYear;
+      selectedYear = validYear;
     } else if (validDecade) {
-        const decadeEnd =
-            Math.min(
-                validDecade + 9,
-                currentYear,
-            );
+      const decadeEnd = Math.min(
+        validDecade + 9,
+        currentYear,
+      );
 
-        selectedYear =
+      selectedYear =
+        validDecade +
+        Math.floor(
+          Math.random() *
+          (
+            decadeEnd -
             validDecade +
-            Math.floor(
-                Math.random() *
-                (
-                    decadeEnd -
-                    validDecade +
-                    1
-                ),
-            );
-    } else {
-        selectedYear =
-            1960 +
-            Math.floor(
-                Math.random() *
-                (
-                    currentYear -
-                    1960 +
-                    1
-                ),
-            );
+            1
+          ),
+        );
     }
 
     const queryParts = [
       'primarytype:"Album"',
-      `firstreleasedate:[${selectedYear}-01-01 TO ${selectedYear}-12-31]`,
       "-secondarytype:Compilation",
       "-secondarytype:Live",
       "-secondarytype:Remix",
     ];
+
+    if (selectedYear) {
+      queryParts.push(
+        `firstreleasedate:[${selectedYear}-01-01 TO ${selectedYear}-12-31]`,
+      );
+    }
 
     const cleanGenre = genre
       .replaceAll('"', "")
       .replaceAll("\\", "")
       .trim();
 
-    if (cleanGenre) {
-      queryParts.push(`tag:"${cleanGenre}"`);
-    }
+    let effectiveGenre =
+      cleanGenre || "";
+
+    const discoverySource =
+      validYear || validDecade
+        ? "time_machine"
+        : moodDefinition
+            ? "mood_discovery"
+            : cleanGenre
+                ? "genre_discovery"
+                : "discovery";
 
     const limit = 25;
-    const offset = getRandomOffset(200);
 
-    const musicBrainzUrl = new URL(
-      `${MUSICBRAINZ_BASE_URL}/release-group`,
-    );
+    let candidates: Record<string, unknown>[] = [];
 
-    musicBrainzUrl.searchParams.set(
-      "query",
-      queryParts.join(" AND "),
-    );
-    musicBrainzUrl.searchParams.set("fmt", "json");
-    musicBrainzUrl.searchParams.set("limit", String(limit));
-    musicBrainzUrl.searchParams.set("offset", String(offset));
+    const filtersToTry =
+      moodDefinition
+        ? moodTagsToTry
+        : [cleanGenre || null];
 
-    const musicBrainzResponse = await fetch(
-      musicBrainzUrl.toString(),
-      {
-        headers: {
-          "User-Agent":
-            "Audite/0.1 (music-discovery-app; asenorsnz@gmail.com)",
-          Accept: "application/json",
-        },
-      },
-    );
+    for (const filterTag of filtersToTry) {
+      const currentQueryParts = [...queryParts];
 
-    if (!musicBrainzResponse.ok) {
-      throw new Error(
-        `MusicBrainz respondió con ${musicBrainzResponse.status}.`,
+      if (filterTag) {
+        currentQueryParts.push(
+          `tag:"${filterTag}"`,
+        );
+      }
+
+      /*
+      * Para etiquetas emocionales evitamos offsets enormes.
+      * Muchas tienen menos de 200 resultados.
+      */
+      const offset =
+        moodDefinition
+          ? getRandomOffset(30)
+          : getRandomOffset(200);
+
+      const musicBrainzUrl = new URL(
+        `${MUSICBRAINZ_BASE_URL}/release-group`,
       );
+
+      musicBrainzUrl.searchParams.set(
+        "query",
+        currentQueryParts.join(" AND "),
+      );
+
+      musicBrainzUrl.searchParams.set(
+        "fmt",
+        "json",
+      );
+
+      musicBrainzUrl.searchParams.set(
+        "limit",
+        String(limit),
+      );
+
+      musicBrainzUrl.searchParams.set(
+        "offset",
+        String(offset),
+      );
+
+      console.log(
+        "Buscando en MusicBrainz:",
+        {
+          mood: requestedMood || null,
+          tag: filterTag,
+          offset,
+          query:
+            currentQueryParts.join(" AND "),
+        },
+      );
+
+      const musicBrainzResponse =
+        await fetch(
+          musicBrainzUrl.toString(),
+          {
+            headers: {
+              "User-Agent":
+                "Audite/0.1 (music-discovery-app; asenorsnz@gmail.com)",
+              Accept: "application/json",
+            },
+          },
+        );
+
+      if (!musicBrainzResponse.ok) {
+        console.error(
+          "MusicBrainz error:",
+          musicBrainzResponse.status,
+          await musicBrainzResponse.text(),
+        );
+
+        continue;
+      }
+
+      const musicBrainzData =
+        await musicBrainzResponse.json();
+
+      const currentCandidates = (
+        musicBrainzData["release-groups"] ?? []
+      ).filter(
+        (item: Record<string, unknown>) =>
+          item.id &&
+          item.title &&
+          Array.isArray(
+            item["artist-credit"],
+          ) &&
+          item["artist-credit"].length > 0,
+      );
+
+      if (currentCandidates.length) {
+        candidates = currentCandidates;
+
+        selectedMoodTag =
+          moodDefinition
+            ? filterTag
+            : null;
+
+        effectiveGenre =
+          filterTag ?? "";
+
+        break;
+      }
     }
-
-    const musicBrainzData = await musicBrainzResponse.json();
-
-    const candidates = (
-      musicBrainzData["release-groups"] ?? []
-    ).filter(
-      (item: Record<string, unknown>) =>
-        item.id &&
-        item.title &&
-        Array.isArray(item["artist-credit"]) &&
-        item["artist-credit"].length > 0,
-    );
 
     if (!candidates.length) {
       return jsonResponse(
         {
           error:
-            "No hemos encontrado ningún disco con esos filtros. Prueba otra vez.",
+            moodDefinition
+              ? `No hemos encontrado ahora mismo un disco para ${moodDefinition.label}. Prueba de nuevo.`
+              : cleanGenre
+                  ? `No hemos encontrado discos de ${cleanGenre}. Prueba de nuevo o elige un género más amplio.`
+                  : "No hemos encontrado ningún disco. Prueba otra vez.",
         },
         404,
         corsHeaders,
@@ -500,7 +752,7 @@ Deno.serve(async (request) => {
     let selectedAlbum = null;
     let coverUrl = null;
 
-    for (const candidate of shuffledCandidates.slice(0, 8)) {
+    for (const candidate of shuffledCandidates.slice(0, 15)) {
       const musicBrainzId = String(candidate.id);
 
       const { data: existingAlbum } = await supabase
@@ -596,12 +848,7 @@ Deno.serve(async (request) => {
             cover_url: coverUrl,
             genres,
             album_type: "album",
-            discovery_source:
-              validYear || validDecade
-                  ? "time_machine"
-                  : cleanGenre
-                      ? "genre_discovery"
-                      : "discovery",
+            discovery_source: discoverySource,
           })
           .select()
           .single();
@@ -625,129 +872,117 @@ Deno.serve(async (request) => {
       );
     }
 
-    if (!candidates.length) {
-      return jsonResponse(
-        {
-          error: cleanGenre
-            ? `No hemos encontrado discos de ${cleanGenre}. Prueba de nuevo o elige un género más amplio.`
-            : "No hemos encontrado ningún disco. Prueba otra vez.",
-        },
-        404,
-        corsHeaders,
-      );
-    }
-
     try {
-  const spotifyToken = await getSpotifyAccessToken();
+      const spotifyToken = await getSpotifyAccessToken();
 
-  const spotifySearchResult = await findSpotifyAlbum(
-    spotifyToken,
-    selectedAlbum.title,
-    selectedAlbum.artist_name,
-  );
-
-  if (spotifySearchResult) {
-    const spotifyAlbum = await getSpotifyAlbum(
-      spotifyToken,
-      spotifySearchResult.id,
-    );
-
-    if (spotifyAlbum) {
-      const spotifyTracks = await getAllSpotifyTracks(
+      const spotifySearchResult = await findSpotifyAlbum(
         spotifyToken,
-        spotifyAlbum,
+        selectedAlbum.title,
+        selectedAlbum.artist_name,
       );
 
-      const spotifyImageUrl =
-        spotifyAlbum.images?.[0]?.url ?? null;
-
-      const spotifyUrl =
-        spotifyAlbum.external_urls?.spotify ?? null;
-
-      const spotifyArtistUrl =
-        spotifyAlbum.artists?.[0]?.external_urls?.spotify ?? null;
-
-      const durationMs = spotifyTracks.reduce(
-        (total: number, track: SpotifyTrack) =>
-          total + (track.duration_ms ?? 0),
-        0,
-      );
-
-      const { data: updatedAlbum, error: updateAlbumError } =
-        await supabase
-          .from("albums")
-          .update({
-            spotify_id: spotifyAlbum.id,
-            spotify_url: spotifyUrl,
-            spotify_image_url: spotifyImageUrl,
-            spotify_artist_url: spotifyArtistUrl,
-            spotify_release_date: spotifyAlbum.release_date,
-            spotify_popularity: spotifyAlbum.popularity ?? null,
-            total_tracks: spotifyAlbum.total_tracks,
-            track_count: spotifyAlbum.total_tracks,
-            duration_ms: durationMs,
-            cover_url:
-              spotifyImageUrl ??
-              selectedAlbum.cover_url,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", selectedAlbum.id)
-          .select()
-          .single();
-
-      if (updateAlbumError) {
-        console.error(
-          "No se pudo actualizar el álbum:",
-          updateAlbumError,
-        );
-      } else {
-        selectedAlbum = updatedAlbum;
-      }
-
-      if (spotifyTracks.length) {
-        const tracksToInsert = spotifyTracks.map(
-          (track: SpotifyTrack) => ({
-            album_id: selectedAlbum.id,
-            spotify_id: track.id,
-            title: track.name,
-            track_number: track.track_number,
-            disc_number: track.disc_number,
-            duration_ms: track.duration_ms,
-            spotify_url:
-              track.external_urls?.spotify ?? null,
-            explicit: track.explicit ?? false,
-          }),
+      if (spotifySearchResult) {
+        const spotifyAlbum = await getSpotifyAlbum(
+          spotifyToken,
+          spotifySearchResult.id,
         );
 
-        const { error: tracksError } = await supabase
-          .from("album_tracks")
-          .upsert(
-            tracksToInsert,
-            {
-              onConflict:
-                "album_id,disc_number,track_number",
-            },
+        if (spotifyAlbum) {
+          const spotifyTracks = await getAllSpotifyTracks(
+            spotifyToken,
+            spotifyAlbum,
           );
 
-        if (tracksError) {
-          console.error(
-            "No se pudieron guardar las canciones:",
-            tracksError,
+          const spotifyImageUrl =
+            spotifyAlbum.images?.[0]?.url ?? null;
+
+          const spotifyUrl =
+            spotifyAlbum.external_urls?.spotify ?? null;
+
+          const spotifyArtistUrl =
+            spotifyAlbum.artists?.[0]?.external_urls?.spotify ?? null;
+
+          const durationMs = spotifyTracks.reduce(
+            (total: number, track: SpotifyTrack) =>
+              total + (track.duration_ms ?? 0),
+            0,
           );
+
+          const { data: updatedAlbum, error: updateAlbumError } =
+            await supabase
+              .from("albums")
+              .update({
+                spotify_id: spotifyAlbum.id,
+                spotify_url: spotifyUrl,
+                spotify_image_url: spotifyImageUrl,
+                spotify_artist_url: spotifyArtistUrl,
+                spotify_release_date: spotifyAlbum.release_date,
+                spotify_popularity: spotifyAlbum.popularity ?? null,
+                total_tracks: spotifyAlbum.total_tracks,
+                track_count: spotifyAlbum.total_tracks,
+                duration_ms: durationMs,
+                cover_url:
+                  spotifyImageUrl ??
+                  selectedAlbum.cover_url,
+                updated_at: new Date().toISOString(),
+              })
+              .eq("id", selectedAlbum.id)
+              .select()
+              .single();
+
+          if (updateAlbumError) {
+            console.error(
+              "No se pudo actualizar el álbum:",
+              updateAlbumError,
+            );
+          } else {
+            selectedAlbum = updatedAlbum;
+          }
+
+          if (spotifyTracks.length) {
+            const tracksToInsert = spotifyTracks.map(
+              (track: SpotifyTrack) => ({
+                album_id: selectedAlbum.id,
+                spotify_id: track.id,
+                title: track.name,
+                track_number: track.track_number,
+                disc_number: track.disc_number,
+                duration_ms: track.duration_ms,
+                spotify_url:
+                  track.external_urls?.spotify ?? null,
+                explicit: track.explicit ?? false,
+              }),
+            );
+
+            const { error: tracksError } = await supabase
+              .from("album_tracks")
+              .upsert(
+                tracksToInsert,
+                {
+                  onConflict:
+                    "album_id,disc_number,track_number",
+                },
+              );
+
+            if (tracksError) {
+              console.error(
+                "No se pudieron guardar las canciones:",
+                tracksError,
+                );
+            }
+          }
         }
       }
+    } catch (spotifyError) {
+      /*
+      * Spotify enriquece el resultado, pero no debe impedir
+      * que el usuario reciba el álbum de MusicBrainz.
+      */
+      console.error(
+        "No se pudo enriquecer el álbum con Spotify:",
+        spotifyError,
+      );
     }
-  }
-} catch (spotifyError) {
-  /*
-   * Spotify enriquece el resultado, pero no debe impedir
-   * que el usuario reciba el álbum de MusicBrainz.
-   */
-  console.error(
-    "No se pudo enriquecer el álbum con Spotify:",
-    spotifyError,
-  );
-}
 
     const { data: generatedUserAlbum, error: userAlbumError } =
       await supabase
@@ -756,6 +991,7 @@ Deno.serve(async (request) => {
           user_id: user.id,
           album_id: selectedAlbum.id,
           status: "generated",
+          source: discoverySource,
         })
         .select(`
           *,
@@ -774,18 +1010,28 @@ Deno.serve(async (request) => {
         context: {
           genre: cleanGenre || null,
 
+          mood:
+            requestedMood || null,
+
+          moodLabel:
+            moodDefinition?.label ?? null,
+
+          selectedMoodTag:
+            selectedMoodTag ?? null,
+
+          effectiveGenre:
+            effectiveGenre || null,
+
           selectedYear,
 
-          requestedYear: validYear,
+          requestedYear:
+            validYear,
 
-          requestedDecade: validDecade,
+          requestedDecade:
+            validDecade,
 
           source:
-            validYear || validDecade
-              ? "time_machine"
-              : cleanGenre
-                  ? "genre_discovery"
-                  : "discovery",
+            discoverySource,
         },
       },
       200,

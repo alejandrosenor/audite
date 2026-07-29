@@ -145,6 +145,7 @@ export async function getCurrentGeneratedAlbum(userId) {
 
 export async function discoverAlbum({
     genre = "",
+    mood,
     year = null,
     decade = null,
 } = {}) {
@@ -154,6 +155,7 @@ export async function discoverAlbum({
             {
                 body: {
                     genre,
+                    mood: mood || null,
                     year,
                     decade,
                 },
