@@ -76,9 +76,9 @@ const tutorialSections = [
             },
             {
                 number: "04",
-                title: "Empieza a escucharlo",
+                title: "Escúchalo y ordena sus canciones",
                 text:
-                    "Cuando estés preparado, marca el disco como Escuchando para seguir su progreso.",
+                    "Cuando empieces el disco, vuelve a Escuchando para ordenar todas sus canciones según tus preferencias. El ranking se guarda automáticamente.",
                 route: "/listening",
                 action: "Ver Escuchando",
             },
@@ -86,7 +86,7 @@ const tutorialSections = [
                 number: "05",
                 title: "Termina y valora",
                 text:
-                    "Ponle nota, escribe tu reseña y escoge tus canciones favoritas.",
+                    "Al terminar, Audite conserva el ranking completo. Añade una nota, una reseña, indica si volverías a escucharlo y marca tus canciones favoritas.",
                 route: "/library",
                 action: "Abrir Biblioteca",
             },
@@ -116,10 +116,16 @@ const tutorialSections = [
                     "Una pequeña misión que concede experiencia y te anima a explorar diferentes funciones de la aplicación.",
             },
             {
+                icon: "💬",
+                title: "¿Quién dijo esto?",
+                text:
+                    "Un juego musical diario en el que debes identificar quién pronunció una frase o cita. Responde desde Inicio y comprueba si has acertado.",
+            },
+            {
                 icon: "✨",
                 title: "Recomendaciones",
                 text:
-                    "Audite utiliza tu actividad y tus valoraciones para sugerirte discos relacionados con tus gustos.",
+                    "Audite utiliza tu actividad, tus valoraciones y tus hábitos de escucha para sugerirte discos relacionados con tus gustos.",
             },
             {
                 icon: "🎵",
@@ -156,43 +162,61 @@ const tutorialSections = [
                 icon: "🎲",
                 title: "Sorpréndeme",
                 text:
-                    "Audite selecciona un álbum aleatorio para ti sin limitarse a un género concreto.",
+                    "Audite selecciona un álbum aleatorio teniendo en cuenta tu historial y tus gustos.",
             },
             {
                 icon: "🎸",
                 title: "Descubrir por género",
                 text:
-                    "Escoge el estilo que te apetezca explorar y recibe una propuesta relacionada.",
+                    "Explora cualquier género musical y recibe una recomendación relacionada.",
+            },
+            {
+                icon: "😊",
+                title: "Estados de ánimo",
+                text:
+                    "Encuentra discos que encajen con cómo te sientes o con el ambiente que buscas en ese momento.",
+            },
+            {
+                icon: "🌍",
+                title: "Músicas del mundo",
+                text:
+                    "Viaja por distintos países y culturas descubriendo álbumes representativos de cada rincón del planeta.",
+            },
+            {
+                icon: "🕰",
+                title: "La Máquina del Tiempo",
+                text:
+                    "Viaja a cualquier década y descubre discos publicados en esa época para explorar la evolución de la música.",
             },
             {
                 icon: "🇪🇸",
                 title: "Música en español",
                 text:
-                    "Activa el filtro para recibir discos interpretados principalmente en español.",
+                    "Filtra las recomendaciones para descubrir álbumes interpretados principalmente en español.",
             },
             {
                 icon: "➕",
                 title: "Añadir manualmente",
                 text:
-                    "Busca y añade un álbum concreto cuando ya sabes qué quieres escuchar.",
+                    "Busca un disco concreto y añádelo directamente a tu colección o a Pendientes.",
             },
             {
                 icon: "♡",
                 title: "Quiero escucharlo",
                 text:
-                    "Guarda la recomendación en tu lista de discos pendientes.",
+                    "Guarda el álbum en Pendientes para escucharlo cuando quieras.",
             },
             {
                 icon: "↻",
                 title: "Prefiero otro",
                 text:
-                    "Descarta temporalmente la propuesta y genera una alternativa.",
+                    "Genera una nueva recomendación sin guardar la actual.",
             },
             {
                 icon: "✓",
                 title: "Ya lo conozco",
                 text:
-                    "Indica que ese álbum ya forma parte de tu experiencia para evitar recomendaciones poco útiles.",
+                    "Indica que ya has escuchado ese disco para que Audite aprenda mejor tus preferencias.",
             },
         ],
     },
@@ -286,10 +310,22 @@ const tutorialSections = [
                     "Regresa al álbum activo y accede rápidamente a Spotify.",
             },
             {
-                icon: "★",
-                title: "Terminar escucha",
+                icon: "↕",
+                title: "Ranking completo de canciones",
                 text:
-                    "Cuando acabes el disco, abre la valoración completa.",
+                    "Ordena todas las pistas del disco de mejor a peor mientras escuchas. Puedes subirlas, bajarlas o enviar una directamente al primer puesto.",
+            },
+            {
+                icon: "☁️",
+                title: "Guardado automático",
+                text:
+                    "Cada cambio de posición se guarda automáticamente para que puedas salir y continuar más tarde sin perder el orden.",
+            },
+            {
+                icon: "★",
+                title: "Terminar y valorar",
+                text:
+                    "Antes de abrir la valoración, Audite guarda inmediatamente el orden completo de todas las canciones.",
             },
             {
                 icon: "⏹",
@@ -327,10 +363,16 @@ const tutorialSections = [
                     "Escribe qué te ha parecido, qué destacarías y qué sensaciones te ha dejado.",
             },
             {
+                icon: "🏁",
+                title: "Ranking recuperado",
+                text:
+                    "La valoración carga todas las canciones en el mismo orden que dejaste en Escuchando.",
+            },
+            {
                 icon: "⭐",
                 title: "Canciones favoritas",
                 text:
-                    "Selecciona tus temas preferidos y ordénalos para crear tu Top 3.",
+                    "Marca tus temas preferidos sobre el ranking completo. Las primeras posiciones pueden aparecer preseleccionadas para que solo tengas que ajustarlas.",
             },
             {
                 icon: "↻",
@@ -342,7 +384,7 @@ const tutorialSections = [
                 icon: "✏️",
                 title: "Editar valoración",
                 text:
-                    "Puedes corregir la nota, la reseña o el orden de tus canciones favoritas después de terminar.",
+                    "Puedes corregir la nota, la reseña, si volverías a escucharlo y la selección u orden de tus canciones favoritas después de terminar.",
             },
         ],
     },
@@ -362,6 +404,12 @@ const tutorialSections = [
                 title: "Todos",
                 text:
                     "Muestra los discos terminados que forman tu biblioteca principal.",
+            },
+            {
+                icon: "🗂",
+                title: "Archivo 2026",
+                text:
+                    "Consulta todos los discos terminados durante 2026 en un archivo anual independiente. Los futuros años podrán conservar su propio historial.",
             },
             {
                 icon: "⏹",
@@ -385,7 +433,7 @@ const tutorialSections = [
                 icon: "🔍",
                 title: "Ficha del disco",
                 text:
-                    "Abre cualquier álbum para consultar valoración, reseña, canciones favoritas, tracklist, duración, género e historial.",
+                    "Abre cualquier álbum para consultar valoración, reseña, canciones favoritas, ranking de canciones, tracklist, duración, género e historial.",
             },
             {
                 icon: "📤",
@@ -410,7 +458,7 @@ const tutorialSections = [
                 icon: "⭐",
                 title: "Favoritas de cada disco",
                 text:
-                    "Reúne las canciones que seleccionaste durante tus valoraciones.",
+                    "Reúne las canciones que seleccionaste durante tus valoraciones, respetando su orden personal dentro de cada disco.",
             },
             {
                 icon: "▶",
@@ -614,10 +662,16 @@ const tutorialSections = [
                     "Observa tu media, mejores valoraciones y distribución de puntuaciones.",
             },
             {
+                icon: "📈",
+                title: "Evolución mensual",
+                text:
+                    "Compara cuántos discos completas cada mes y cómo cambia tu ritmo de escucha durante el año.",
+            },
+            {
                 icon: "🎸",
                 title: "Géneros",
                 text:
-                    "Descubre los estilos más frecuentes de tu biblioteca.",
+                    "Descubre los estilos más frecuentes de tu biblioteca y cuáles reciben tus mejores notas.",
             },
             {
                 icon: "🎤",
@@ -629,7 +683,13 @@ const tutorialSections = [
                 icon: "⏱",
                 title: "Tiempo escuchado",
                 text:
-                    "Visualiza la duración aproximada de toda tu actividad musical.",
+                    "Visualiza la duración aproximada de toda tu actividad musical y el tiempo medio dedicado a cada disco.",
+            },
+            {
+                icon: "🗓",
+                title: "Actividad por año",
+                text:
+                    "Consulta cómo se reparte tu historial entre 2026 y los futuros archivos anuales.",
             },
         ],
     },
@@ -800,7 +860,19 @@ const tutorialSections = [
                 question:
                     "¿Se publican automáticamente mis reseñas?",
                 answer:
-                    "No. Compartir una valoración en Social requiere una acción expresa desde la ficha del disco.",
+                    "No. Al guardar una valoración puedes decidir expresamente si quieres compartirla en Social y elegir su visibilidad.",
+            },
+            {
+                question:
+                    "¿Se pierde el orden de las canciones al terminar el disco?",
+                answer:
+                    "No. El ranking completo se guarda automáticamente mientras escuchas y vuelve a guardarse justo antes de abrir la valoración.",
+            },
+            {
+                question:
+                    "¿Tengo que elegir exactamente tres canciones favoritas?",
+                answer:
+                    "No. Puedes marcar las canciones que quieras. El ranking completo del disco y la selección de favoritas son cosas distintas.",
             },
             {
                 question:
@@ -819,6 +891,18 @@ const tutorialSections = [
                     "¿Qué ocurre si una recomendación no me interesa?",
                 answer:
                     "Puedes pedir otra propuesta, indicar que ya conoces el disco o simplemente salir sin guardarlo.",
+            },
+            {
+                question:
+                    "¿Qué es el Archivo 2026?",
+                answer:
+                    "Es la sección de Biblioteca que reúne todos los discos terminados durante 2026. Sirve para consultar tu historia musical por años sin mezclar etapas.",
+            },
+            {
+                question:
+                    "¿Cómo funciona el juego ¿Quién dijo esto??",
+                answer:
+                    "Cada día aparece una cita musical en Inicio. Debes elegir quién la dijo y Audite te muestra si la respuesta es correcta.",
             },
         ],
     },
