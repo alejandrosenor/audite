@@ -1582,3 +1582,102 @@
     color: #1db954;
     font-weight: 300;
 }
+
+.spotify-card {
+    margin-top: 28px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+
+    padding: 22px;
+
+    border-radius: 26px;
+
+    background: linear-gradient(135deg,
+            #1db95422,
+            #161616);
+
+    border: 1px solid rgba(29, 185, 84, .18);
+
+    transition: .25s;
+}
+
+.spotify-card:hover {
+
+    transform: translateY(-2px);
+
+    border-color: #1db95466;
+
+    box-shadow:
+        0 15px 35px rgba(29, 185, 84, .15);
+
+}
+
+.spotify-card__icon {
+
+    width: 68px;
+    height: 68px;
+
+    border-radius: 22px;
+
+    background: #1DB954;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    flex-shrink: 0;
+
+}
+
+.spotify-card__icon img {
+
+    width: 34px;
+
+}
+
+.spotify-card__content {
+
+    flex: 1;
+
+}
+
+.spotify-card__content p {
+
+    color: #1DB954;
+
+    font-size: .72rem;
+
+    font-weight: 800;
+
+    letter-spacing: .15em;
+
+    margin: 0;
+
+}
+
+.spotify-card__content h3 {
+
+    margin: 4px 0;
+
+    color: white;
+
+    font-size: 1.4rem;
+
+}
+
+.spotify-card__content span {
+
+    color: #bdbdbd;
+
+}
+
+.spotify-card__arrow {
+
+    color: #1DB954;
+
+    font-size: 2rem;
+
+    text-decoration: none;
+
+}

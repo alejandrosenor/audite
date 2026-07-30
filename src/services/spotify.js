@@ -10,6 +10,8 @@ const SCOPES = [
     "user-read-private",
 ];
 
+console.log("SPOTIFY REDIRECT URI:", REDIRECT_URI);
+
 function generateRandomString(length) {
     const possible =
         "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";

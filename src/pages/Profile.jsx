@@ -1038,9 +1038,12 @@ function Profile() {
             </NavLink>
 
             {spotifyConnection ? (
-                <div className="spotify-card spotify-card--connected">
+                <div className="spotify-card">
                     <div className="spotify-card__icon">
-                        🎵
+                        <img
+                            src="/spotify-logo.svg"
+                            alt=""
+                        />
                     </div>
 
                     <div className="spotify-card__content">
@@ -1057,9 +1060,9 @@ function Profile() {
                         href={spotifyConnection.playlist_url}
                         target="_blank"
                         rel="noreferrer"
-                        className="spotify-card__link"
+                        className="spotify-card__arrow"
                     >
-                        Abrir playlist →
+                        →
                     </a>
                 </div>
             ) : (
