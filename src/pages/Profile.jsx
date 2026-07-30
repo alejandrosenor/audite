@@ -12,6 +12,10 @@ import { updateProfileAvatar } from "../services/artists";
 import { getProfileStats } from "../services/profile";
 import { supabase } from "../services/supabase";
 import {
+    connectSpotify,
+    getSpotifyConnection,
+} from "../services/spotify";
+import {
     achievements,
     achievementRarities,
     getAchievementById,
@@ -123,6 +127,17 @@ function Profile() {
             ),
         [profile?.total_xp],
     );
+
+    const [spotifyConnection,
+        setSpotifyConnection] =
+        useState(null);
+
+    useEffect(() => {
+
+        getSpotifyConnection()
+            .then(setSpotifyConnection);
+
+    }, []);
 
     const musicalTitle = useMemo(
         () =>
@@ -1022,19 +1037,46 @@ function Profile() {
                 <b>→</b>
             </NavLink>
 
-            <button
-                type="button"
-                onClick={async () => {
-                    const results =
-                        await generateMissingAlbumEditorials({
-                            limit: 10,
-                        });
+            {spotifyConnection ? (
+                <div className="spotify-card spotify-card--connected">
+                    <div className="spotify-card__icon">
+                        🎵
+                    </div>
 
-                    console.table(results);
-                }}
-            >
-                Generar historias pendientes
-            </button>
+                    <div className="spotify-card__content">
+                        <p>SPOTIFY</p>
+
+                        <h3>Cuenta conectada</h3>
+
+                        <span>
+                            {spotifyConnection.spotify_display_name}
+                        </span>
+                    </div>
+
+                    <a
+                        href={spotifyConnection.playlist_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="spotify-card__link"
+                    >
+                        Abrir playlist →
+                    </a>
+                </div>
+            ) : (
+                <button
+                    className="spotify-connect-button"
+                    onClick={connectSpotify}
+                >
+                    <span>🎵</span>
+
+                    <div>
+                        <p>SPOTIFY</p>
+                        <strong>Conectar cuenta</strong>
+                    </div>
+
+                    <b>→</b>
+                </button>
+            )}
 
             <button
                 type="button"

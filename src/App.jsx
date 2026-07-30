@@ -23,6 +23,7 @@ import MonthlyReport from "./pages/MonthlyReport";
 import DataBackup from "./pages/DataBackup";
 import ScrollToTop from "./components/ScrollToTop";
 import Tutorial from "./pages/Tutorial";
+import SpotifyCallback from "./pages/SpotifyCallback";
 
 function App() {
   return (
@@ -52,6 +53,7 @@ function App() {
             <Route path="/challenge-calendar" element={<ChallengeCalendar />} />
             <Route path="/monthly-report" element={<MonthlyReport />} />
             <Route path="/data-backup" element={<DataBackup />} />
+            <Route path="/spotify/callback" element={<SpotifyCallback />} />
           </Route>
         </Route>
 
