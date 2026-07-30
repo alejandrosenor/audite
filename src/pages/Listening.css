@@ -553,3 +553,8 @@
         display: none;
     }
 }
+
+.listening-album__content>button:disabled {
+    cursor: wait;
+    opacity: 0.65;
+}

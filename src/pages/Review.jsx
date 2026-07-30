@@ -31,6 +31,9 @@ import {
 import {
     publishReview,
 } from "../services/socialFeed";
+import {
+    getListeningTrackRanking,
+} from "../services/listeningRankings";
 import "./Review.css";
 
 const reactions = [
@@ -216,8 +219,7 @@ function Review() {
 
                         albumTracks =
                             await getAlbumTracks(
-                                currentUserAlbum
-                                    .album.id,
+                                currentUserAlbum.album.id,
                             );
                     } catch (syncError) {
                         console.error(
@@ -225,6 +227,94 @@ function Review() {
                             syncError,
                         );
                     }
+                }
+
+                /*
+                 * El ranking se carga siempre, tanto si las
+                 * canciones ya existían como si acabamos
+                 * de sincronizarlas.
+                 */
+                const savedRanking =
+                    await getListeningTrackRanking({
+                        userId: user.id,
+                        userAlbumId:
+                            currentUserAlbum.id,
+                    });
+
+                if (savedRanking.length > 0) {
+                    const rankingMap =
+                        new Map(
+                            savedRanking.map(
+                                (item) => [
+                                    item.album_track_id,
+                                    Number(item.position),
+                                ],
+                            ),
+                        );
+
+                    albumTracks =
+                        [...albumTracks].sort(
+                            (firstTrack, secondTrack) => {
+                                const firstPosition =
+                                    rankingMap.get(
+                                        firstTrack.id,
+                                    );
+
+                                const secondPosition =
+                                    rankingMap.get(
+                                        secondTrack.id,
+                                    );
+
+                                if (
+                                    firstPosition !== undefined &&
+                                    secondPosition !== undefined
+                                ) {
+                                    return (
+                                        firstPosition -
+                                        secondPosition
+                                    );
+                                }
+
+                                if (
+                                    firstPosition !== undefined
+                                ) {
+                                    return -1;
+                                }
+
+                                if (
+                                    secondPosition !== undefined
+                                ) {
+                                    return 1;
+                                }
+
+                                if (
+                                    Number(
+                                        firstTrack.disc_number,
+                                    ) !==
+                                    Number(
+                                        secondTrack.disc_number,
+                                    )
+                                ) {
+                                    return (
+                                        Number(
+                                            firstTrack.disc_number,
+                                        ) -
+                                        Number(
+                                            secondTrack.disc_number,
+                                        )
+                                    );
+                                }
+
+                                return (
+                                    Number(
+                                        firstTrack.track_number,
+                                    ) -
+                                    Number(
+                                        secondTrack.track_number,
+                                    )
+                                );
+                            },
+                        );
                 }
 
                 let loadedReview = null;
@@ -267,15 +357,12 @@ function Review() {
 
                     if (loadedReview) {
                         setReaction(
-                            loadedReview.reaction ??
-                            "",
+                            loadedReview.reaction ?? "",
                         );
 
                         setRating(
-                            loadedReview.rating ===
-                                null ||
-                                loadedReview.rating ===
-                                undefined
+                            loadedReview.rating === null ||
+                                loadedReview.rating === undefined
                                 ? ""
                                 : String(
                                     loadedReview.rating,
@@ -283,8 +370,7 @@ function Review() {
                         );
 
                         setReviewText(
-                            loadedReview.review_text ??
-                            "",
+                            loadedReview.review_text ?? "",
                         );
 
                         setWouldListenAgain(
@@ -298,6 +384,19 @@ function Review() {
                                     favorite.track_id ??
                                     favorite.track?.id,
                             ) ?? [],
+                        );
+                    } else {
+                        setReaction("");
+                        setRating("");
+                        setReviewText("");
+                        setWouldListenAgain(null);
+
+                        setFavoriteTrackIds(
+                            albumTracks
+                                .slice(0, 3)
+                                .map(
+                                    (track) => track.id,
+                                ),
                         );
                     }
                 }

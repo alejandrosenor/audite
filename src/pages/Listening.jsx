@@ -209,6 +209,50 @@ function Listening() {
         [user?.id, userAlbum?.id],
     );
 
+    async function handleFinishAndReview() {
+        if (!userAlbum || actionLoading) {
+            return;
+        }
+
+        setActionLoading("finish");
+        setMessage("");
+
+        if (rankingSaveTimerRef.current) {
+            clearTimeout(
+                rankingSaveTimerRef.current,
+            );
+
+            rankingSaveTimerRef.current = null;
+        }
+
+        try {
+            if (tracks.length > 0) {
+                await saveListeningTrackRanking({
+                    userId: user.id,
+                    userAlbumId: userAlbum.id,
+                    tracks,
+                });
+
+                rankingDirtyRef.current = false;
+                setRankingStatus("saved");
+            }
+
+            navigate(`/review/${userAlbum.id}`);
+        } catch (error) {
+            console.error(
+                "No se pudo guardar el orden antes de valorar:",
+                error,
+            );
+
+            setRankingStatus("error");
+            setMessage(
+                "No hemos podido guardar el orden de las canciones. Inténtalo de nuevo.",
+            );
+        } finally {
+            setActionLoading("");
+        }
+    }
+
     useEffect(() => {
         loadListeningAlbum();
     }, [loadListeningAlbum]);
@@ -489,12 +533,18 @@ function Listening() {
 
                     <button
                         type="button"
-                        onClick={() =>
-                            navigate(`/review/${userAlbum.id}`)
-                        }
+                        onClick={handleFinishAndReview}
+                        disabled={Boolean(actionLoading)}
                     >
-                        Terminar y valorar
-                        <small>Guardar en tu Biblioteca</small>
+                        {actionLoading === "finish"
+                            ? "Guardando orden..."
+                            : "Terminar y valorar"}
+
+                        <small>
+                            {actionLoading === "finish"
+                                ? "Preparando tu valoración"
+                                : "Guardar en tu Biblioteca"}
+                        </small>
                     </button>
 
                     <div className="listening-album__secondary-actions">
