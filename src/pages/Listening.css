@@ -320,3 +320,236 @@
         grid-template-columns: 1fr;
     }
 }
+
+.listening-ranking {
+    margin-top: 36px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-large);
+    background:
+        linear-gradient(135deg,
+            var(--color-accent-soft),
+            transparent 42%),
+        var(--color-surface);
+    padding: clamp(20px, 4vw, 34px);
+}
+
+.listening-ranking>header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.listening-ranking>header h2 {
+    width: 100%;
+    font-family: var(--font-display);
+    font-size: clamp(30px, 5vw, 42px);
+    line-height: 1;
+    letter-spacing: -0.035em;
+}
+
+.listening-ranking>header p {
+    max-width: 580px;
+    color: var(--color-text-secondary);
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.listening-ranking__save-status {
+    display: inline-flex;
+    min-height: 31px;
+    align-items: center;
+    gap: 7px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-pill);
+    padding: 6px 11px;
+    color: var(--color-text-muted);
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.listening-ranking__save-status--saving {
+    color: var(--color-accent);
+}
+
+.listening-ranking__save-status--saved {
+    color: #73d79a;
+}
+
+.listening-ranking__save-status--error {
+    border-color: rgba(255, 98, 98, 0.25);
+    color: #ff9999;
+}
+
+.listening-ranking__save-status--saving span {
+    width: 9px;
+    height: 9px;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: listening-ranking-spin 0.75s linear infinite;
+}
+
+.listening-ranking__list {
+    display: grid;
+    gap: 9px;
+    margin-top: 25px;
+    padding: 0;
+    list-style: none;
+}
+
+.listening-ranking__track {
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr) auto;
+    min-height: 66px;
+    align-items: center;
+    gap: 12px;
+    border: 1px solid transparent;
+    border-radius: 17px;
+    background: rgba(255, 255, 255, 0.035);
+    padding: 9px 11px;
+    transition:
+        transform 160ms ease,
+        border-color 160ms ease,
+        background 160ms ease;
+}
+
+.listening-ranking__track:hover {
+    border-color: var(--color-border);
+    background: rgba(255, 255, 255, 0.055);
+}
+
+.listening-ranking__position {
+    display: grid;
+    width: 38px;
+    height: 38px;
+    place-items: center;
+    border-radius: 12px;
+    background: var(--color-background);
+    color: var(--color-accent);
+    font-size: 14px;
+    font-weight: 900;
+}
+
+.listening-ranking__track-info {
+    min-width: 0;
+}
+
+.listening-ranking__track-info strong {
+    display: block;
+    overflow: hidden;
+    color: var(--color-text-primary);
+    font-size: 14px;
+    font-weight: 750;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.listening-ranking__track-info small {
+    display: block;
+    margin-top: 4px;
+    color: var(--color-text-muted);
+    font-size: 10px;
+}
+
+.listening-ranking__actions {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.listening-ranking__actions button {
+    display: grid;
+    width: 38px;
+    height: 38px;
+    place-items: center;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    background: var(--color-background);
+    color: var(--color-text-primary);
+    cursor: pointer;
+    font-size: 17px;
+    font-weight: 800;
+    transition:
+        transform 150ms ease,
+        border-color 150ms ease,
+        color 150ms ease;
+}
+
+.listening-ranking__actions button:hover:not(:disabled) {
+    transform: translateY(-1px);
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+}
+
+.listening-ranking__actions button:disabled {
+    cursor: default;
+    opacity: 0.24;
+}
+
+.listening-ranking__actions .listening-ranking__favorite-button {
+    border-color: rgba(255, 110, 145, 0.2);
+    background: rgba(255, 110, 145, 0.08);
+    color: #ff87a6;
+}
+
+.listening-ranking__empty {
+    margin-top: 24px;
+    border: 1px dashed var(--color-border);
+    border-radius: 16px;
+    padding: 28px 18px;
+    color: var(--color-text-secondary);
+    text-align: center;
+}
+
+@keyframes listening-ranking-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (max-width: 620px) {
+    .listening-ranking {
+        padding: 18px 14px;
+    }
+
+    .listening-ranking>header {
+        display: block;
+    }
+
+    .listening-ranking__save-status {
+        margin-top: 14px;
+    }
+
+    .listening-ranking__track {
+        grid-template-columns:
+            38px minmax(0, 1fr) auto;
+        gap: 8px;
+        padding: 8px;
+    }
+
+    .listening-ranking__position {
+        width: 34px;
+        height: 34px;
+    }
+
+    .listening-ranking__actions {
+        gap: 3px;
+    }
+
+    .listening-ranking__actions button {
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        font-size: 15px;
+    }
+
+    .listening-ranking__track-info strong {
+        font-size: 13px;
+    }
+
+    .listening-ranking__track-info small {
+        display: none;
+    }
+}
