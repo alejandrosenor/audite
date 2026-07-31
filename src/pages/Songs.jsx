@@ -2,6 +2,12 @@ import { useEffect, useMemo, useState } from "react";
 import LibraryTabs from "../components/LibraryTabs";
 import { useAuth } from "../context/AuthContext";
 import { getFavoriteTracks } from "../services/reviews";
+import {
+    addTrackToSpotifyPlaylist,
+    getSpotifyConnection,
+    getSpotifyPlaylistTrackIds,
+    removeTrackFromSpotifyPlaylist,
+} from "../services/spotify";
 import "./Songs.css";
 
 function Songs() {
@@ -12,6 +18,66 @@ function Songs() {
     const [message, setMessage] = useState("");
     const [search, setSearch] = useState("");
     const [sortMode, setSortMode] = useState("recent");
+    const [
+        spotifyConnection,
+        setSpotifyConnection,
+    ] = useState(null);
+    const [
+        spotifyTrackIds,
+        setSpotifyTrackIds,
+    ] = useState([]);
+    const [
+        syncingTrackIds,
+        setSyncingTrackIds,
+    ] = useState([]);
+    const [
+        spotifyMessage,
+        setSpotifyMessage,
+    ] = useState("");
+
+    useEffect(() => {
+        if (!user?.id) {
+            return;
+        }
+
+        let cancelled = false;
+
+        async function loadSpotifyState() {
+            try {
+                const connection =
+                    await getSpotifyConnection();
+
+                if (cancelled) {
+                    return;
+                }
+
+                setSpotifyConnection(connection);
+
+                if (!connection) {
+                    setSpotifyTrackIds([]);
+                    return;
+                }
+
+                const trackIds =
+                    await getSpotifyPlaylistTrackIds();
+
+                if (!cancelled) {
+                    setSpotifyTrackIds(trackIds);
+                }
+            } catch (error) {
+                console.error(
+                    "No se pudo cargar Spotify:",
+                    error,
+                );
+            }
+        }
+
+        loadSpotifyState();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [user?.id]);
 
     useEffect(() => {
         if (!user?.id) {
@@ -132,6 +198,83 @@ function Songs() {
 
     const groupedAlbums = Object.values(albumsWithTracks);
 
+    async function handleSpotifyToggle(item) {
+        const trackId =
+            item.track?.id;
+
+        if (!trackId) {
+            setSpotifyMessage(
+                "Esta canción no tiene un identificador válido.",
+            );
+            return;
+        }
+
+        if (!spotifyConnection) {
+            setSpotifyMessage(
+                "Conecta tu cuenta de Spotify desde Perfil.",
+            );
+            return;
+        }
+
+        const isAdded =
+            spotifyTrackIds.includes(trackId);
+
+        setSyncingTrackIds((current) => [
+            ...current,
+            trackId,
+        ]);
+
+        setSpotifyMessage("");
+
+        try {
+            if (isAdded) {
+                await removeTrackFromSpotifyPlaylist(
+                    trackId,
+                );
+
+                setSpotifyTrackIds(
+                    (current) =>
+                        current.filter(
+                            (id) => id !== trackId,
+                        ),
+                );
+
+                setSpotifyMessage(
+                    `"${item.track.title}" se ha quitado de tu playlist.`,
+                );
+            } else {
+                await addTrackToSpotifyPlaylist(
+                    trackId,
+                );
+
+                setSpotifyTrackIds(
+                    (current) =>
+                        current.includes(trackId)
+                            ? current
+                            : [...current, trackId],
+                );
+
+                setSpotifyMessage(
+                    `"${item.track.title}" se ha añadido a tu playlist.`,
+                );
+            }
+        } catch (error) {
+            console.error(error);
+
+            setSpotifyMessage(
+                error.message ||
+                "No hemos podido sincronizar la canción.",
+            );
+        } finally {
+            setSyncingTrackIds(
+                (current) =>
+                    current.filter(
+                        (id) => id !== trackId,
+                    ),
+            );
+        }
+    }
+
     if (loading) {
         return (
             <section className="songs-page">
@@ -176,6 +319,12 @@ function Songs() {
             {message && (
                 <p className="songs-page__message">
                     {message}
+                </p>
+            )}
+
+            {spotifyMessage && (
+                <p className="songs-page__message songs-page__message--spotify">
+                    {spotifyMessage}
                 </p>
             )}
 
@@ -301,20 +450,68 @@ function Songs() {
                                             </small>
                                         </div>
 
-                                        {item.track?.spotify_url ? (
-                                            <a
-                                                href={item.track.spotify_url}
-                                                target="_blank"
-                                                rel="noreferrer"
-                                                aria-label={`Abrir ${item.track.title} en Spotify`}
+                                        <div className="songs-track-list__actions">
+                                            {item.track?.spotify_url ? (
+                                                <a
+                                                    className="songs-track-list__play"
+                                                    href={item.track.spotify_url}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    aria-label={`Abrir ${item.track.title} en Spotify`}
+                                                >
+                                                    ▶
+                                                </a>
+                                            ) : (
+                                                <span className="songs-track-list__unavailable">
+                                                    —
+                                                </span>
+                                            )}
+
+                                            <button
+                                                type="button"
+                                                className={`songs-track-list__sync ${spotifyTrackIds.includes(
+                                                    item.track?.id,
+                                                )
+                                                        ? "songs-track-list__sync--added"
+                                                        : ""
+                                                    }`}
+                                                onClick={() =>
+                                                    handleSpotifyToggle(item)
+                                                }
+                                                disabled={
+                                                    !item.track?.spotify_uri ||
+                                                    syncingTrackIds.includes(
+                                                        item.track?.id,
+                                                    )
+                                                }
+                                                aria-label={
+                                                    spotifyTrackIds.includes(
+                                                        item.track?.id,
+                                                    )
+                                                        ? `Quitar ${item.track?.title} de la playlist`
+                                                        : `Añadir ${item.track?.title} a la playlist`
+                                                }
+                                                title={
+                                                    !spotifyConnection
+                                                        ? "Conecta Spotify desde Perfil"
+                                                        : spotifyTrackIds.includes(
+                                                            item.track?.id,
+                                                        )
+                                                            ? "Quitar de Audite — Mis canciones"
+                                                            : "Añadir a Audite — Mis canciones"
+                                                }
                                             >
-                                                ▶
-                                            </a>
-                                        ) : (
-                                            <span className="songs-track-list__unavailable">
-                                                —
-                                            </span>
-                                        )}
+                                                {syncingTrackIds.includes(
+                                                    item.track?.id,
+                                                )
+                                                    ? "…"
+                                                    : spotifyTrackIds.includes(
+                                                        item.track?.id,
+                                                    )
+                                                        ? "✓"
+                                                        : "+"}
+                                            </button>
+                                        </div>
                                     </li>
                                 ))}
                             </ol>

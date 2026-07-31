@@ -147,3 +147,75 @@ export async function getSpotifyConnection() {
 
     return data;
 }
+
+export async function getSpotifyPlaylistTrackIds() {
+    const { data, error } =
+        await supabase.functions.invoke(
+            "spotify-playlist",
+            {
+                body: {
+                    action: "list",
+                },
+            },
+        );
+
+    if (error) {
+        throw error;
+    }
+
+    if (data?.error) {
+        throw new Error(data.error);
+    }
+
+    return data?.trackIds ?? [];
+}
+
+export async function addTrackToSpotifyPlaylist(
+    albumTrackId,
+) {
+    const { data, error } =
+        await supabase.functions.invoke(
+            "spotify-playlist",
+            {
+                body: {
+                    action: "add",
+                    albumTrackId,
+                },
+            },
+        );
+
+    if (error) {
+        throw error;
+    }
+
+    if (data?.error) {
+        throw new Error(data.error);
+    }
+
+    return data;
+}
+
+export async function removeTrackFromSpotifyPlaylist(
+    albumTrackId,
+) {
+    const { data, error } =
+        await supabase.functions.invoke(
+            "spotify-playlist",
+            {
+                body: {
+                    action: "remove",
+                    albumTrackId,
+                },
+            },
+        );
+
+    if (error) {
+        throw error;
+    }
+
+    if (data?.error) {
+        throw new Error(data.error);
+    }
+
+    return data;
+}
