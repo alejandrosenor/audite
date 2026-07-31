@@ -503,3 +503,174 @@
     min-width: 34px;
     padding: 0;
 }
+
+.songs-spotify-info {
+    position: relative;
+    display: flex;
+    gap: 18px;
+    align-items: flex-start;
+    margin: 22px 0 28px;
+    padding: 22px;
+    overflow: hidden;
+    border: 1px solid rgba(139, 92, 246, 0.25);
+    border-radius: 24px;
+    background:
+        radial-gradient(circle at top right,
+            rgba(139, 92, 246, 0.18),
+            transparent 42%),
+        linear-gradient(145deg,
+            rgba(20, 18, 30, 0.98),
+            rgba(12, 12, 16, 0.98));
+}
+
+.songs-spotify-info::after {
+    content: "";
+    position: absolute;
+    top: -55px;
+    right: -45px;
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background: rgba(139, 92, 246, 0.1);
+    filter: blur(12px);
+    pointer-events: none;
+}
+
+.songs-spotify-info--connected {
+    border-color: rgba(29, 185, 84, 0.32);
+    background:
+        radial-gradient(circle at top right,
+            rgba(29, 185, 84, 0.16),
+            transparent 42%),
+        linear-gradient(145deg,
+            rgba(16, 25, 20, 0.98),
+            rgba(12, 12, 16, 0.98));
+}
+
+.songs-spotify-info--connected::after {
+    background: rgba(29, 185, 84, 0.12);
+}
+
+.songs-spotify-info__icon {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    width: 58px;
+    height: 58px;
+    flex-shrink: 0;
+    border-radius: 18px;
+    background: linear-gradient(145deg,
+            #9b5cff,
+            #7137e8);
+    color: #fff;
+    font-size: 1.55rem;
+    font-weight: 900;
+    box-shadow:
+        0 12px 28px rgba(126, 70, 241, 0.28);
+}
+
+.songs-spotify-info--connected .songs-spotify-info__icon {
+    background: #1db954;
+    color: #07150c;
+    box-shadow:
+        0 12px 28px rgba(29, 185, 84, 0.24);
+}
+
+.songs-spotify-info__content {
+    position: relative;
+    z-index: 1;
+    min-width: 0;
+}
+
+.songs-spotify-info__eyebrow {
+    margin: 0 0 6px;
+    color: #9b5cff;
+    font-size: 0.7rem;
+    font-weight: 900;
+    letter-spacing: 0.16em;
+}
+
+.songs-spotify-info--connected .songs-spotify-info__eyebrow {
+    color: #1db954;
+}
+
+.songs-spotify-info__content h2 {
+    margin: 0;
+    color: #fff;
+    font-size: clamp(1.15rem, 3.5vw, 1.45rem);
+    line-height: 1.15;
+}
+
+.songs-spotify-info__content>p:not(.songs-spotify-info__eyebrow) {
+    margin: 10px 0 16px;
+    max-width: 560px;
+    color: rgba(255, 255, 255, 0.66);
+    font-size: 0.92rem;
+    line-height: 1.55;
+}
+
+.songs-spotify-info__button {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 42px;
+    padding: 0 16px;
+    border: 1px solid rgba(139, 92, 246, 0.4);
+    border-radius: 14px;
+    background: rgba(139, 92, 246, 0.12);
+    color: #fff;
+    text-decoration: none;
+    font-size: 0.88rem;
+    font-weight: 800;
+    transition:
+        transform 180ms ease,
+        background 180ms ease,
+        border-color 180ms ease;
+}
+
+.songs-spotify-info__button:hover {
+    transform: translateY(-1px);
+    background: rgba(139, 92, 246, 0.2);
+    border-color: rgba(139, 92, 246, 0.7);
+}
+
+.songs-spotify-info--connected .songs-spotify-info__button {
+    border-color: rgba(29, 185, 84, 0.38);
+    background: rgba(29, 185, 84, 0.1);
+}
+
+.songs-spotify-info--connected .songs-spotify-info__button:hover {
+    background: rgba(29, 185, 84, 0.18);
+    border-color: rgba(29, 185, 84, 0.68);
+}
+
+@media (max-width: 560px) {
+    .songs-spotify-info {
+        gap: 14px;
+        padding: 18px;
+        border-radius: 21px;
+    }
+
+    .songs-spotify-info__icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 15px;
+        font-size: 1.25rem;
+    }
+
+    .songs-spotify-info__content h2 {
+        font-size: 1.12rem;
+    }
+
+    .songs-spotify-info__content>p:not(.songs-spotify-info__eyebrow) {
+        margin-bottom: 14px;
+        font-size: 0.84rem;
+    }
+
+    .songs-spotify-info__button {
+        min-height: 40px;
+        padding: 0 14px;
+        font-size: 0.82rem;
+    }
+}

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { NavLink } from "react-router-dom";
 import LibraryTabs from "../components/LibraryTabs";
 import { useAuth } from "../context/AuthContext";
 import { getFavoriteTracks } from "../services/reviews";
@@ -314,6 +315,72 @@ function Songs() {
                 </div>
             </header>
 
+            {!spotifyConnection ? (
+                <section className="songs-spotify-info">
+                    <div className="songs-spotify-info__icon">
+                        ♫
+                    </div>
+
+                    <div className="songs-spotify-info__content">
+                        <p className="songs-spotify-info__eyebrow">
+                            PLAYLIST DE AUDITE
+                        </p>
+
+                        <h2>
+                            Lleva tus canciones favoritas a Spotify
+                        </h2>
+
+                        <p>
+                            Conecta tu cuenta desde Perfil y Audite
+                            creará automáticamente una playlist privada
+                            llamada “Audite — Mis canciones”.
+                        </p>
+
+                        <NavLink
+                            to="/profile"
+                            className="songs-spotify-info__button"
+                        >
+                            Ir a Perfil
+                            <span>→</span>
+                        </NavLink>
+                    </div>
+                </section>
+            ) : (
+                <section className="songs-spotify-info songs-spotify-info--connected">
+                    <div className="songs-spotify-info__icon">
+                        ✓
+                    </div>
+
+                    <div className="songs-spotify-info__content">
+                        <p className="songs-spotify-info__eyebrow">
+                            SPOTIFY CONECTADO
+                        </p>
+
+                        <h2>
+                            Tu playlist de Audite está lista
+                        </h2>
+
+                        <p>
+                            Pulsa el botón “+” de cualquier canción para
+                            añadirla. Cuando aparezca “✓”, ya estará
+                            sincronizada con Spotify.
+                        </p>
+
+                        {spotifyConnection.playlist_url && (
+                            <a
+                                href={spotifyConnection.playlist_url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="songs-spotify-info__button"
+                            >
+                                Abrir playlist
+                                <span>→</span>
+                            </a>
+                        )}
+                    </div>
+                </section>
+            )}
+
             <LibraryTabs />
 
             {message && (
@@ -472,8 +539,8 @@ function Songs() {
                                                 className={`songs-track-list__sync ${spotifyTrackIds.includes(
                                                     item.track?.id,
                                                 )
-                                                        ? "songs-track-list__sync--added"
-                                                        : ""
+                                                    ? "songs-track-list__sync--added"
+                                                    : ""
                                                     }`}
                                                 onClick={() =>
                                                     handleSpotifyToggle(item)
