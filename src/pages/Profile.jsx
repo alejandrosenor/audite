@@ -128,16 +128,59 @@ function Profile() {
         [profile?.total_xp],
     );
 
-    const [spotifyConnection,
-        setSpotifyConnection] =
-        useState(null);
+    const [
+        spotifyConnection,
+        setSpotifyConnection,
+    ] = useState(null);
+
+    const [
+        spotifyLoading,
+        setSpotifyLoading,
+    ] = useState(true);
 
     useEffect(() => {
+        if (!user?.id) {
+            setSpotifyConnection(null);
+            setSpotifyLoading(false);
+            return;
+        }
 
-        getSpotifyConnection()
-            .then(setSpotifyConnection);
+        let cancelled = false;
 
-    }, []);
+        async function loadSpotifyConnection() {
+            setSpotifyLoading(true);
+
+            try {
+                const connection =
+                    await getSpotifyConnection();
+
+                if (!cancelled) {
+                    setSpotifyConnection(
+                        connection,
+                    );
+                }
+            } catch (error) {
+                console.error(
+                    "No se pudo cargar la conexión con Spotify:",
+                    error,
+                );
+
+                if (!cancelled) {
+                    setSpotifyConnection(null);
+                }
+            } finally {
+                if (!cancelled) {
+                    setSpotifyLoading(false);
+                }
+            }
+        }
+
+        loadSpotifyConnection();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [user?.id]);
 
     const musicalTitle = useMemo(
         () =>
@@ -393,6 +436,54 @@ function Profile() {
         avatar_spotify_artist_url:
             selectedArtist?.spotify_url ?? null,
     };
+
+    const spotifyLastSyncText = useMemo(() => {
+        if (!spotifyConnection?.last_sync_at) {
+            return "Todavía no has sincronizado canciones";
+        }
+
+        const syncDate =
+            new Date(
+                spotifyConnection.last_sync_at,
+            );
+
+        const now = new Date();
+
+        const differenceInMinutes =
+            Math.floor(
+                (now.getTime() -
+                    syncDate.getTime()) /
+                60000,
+            );
+
+        if (differenceInMinutes < 1) {
+            return "Sincronizado ahora mismo";
+        }
+
+        if (differenceInMinutes < 60) {
+            return `Sincronizado hace ${differenceInMinutes} min`;
+        }
+
+        const differenceInHours =
+            Math.floor(
+                differenceInMinutes / 60,
+            );
+
+        if (differenceInHours < 24) {
+            return differenceInHours === 1
+                ? "Sincronizado hace 1 hora"
+                : `Sincronizado hace ${differenceInHours} horas`;
+        }
+
+        return `Última sincronización: ${new Intl.DateTimeFormat(
+            "es-ES",
+            {
+                day: "numeric",
+                month: "short",
+            },
+        ).format(syncDate)
+            }`;
+    }, [spotifyConnection?.last_sync_at]);
 
     return (
         <section className="profile-page">
@@ -1037,49 +1128,201 @@ function Profile() {
                 <b>→</b>
             </NavLink>
 
-            {spotifyConnection ? (
-                <div className="spotify-card">
-                    <div className="spotify-card__icon">
-                        <img
-                            src="/spotify-logo.svg"
-                            alt=""
-                        />
-                    </div>
-
-                    <div className="spotify-card__content">
-                        <p>SPOTIFY</p>
-
-                        <h3>Cuenta conectada</h3>
-
-                        <span>
-                            {spotifyConnection.spotify_display_name}
-                        </span>
-                    </div>
-
-                    <a
-                        href={spotifyConnection.playlist_url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="spotify-card__arrow"
-                    >
-                        →
-                    </a>
-                </div>
-            ) : (
-                <button
-                    className="spotify-connect-button"
-                    onClick={connectSpotify}
-                >
-                    <span>🎵</span>
-
+            <section className="spotify-profile-section">
+                <header className="spotify-profile-section__heading">
                     <div>
-                        <p>SPOTIFY</p>
-                        <strong>Conectar cuenta</strong>
+                        <p>INTEGRACIONES</p>
+                        <h2>Tu música conectada</h2>
                     </div>
 
-                    <b>→</b>
-                </button>
-            )}
+                    {!spotifyLoading && spotifyConnection && (
+                        <span>
+                            <i />
+                            Activa
+                        </span>
+                    )}
+                </header>
+
+                {spotifyLoading ? (
+                    <article className="spotify-premium-card spotify-premium-card--loading">
+                        <div className="spotify-premium-card__skeleton" />
+
+                        <div>
+                            <span />
+                            <span />
+                            <span />
+                        </div>
+                    </article>
+                ) : spotifyConnection ? (
+                    <article className="spotify-premium-card">
+                        <div className="spotify-premium-card__glow" />
+
+                        <header className="spotify-premium-card__header">
+                            <div className="spotify-premium-card__brand">
+                                <div className="spotify-premium-card__logo">
+                                    <svg
+                                        viewBox="0 0 64 64"
+                                        aria-hidden="true"
+                                    >
+                                        <path
+                                            d="M14 24c14-4 27-2 38 4"
+                                        />
+
+                                        <path
+                                            d="M17 34c12-3 23-1 32 4"
+                                        />
+
+                                        <path
+                                            d="M20 44c9-2 18-1 25 3"
+                                        />
+                                    </svg>
+                                </div>
+
+                                <div>
+                                    <p>SPOTIFY</p>
+
+                                    <h3>
+                                        Cuenta conectada
+                                    </h3>
+
+                                    <span>
+                                        {spotifyConnection
+                                            .spotify_display_name}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <span className="spotify-premium-card__connected">
+                                <i />
+                                Conectado
+                            </span>
+                        </header>
+
+                        <div className="spotify-premium-card__playlist">
+                            <div className="spotify-premium-card__playlist-icon">
+                                ♫
+                            </div>
+
+                            <div className="spotify-premium-card__playlist-information">
+                                <span>
+                                    TU PLAYLIST
+                                </span>
+
+                                <strong>
+                                    {spotifyConnection
+                                        .playlist_name}
+                                </strong>
+
+                                <small>
+                                    Las canciones que guardes desde
+                                    Audite aparecerán aquí
+                                    automáticamente.
+                                </small>
+                            </div>
+                        </div>
+
+                        <div className="spotify-premium-card__statistics">
+                            <article>
+                                <span>CANCIONES</span>
+
+                                <strong>
+                                    {spotifyConnection
+                                        .synced_tracks ?? 0}
+                                </strong>
+
+                                <small>
+                                    sincronizadas
+                                </small>
+                            </article>
+
+                            <article>
+                                <span>ESTADO</span>
+
+                                <strong className="spotify-premium-card__active-text">
+                                    Activa
+                                </strong>
+
+                                <small>
+                                    sincronización
+                                </small>
+                            </article>
+                        </div>
+
+                        <div className="spotify-premium-card__sync-status">
+                            <span className="spotify-premium-card__check">
+                                ✓
+                            </span>
+
+                            <div>
+                                <strong>
+                                    Todo está sincronizado
+                                </strong>
+
+                                <span>
+                                    {spotifyLastSyncText}
+                                </span>
+                            </div>
+                        </div>
+
+                        <footer className="spotify-premium-card__actions">
+                            <NavLink
+                                to="/songs"
+                                className="spotify-premium-card__manage"
+                            >
+                                Gestionar canciones
+                                <span>→</span>
+                            </NavLink>
+
+                            {spotifyConnection.playlist_url && (
+                                <a
+                                    href={
+                                        spotifyConnection
+                                            .playlist_url
+                                    }
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="spotify-premium-card__open"
+                                >
+                                    Abrir en Spotify
+                                    <span>↗</span>
+                                </a>
+                            )}
+                        </footer>
+                    </article>
+                ) : (
+                    <button
+                        type="button"
+                        className="spotify-connect-card"
+                        onClick={connectSpotify}
+                    >
+                        <div className="spotify-connect-card__logo">
+                            <svg
+                                viewBox="0 0 64 64"
+                                aria-hidden="true"
+                            >
+                                <path d="M14 24c14-4 27-2 38 4" />
+                                <path d="M17 34c12-3 23-1 32 4" />
+                                <path d="M20 44c9-2 18-1 25 3" />
+                            </svg>
+                        </div>
+
+                        <div className="spotify-connect-card__content">
+                            <p>SPOTIFY</p>
+
+                            <h3>
+                                Conecta tu cuenta
+                            </h3>
+
+                            <span>
+                                Crea tu playlist de Audite y
+                                sincroniza tus canciones favoritas.
+                            </span>
+                        </div>
+
+                        <b>→</b>
+                    </button>
+                )}
+            </section>
 
             <button
                 type="button"

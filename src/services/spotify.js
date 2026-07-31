@@ -129,23 +129,89 @@ export async function completeSpotifyLogin(code) {
 }
 
 export async function getSpotifyConnection() {
+    const {
+        data: { user },
+        error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError) {
+        throw userError;
+    }
+
+    if (!user) {
+        return null;
+    }
 
     const {
-        data,
-        error,
+        data: connection,
+        error: connectionError,
     } = await supabase
         .from("spotify_connections")
         .select(`
+            spotify_user_id,
             spotify_display_name,
-            playlist_url
+            playlist_id,
+            playlist_url,
+            connected_at,
+            updated_at,
+            expires_at
         `)
+        .eq("user_id", user.id)
         .maybeSingle();
 
-    if (error) {
-        throw error;
+    if (connectionError) {
+        throw connectionError;
     }
 
-    return data;
+    if (!connection) {
+        return null;
+    }
+
+    const [
+        trackCountResult,
+        lastTrackResult,
+    ] = await Promise.all([
+        supabase
+            .from("spotify_playlist_tracks")
+            .select("id", {
+                count: "exact",
+                head: true,
+            })
+            .eq("user_id", user.id),
+
+        supabase
+            .from("spotify_playlist_tracks")
+            .select("created_at")
+            .eq("user_id", user.id)
+            .order("created_at", {
+                ascending: false,
+            })
+            .limit(1)
+            .maybeSingle(),
+    ]);
+
+    if (trackCountResult.error) {
+        throw trackCountResult.error;
+    }
+
+    if (lastTrackResult.error) {
+        throw lastTrackResult.error;
+    }
+
+    return {
+        ...connection,
+
+        playlist_name:
+            "Audite — Mis canciones",
+
+        synced_tracks:
+            trackCountResult.count ?? 0,
+
+        last_sync_at:
+            lastTrackResult.data?.created_at ??
+            connection.updated_at ??
+            connection.connected_at,
+    };
 }
 
 export async function getSpotifyPlaylistTrackIds() {
